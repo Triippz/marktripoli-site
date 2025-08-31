@@ -281,8 +281,8 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
         });
 
         map.current.on('zoom', () => {
-          console.log('[MapboxGlobe] ✅ ZOOMING');
-        });
+          // console.log('[MapboxGlobe] ✅ ZOOMING');
+    });
 
         map.current.on('rotatestart', () => {
           // console.log('[MapboxGlobe] ✅ ROTATE STARTED');

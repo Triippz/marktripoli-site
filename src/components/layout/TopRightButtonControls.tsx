@@ -12,7 +12,7 @@ export default function TopRightButtonControls({ soundEnabled, toggleSound, onCo
     <motion.div
       style={{
         position: 'fixed',
-        top: '1rem',
+        top: '4rem',
         right: '1rem',
         zIndex: 50,
         pointerEvents: 'auto',

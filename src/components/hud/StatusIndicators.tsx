@@ -1,22 +1,31 @@
 export default function StatusIndicators() {
   return (
-    <div className="floating-card p-3">
-      <div className="flex flex-col space-y-2 text-xs font-mono text-white">
-        <div className="flex items-center justify-between min-w-[120px]">
-          <span>STATUS:</span>
-          <div className="flex items-center">
-            <div className="status-dot active mr-1" />
-            <span className="text-green-400">OPERATIONAL</span>
+    <div className="tactical-panel relative overflow-hidden px-8 py-4">
+      {/* Animated scan line */}
+      <div className="animate-scan-line absolute top-0 left-0 right-0 h-full opacity-30" />
+      
+      {/* Main content centered */}
+      <div className="relative z-10 flex justify-center items-center">
+        <div className="flex items-center" style={{gap: '8rem'}}>
+          {/* STATUS indicator */}
+          <div className="flex items-center" style={{gap: '2rem'}}>
+            <span className="holo-text text-sm font-bold tracking-wider">STATUS:</span>
+            <div className="status-dot active" />
           </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <span>LINK:</span>
-          <div className="flex items-center">
-            <div className="status-dot active mr-1" />
-            <span className="text-green-400">SECURE</span>
+          
+          {/* Separator */}
+          <div className="w-px h-6 bg-green-500/30" />
+          
+          {/* LINK indicator */}
+          <div className="flex items-center" style={{gap: '2rem'}}>
+            <span className="holo-text text-sm font-bold tracking-wider">LINK:</span>
+            <div className="status-dot active" />
           </div>
         </div>
       </div>
+      
+      {/* Bottom border glow */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-60" />
     </div>
   );
 }

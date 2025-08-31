@@ -98,15 +98,18 @@ function MissionControlInterface() {
       {/* Live Telemetry */}
       <LiveTelemetry telemetryLogs={telemetryLogs} />
 
-      {/* Status Indicators - Bottom Left */}
-      <div className="fixed bottom-4 left-4 z-50 pointer-events-auto">
-        <motion.div
-          initial={{ x: -50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.9 }}
-        >
-          <StatusIndicators />
-        </motion.div>
+      {/* Status Indicators - Top Header */}
+      <div 
+        style={{
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          right: '0',
+          zIndex: 60,
+          pointerEvents: 'auto'
+        }}
+      >
+        <StatusIndicators />
       </div>
 
       {/* Tactical Status Bar */}
