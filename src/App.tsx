@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useMissionControl } from './store/missionControl';
 import ErrorBoundary from './components/ErrorBoundary';
-import { InitializingLoader, TacticalLoader } from './components/LoadingSpinner';
+import { InitializingLoader } from './components/LoadingSpinner';
 import { AccessibilityProvider, AccessibilityStyles } from './components/AccessibilityProvider';
 import { SkipNavigation, SkipTarget } from './components/SkipNavigation';
 import MapboxGlobe from './components/MapboxGlobe';
@@ -12,7 +12,7 @@ import './App.css';
 import './styles/tactical-enhancements.css';
 
 // Lazy load components for better performance
-const MapboxScene = lazy(() => import('./components/map/MapboxScene'));
+// const MapboxScene = lazy(() => import('./components/map/MapboxScene'));
 const Terminal = lazy(() => import('./components/terminal/Terminal'));
 const ExecutiveBriefing = lazy(() => import('./components/briefing/ExecutiveBriefing'));
 const AchievementSystem = lazy(() => import('./components/gamification/AchievementSystem'));
@@ -140,98 +140,101 @@ function MissionControlHUD({ onContactClick }: { onContactClick?: () => void }) 
   const { userRank, telemetryLogs, soundEnabled, toggleSound } = useMissionControl();
 
   return (
-    <motion.div 
-      className="fixed top-4 left-4 right-4 z-40 pointer-events-none"
-      initial={{ y: -50, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ delay: 0.5 }}
-    >
-      <div className="flex justify-between items-start gap-4">
-        {/* Left HUD */}
-        <motion.div 
-          className="floating-card-glow p-4 max-w-sm pointer-events-auto"
-          initial={{ x: -50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.7 }}
-        >
-          <div className="holo-text text-sm font-mono mb-3 flex items-center">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2" />
-            MISSION CONTROL HUD
-          </div>
-          <div className="text-white text-xs font-mono space-y-2">
-            <div className="flex justify-between">
-              <span>RANK:</span>
-              <span className="text-green-400">{userRank.badge} {userRank.title}</span>
+    <>
+      {/* Top bar wrapper (left status + telemetry) */}
+      <motion.div 
+        className="fixed top-4 left-4 right-4 z-40 pointer-events-none"
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        <div className="flex justify-between items-start gap-4">
+          {/* Left HUD */}
+          <motion.div 
+            className="floating-card-glow p-4 max-w-sm pointer-events-auto"
+            initial={{ x: -50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.7 }}
+          >
+            <div className="holo-text text-sm font-mono mb-3 flex items-center">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2" />
+              MISSION CONTROL HUD
             </div>
-            <div className="flex justify-between items-center">
-              <span>STATUS:</span>
-              <div className="flex items-center">
-                <div className="status-dot active mr-1" />
-                <span className="text-green-400">OPERATIONAL</span>
+            <div className="text-white text-xs font-mono space-y-2">
+              <div className="flex justify-between">
+                <span>RANK:</span>
+                <span className="text-green-400">{userRank.badge} {userRank.title}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>STATUS:</span>
+                <div className="flex items-center">
+                  <div className="status-dot active mr-1" />
+                  <span className="text-green-400">OPERATIONAL</span>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>LINK:</span>
+                <div className="flex items-center">
+                  <div className="status-dot active mr-1" />
+                  <span className="text-green-400">SECURE</span>
+                </div>
               </div>
             </div>
-            <div className="flex justify-between items-center">
-              <span>LINK:</span>
-              <div className="flex items-center">
-                <div className="status-dot active mr-1" />
-                <span className="text-green-400">SECURE</span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
-        {/* Right Controls */}
+        {/* Telemetry Ticker */}
         <motion.div 
-          className="floating-card p-4 pointer-events-auto"
-          initial={{ x: 50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.8 }}
+          className="mt-4 floating-card p-4 overflow-hidden pointer-events-auto"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.9 }}
         >
-          <div className="flex space-x-2">
-            <button 
-              className="tactical-button text-xs px-3 py-2"
-              onClick={toggleSound}
-            >
-              AUDIO: {soundEnabled ? 'ON' : 'OFF'}
-            </button>
-            <button 
-              className="tactical-button text-xs px-3 py-2"
-              onClick={() => window.location.pathname === '/briefing' ? window.location.href = '/' : window.location.href = '/briefing'}
-            >
-              {window.location.pathname === '/briefing' ? 'MAP VIEW' : 'EXEC BRIEF'}
-            </button>
-            {onContactClick && (
-              <button 
-                className="tactical-button text-xs px-3 py-2"
-                onClick={onContactClick}
-              >
-                CONTACT
-              </button>
+          <div className="flex items-center mb-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2" />
+            <span className="text-green-400 font-mono text-xs uppercase">Live Telemetry</span>
+          </div>
+          <div className="matrix-text text-xs">
+            {telemetryLogs.slice(-1)[0] ? (
+              `[${new Date().toLocaleTimeString()}] ${telemetryLogs.slice(-1)[0].message}`
+            ) : (
+              '[STANDBY] Awaiting mission parameters...'
             )}
           </div>
         </motion.div>
-      </div>
+      </motion.div>
 
-      {/* Telemetry Ticker */}
-      <motion.div 
-        className="mt-4 floating-card p-4 overflow-hidden pointer-events-auto"
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.9 }}
+      {/* Top-right controls - properly positioned */}
+      <motion.div
+        className="fixed top-4 right-4 z-50 pointer-events-auto"
+        initial={{ x: 50, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ delay: 0.6 }}
       >
-        <div className="flex items-center mb-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2" />
-          <span className="text-green-400 font-mono text-xs uppercase">Live Telemetry</span>
-        </div>
-        <div className="matrix-text text-xs">
-          {telemetryLogs.slice(-1)[0] ? (
-            `[${new Date().toLocaleTimeString()}] ${telemetryLogs.slice(-1)[0].message}`
-          ) : (
-            '[STANDBY] Awaiting mission parameters...'
+        <div className="flex items-center justify-end space-x-2">
+          <button 
+            className="tactical-button text-xs px-3 py-2 min-h-[44px]"
+            onClick={toggleSound}
+          >
+            AUDIO: {soundEnabled ? 'ON' : 'OFF'}
+          </button>
+          <button 
+            className="tactical-button text-xs px-3 py-2 min-h-[44px]"
+            onClick={() => window.location.pathname === '/briefing' ? window.location.href = '/' : window.location.href = '/briefing'}
+          >
+            {window.location.pathname === '/briefing' ? 'MAP VIEW' : 'EXEC BRIEF'}
+          </button>
+          {onContactClick && (
+            <button 
+              className="tactical-button text-xs px-3 py-2 min-h-[44px]"
+              onClick={onContactClick}
+            >
+              CONTACT
+            </button>
           )}
         </div>
       </motion.div>
-    </motion.div>
+    </>
   );
 }
 

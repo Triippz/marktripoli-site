@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 
 interface MapboxGlobeProps {
@@ -14,12 +14,14 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
   const [mapReady, setMapReady] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const animationFrameRef = useRef<number>();
-  const hasUserInteractedRef = useRef(false);
   // Track transition targets and timing to validate completion
   const targetZoomRef = useRef<number | null>(null);
   const targetCenterRef = useRef<mapboxgl.LngLatLike | null>(null);
   const transitionStartRef = useRef<number | null>(null);
+  // Track timers for cleanup
+  const timerRefs = useRef<NodeJS.Timeout[]>([]);
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -256,8 +258,8 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
         // Add comprehensive event debugging
         map.current.on('dragstart', () => {
           console.log('[MapboxGlobe] ✅ DRAG STARTED - User is dragging');
-          if (isInteractive && !hasUserInteractedRef.current) {
-            hasUserInteractedRef.current = true;
+          if (isInteractive && !hasUserInteracted) {
+            setHasUserInteracted(true);
             onUserInteraction?.();
           }
         });
@@ -272,8 +274,8 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
 
         map.current.on('zoomstart', () => {
           console.log('[MapboxGlobe] ✅ ZOOM STARTED');
-          if (isInteractive && !hasUserInteractedRef.current) {
-            hasUserInteractedRef.current = true;
+          if (isInteractive && !hasUserInteracted) {
+            setHasUserInteracted(true);
             onUserInteraction?.();
           }
         });
@@ -284,8 +286,8 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
 
         map.current.on('rotatestart', () => {
           // console.log('[MapboxGlobe] ✅ ROTATE STARTED');
-          if (isInteractive && !hasUserInteractedRef.current) {
-            hasUserInteractedRef.current = true;
+          if (isInteractive && !hasUserInteracted) {
+            setHasUserInteracted(true);
             onUserInteraction?.();
           }
         });
@@ -297,8 +299,8 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
         // Add mouse event debugging on the canvas
         map.current.on('mousedown', (e) => {
           console.log('[MapboxGlobe] 🖱️ MOUSEDOWN at:', e.lngLat, 'Interactive:', isInteractive);
-          if (isInteractive && !hasUserInteractedRef.current) {
-            hasUserInteractedRef.current = true;
+          if (isInteractive && !hasUserInteracted) {
+            setHasUserInteracted(true);
             onUserInteraction?.();
           }
         });
@@ -331,56 +333,40 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
 
     // Cleanup function
     return () => {
+      // Cancel any pending animation frames
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = undefined;
       }
+      
+      // Clear all pending timers
+      timerRefs.current.forEach(timer => {
+        if (timer) clearTimeout(timer);
+      });
+      timerRefs.current = [];
+      
+      // Remove all event listeners before removing map
       if (map.current) {
+        // Remove all custom event listeners that might be attached
+        map.current.off('idle');
+        map.current.off('moveend');
+        map.current.off('dragstart');
+        map.current.off('zoomstart');
+        map.current.off('rotatestart');
+        map.current.off('mousedown');
+        map.current.off('click');
+        map.current.off('mouseenter');
+        map.current.off('mouseleave');
+        
+        // Remove the map instance
         map.current.remove();
         map.current = null;
       }
     };
   }, []);
 
-  // Effect to handle interactive mode transition
-  useEffect(() => {
-    console.log('[MapboxGlobe] 🎯 Interactive transition useEffect triggered:', {
-      interactive,
-      mapReady,
-      isInteractive,
-      isTransitioning
-    });
-    
-    if (interactive && mapReady && !isInteractive && !isTransitioning) {
-      console.log('[MapboxGlobe] ✅ All conditions met - calling transitionToInteractive()');
-      transitionToInteractive();
-    } else {
-      console.log('[MapboxGlobe] ❌ Conditions not met for transition:', {
-        'interactive prop': interactive,
-        'map ready': mapReady,
-        'not already interactive': !isInteractive,
-        'not transitioning': !isTransitioning
-      });
-    }
-  }, [interactive, mapReady, isInteractive, isTransitioning]);
-
-  // Effect to manage rotation animation based on interactive state
-  useEffect(() => {
-    if (mapReady) {
-      if (isInteractive || isTransitioning) {
-        // Stop rotation when interactive or transitioning
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current);
-          animationFrameRef.current = undefined;
-          console.log('[MapboxGlobe] Rotation stopped via effect');
-        }
-      } else {
-        // Start rotation only if not interactive and not transitioning
-        startRotation();
-      }
-    }
-  }, [isInteractive, isTransitioning, mapReady]);
-
-  const transitionToInteractive = () => {
+  // Define callback functions before useEffects that reference them
+  const transitionToInteractive = useCallback(() => {
     if (!map.current || isTransitioning) return;
 
     console.log('[MapboxGlobe] Starting transition to interactive mode');
@@ -425,7 +411,7 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
       
       // If the map did not start moving (reduced motion or internal short-circuit),
       // trigger a fallback easeTo after a short check.
-      setTimeout(() => {
+      const fallbackTimer1 = setTimeout(() => {
         try {
           if (!map.current) return;
           const moving = map.current.isMoving() || map.current.isZooming();
@@ -443,7 +429,7 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
             } as any);
 
             // Secondary guard: if still not moving shortly after, perform manual camera animation
-            setTimeout(() => {
+            const fallbackTimer2 = setTimeout(() => {
               try {
                 if (!map.current) return;
                 const stillNotMoving = !(map.current.isMoving() || map.current.isZooming());
@@ -480,11 +466,13 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
                 console.warn('[MapboxGlobe] Manual animation fallback failed:', e);
               }
             }, 250);
+            timerRefs.current.push(fallbackTimer2);
           }
         } catch (e) {
           console.warn('[MapboxGlobe] Fallback easeTo failed:', e);
         }
       }, 150);
+      timerRefs.current.push(fallbackTimer1);
       
     } catch (error) {
       console.error('[MapboxGlobe] ❌ flyTo command failed:', error);
@@ -492,9 +480,12 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
 
     // Progress logging disabled (was noisy)
 
-    // Use robust completion detection (idle/moveend + target reached)
+    // Simplified completion detection using idle event with fallback timeout
+    let transitionCompleted = false;
+    
     const enableInteractions = () => {
-      if (!map.current) return;
+      if (!map.current || transitionCompleted) return;
+      transitionCompleted = true;
       
       console.log('[MapboxGlobe] Enabling interactive controls');
       
@@ -512,7 +503,7 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
       const canvas = map.current.getCanvas();
       if (canvas) {
         canvas.focus();
-        canvas.tabIndex = 0; // Make it focusable
+        canvas.tabIndex = 0;
         console.log('[MapboxGlobe] Map canvas focused and made focusable');
       }
       
@@ -529,63 +520,50 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
         onTransitionComplete();
       }
       
-      // Remove completion listeners if present
-      if (map.current && idleHandler) {
+      // Clean up event listener
+      if (map.current) {
         map.current.off('idle', idleHandler);
-      }
-      if (map.current && moveEndHandler) {
-        map.current.off('moveend', moveEndHandler);
       }
     };
 
-    // Listen for completion using 'idle' (fires when map stops all transitions)
-    const idleHandler = (_e) => {
-
-      // Validate we actually reached the intended camera
+    // Primary completion detection: use idle event with target validation
+    const idleHandler = () => {
+      if (!map.current || transitionCompleted) return;
+      
       try {
-        if (!map.current) return;
         const currentZoom = map.current.getZoom();
         const currentCenter = map.current.getCenter();
         const targetZoom = targetZoomRef.current ?? currentZoom;
         const targetCenter = targetCenterRef.current ?? currentCenter;
 
-        const zoomOk = Math.abs(currentZoom - targetZoom) < 0.05;
-        const lngOk = Math.abs(currentCenter.lng - (Array.isArray(targetCenter) ? targetCenter[0] : (targetCenter as any).lng)) < 0.5;
-        const latOk = Math.abs(currentCenter.lat - (Array.isArray(targetCenter) ? targetCenter[1] : (targetCenter as any).lat)) < 0.5;
-        const timeOk = transitionStartRef.current ? Date.now() - transitionStartRef.current > 1000 : true; // ensure at least 1s for UX
+        const zoomOk = Math.abs(currentZoom - targetZoom) < 0.1;
+        const lngOk = Math.abs(currentCenter.lng - (Array.isArray(targetCenter) ? targetCenter[0] : (targetCenter as any).lng)) < 1.0;
+        const latOk = Math.abs(currentCenter.lat - (Array.isArray(targetCenter) ? targetCenter[1] : (targetCenter as any).lat)) < 1.0;
+        const timeOk = transitionStartRef.current ? Date.now() - transitionStartRef.current > 1500 : true;
 
         if (zoomOk && lngOk && latOk && timeOk) {
+          console.log('[MapboxGlobe] ✅ Transition completed via idle event');
           enableInteractions();
         }
       } catch (err) {
-        console.warn('[MapboxGlobe] Idle validation failed; relying on duration fallback:', err);
+        console.warn('[MapboxGlobe] Idle validation failed:', err);
       }
     };
 
     map.current.on('idle', idleHandler);
     console.log('[MapboxGlobe] 👂 Added idle event listener');
 
-    // Removed moveend listener to avoid noisy repeated logs and premature triggers
-    
-    // Primary completion by duration: enable right after planned flight duration
-    const PLANNED_MS = 4500;
-    setTimeout(() => {
-      if (isTransitioning) {
-        console.log('[MapboxGlobe] ⏲️ Duration reached; enabling interactions');
-        enableInteractions();
-      }
-    }, PLANNED_MS + 150);
-
-    // Fallback timeout in case neither idle nor duration path fired
-    setTimeout(() => {
-      if (isTransitioning) {
-        console.log('[MapboxGlobe] Fallback: Enabling controls via timeout');
+    // Single fallback timeout to ensure completion
+    const fallbackTimer3 = setTimeout(() => {
+      if (!transitionCompleted) {
+        console.log('[MapboxGlobe] ⏰ Fallback timeout: forcing transition completion');
         enableInteractions();
       }
     }, 6000);
-  };
+    timerRefs.current.push(fallbackTimer3);
+  }, [isTransitioning, onTransitionComplete]);
 
-  const startRotation = () => {
+  const startRotation = useCallback(() => {
     if (!map.current || isInteractive || isTransitioning) {
       console.log('[MapboxGlobe] Rotation blocked - Interactive:', isInteractive, 'Transitioning:', isTransitioning);
       return;
@@ -614,7 +592,55 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
     };
 
     animate();
-  };
+  }, [isInteractive, isTransitioning]);
+
+  // Effect to handle interactive mode transition
+  useEffect(() => {
+    console.log('[MapboxGlobe] 🎯 Interactive transition useEffect triggered:', {
+      interactive,
+      mapReady,
+      isInteractive,
+      isTransitioning
+    });
+    
+    if (interactive && mapReady && !isInteractive && !isTransitioning) {
+      console.log('[MapboxGlobe] ✅ All conditions met - calling transitionToInteractive()');
+      transitionToInteractive();
+    } else {
+      console.log('[MapboxGlobe] ❌ Conditions not met for transition:', {
+        'interactive prop': interactive,
+        'map ready': mapReady,
+        'not already interactive': !isInteractive,
+        'not transitioning': !isTransitioning
+      });
+    }
+  }, [interactive, mapReady, isInteractive, isTransitioning]);
+
+  // Effect to manage rotation animation based on interactive state
+  useEffect(() => {
+    if (mapReady) {
+      if (isInteractive || isTransitioning) {
+        // Stop rotation when interactive or transitioning
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = undefined;
+          console.log('[MapboxGlobe] Rotation stopped via effect');
+        }
+      } else {
+        // Start rotation only if not interactive and not transitioning
+        startRotation();
+      }
+    }
+    
+    // Cleanup: stop any ongoing rotation animation
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = undefined;
+      }
+    };
+  }, [isInteractive, isTransitioning, mapReady]);
+
 
   return (
     <div 
