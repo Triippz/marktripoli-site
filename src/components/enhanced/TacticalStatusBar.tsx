@@ -24,7 +24,7 @@ export default function TacticalStatusBar({ className = '' }: TacticalStatusBarP
 
   return (
     <motion.div 
-      className={`bg-black/90 border-t border-green-500/30 p-4 font-mono text-xs ${className}`}
+      className={`fixed bottom-0 left-0 bg-black/90 border-t border-green-500/30 p-4 font-mono text-xs z-40 ${className}`}
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.8 }}
