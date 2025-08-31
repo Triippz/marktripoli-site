@@ -1,0 +1,238 @@
+[
+  {
+    "id": "picogrid",
+    "type": "job",
+    "name": "Picogrid",
+    "codename": "OPERATION NEXUS",
+    "hq": { "lat": 34.0901, "lng": -118.4065 },
+    "period": { "start": "2023-05", "end": "2024-09" },
+    "briefing": "Led redesign of data integration layer and command-and-control modules for edge computing platform.",
+    "deploymentLogs": [
+      "Architected multi-tenant integration layer supporting IL-5/IL-6 compliance",
+      "Built event-driven pipelines with NATS JetStream for reliable message delivery",
+      "Drove security controls alignment with FedRAMP and RMF requirements",
+      "Optimized data processing throughput by 300% through strategic caching layer"
+    ],
+    "afterAction": [
+      "Learned valuable lessons on modular monolith vs microservices trade-offs",
+      "Mastered NATS JetStream patterns for durability and exactly-once delivery",
+      "Developed expertise in IL-5/IL-6 compliance and secure multi-tenancy"
+    ],
+    "engagementType": "integration-matrix",
+    "media": [
+      {
+        "type": "image",
+        "url": "/images/picogrid-architecture.jpg",
+        "caption": "System architecture diagram"
+      }
+    ],
+    "links": [
+      {
+        "label": "Picogrid Platform",
+        "url": "https://picogrid.com",
+        "type": "demo"
+      }
+    ]
+  },
+  {
+    "id": "hubspot",
+    "type": "job", 
+    "name": "HubSpot",
+    "codename": "OPERATION GROWTH",
+    "hq": { "lat": 42.3601, "lng": -71.0589 },
+    "period": { "start": "2021-08", "end": "2023-05" },
+    "briefing": "Built developer platform infrastructure and integration frameworks supporting millions of API calls daily.",
+    "deploymentLogs": [
+      "Designed and shipped developer platform serving 100K+ developers",
+      "Built integration framework handling 50M+ API calls per day",
+      "Led platform reliability initiatives achieving 99.9% uptime",
+      "Mentored team of 8 engineers across platform and infrastructure"
+    ],
+    "afterAction": [
+      "Gained deep expertise in large-scale platform engineering",
+      "Learned to balance developer experience with operational excellence",
+      "Mastered techniques for zero-downtime platform migrations"
+    ],
+    "engagementType": "build-pipeline",
+    "links": [
+      {
+        "label": "HubSpot Developers",
+        "url": "https://developers.hubspot.com",
+        "type": "demo"
+      }
+    ]
+  },
+  {
+    "id": "amtrak",
+    "type": "job",
+    "name": "Amtrak",
+    "codename": "OPERATION RAIL RUNNER",
+    "hq": { "lat": 38.8977, "lng": -77.0365 },
+    "period": { "start": "2019-03", "end": "2021-08" },
+    "briefing": "Led IT infrastructure modernization for national passenger rail operations, focusing on legacy system integration and customer experience enhancement.",
+    "deploymentLogs": [
+      "Modernized ticketing systems across 500+ stations nationwide",
+      "Implemented mobile-first customer experience platform",
+      "Led cross-functional teams for digital transformation initiatives",
+      "Optimized route planning algorithms for improved on-time performance"
+    ],
+    "afterAction": [
+      "Gained expertise in large-scale legacy system modernization",
+      "Learned transportation industry regulations and compliance requirements",
+      "Mastered techniques for maintaining service continuity during upgrades"
+    ],
+    "engagementType": "infrastructure-upgrade",
+    "links": [
+      {
+        "label": "Amtrak Mobile App",
+        "url": "https://www.amtrak.com/mobile",
+        "type": "demo"
+      }
+    ]
+  },
+  {
+    "id": "marines",
+    "type": "job",
+    "name": "U.S. Marine Corps",
+    "codename": "OPERATION SEMPER FI",
+    "hq": { "lat": 34.6834, "lng": -77.3464 },
+    "period": { "start": "2009-06", "end": "2013-08" },
+    "briefing": "Intelligence Analyst with SECRET clearance, specializing in CBRN threat assessment and Marine Expeditionary Unit operations support.",
+    "deploymentLogs": [
+      "Conducted intelligence analysis for MEU deployment operations",
+      "Maintained and operated classified communications systems",
+      "Trained junior analysts on intelligence gathering protocols",
+      "Supported CBRN threat assessment and response planning"
+    ],
+    "afterAction": [
+      "Developed exceptional attention to detail and operational discipline",
+      "Gained experience with high-stakes decision making under pressure",
+      "Learned leadership principles and team development strategies"
+    ],
+    "engagementType": "intelligence-analysis",
+    "links": [
+      {
+        "label": "Marine Corps Intelligence",
+        "url": "https://www.marines.mil/Portals/1/Publications/MCIP%203-20.01.pdf",
+        "type": "reference"
+      }
+    ]
+  },
+  {
+    "id": "comcast",
+    "type": "job",
+    "name": "Comcast Business",
+    "codename": "OPERATION BROADBAND",
+    "hq": { "lat": 39.9526, "lng": -75.1652 },
+    "period": { "start": "2017-01", "end": "2019-03" },
+    "briefing": "Senior Network Engineer responsible for enterprise-grade telecommunications infrastructure and SD-WAN solutions for Fortune 500 clients.",
+    "deploymentLogs": [
+      "Designed and deployed SD-WAN solutions for enterprise clients",
+      "Optimized network performance for mission-critical applications",
+      "Led technical integration projects for major corporate acquisitions",
+      "Managed 24/7 network operations center for business customers"
+    ],
+    "afterAction": [
+      "Mastered enterprise networking and telecommunications protocols",
+      "Gained experience with large-scale network optimization projects",
+      "Developed expertise in customer-facing technical solutions"
+    ],
+    "engagementType": "network-optimization",
+    "links": [
+      {
+        "label": "Comcast Business Solutions",
+        "url": "https://business.comcast.com",
+        "type": "demo"
+      }
+    ]
+  },
+  {
+    "id": "k9",
+    "type": "hobby",
+    "name": "K9 Unit",
+    "codename": "COMPANION ASSET",
+    "hq": { "lat": 34.05, "lng": -118.25 },
+    "briefing": "High-value companion asset specializing in morale operations and advanced fetch protocols.",
+    "deploymentLogs": [
+      "Asset successfully deployed for daily morale boost missions",
+      "Mastered ball retrieval with 99.8% success rate",
+      "Implemented advanced squirrel surveillance protocols",
+      "Established secure perimeter around food bowl"
+    ],
+    "icon": "🐕",
+    "media": [
+      {
+        "type": "image", 
+        "url": "/images/dog-companion.jpg",
+        "caption": "K9 asset on patrol"
+      }
+    ]
+  },
+  {
+    "id": "hiking",
+    "type": "hobby",
+    "name": "Trail Reconnaissance", 
+    "codename": "OPERATION SUMMIT",
+    "hq": { "lat": 34.2, "lng": -118.3 },
+    "briefing": "High-altitude reconnaissance missions throughout California mountain ranges.",
+    "deploymentLogs": [
+      "Completed reconnaissance of 50+ trail objectives",
+      "Altitude operations up to 14,000 feet successfully executed",
+      "Established supply caches at strategic waypoints",
+      "Documented terrain features and route intelligence"
+    ],
+    "icon": "🥾"
+  },
+  {
+    "id": "electronics",
+    "type": "hobby",
+    "name": "Electronics Lab",
+    "codename": "OPERATION TINKER",
+    "hq": { "lat": 34.1, "lng": -118.2 },
+    "briefing": "Advanced prototyping and reverse engineering laboratory for embedded systems research.",
+    "deploymentLogs": [
+      "Established secure electronics laboratory facility",
+      "Completed 15+ embedded systems prototypes", 
+      "Mastered PCB design and SMT soldering techniques",
+      "Built custom IoT monitoring solutions"
+    ],
+    "icon": "⚡",
+    "links": [
+      {
+        "label": "Project Gallery",
+        "url": "/projects/electronics",
+        "type": "other"
+      }
+    ]
+  },
+  {
+    "id": "gaming",
+    "type": "hobby",
+    "name": "Gaming Operations",
+    "codename": "OPERATION CONTROLLER",
+    "hq": { "lat": 34.05, "lng": -118.2 },
+    "briefing": "Strategic gaming operations focused on tactical thinking, problem-solving, and stress management through interactive entertainment systems.",
+    "deploymentLogs": [
+      "Achieved global elite rank in Counter-Strike competitive play",
+      "Completed civilization victory in multiple strategy games",
+      "Maintained 99% mission success rate in cooperative campaigns",
+      "Developed advanced coordination skills through team-based operations"
+    ],
+    "icon": "🎮"
+  },
+  {
+    "id": "aliens",
+    "type": "hobby",
+    "name": "CLASSIFIED",
+    "codename": "PROJECT BLUE BOOK",
+    "hq": { "lat": 51.4769, "lng": -0.4613 },
+    "briefing": "[REDACTED] Ongoing investigation into unidentified aerial phenomena and potential extraterrestrial contact protocols.",
+    "deploymentLogs": [
+      "[CLASSIFIED] Signal analysis of unknown origin",
+      "[CLASSIFIED] Pattern recognition in atmospheric disturbances", 
+      "[CLASSIFIED] Preparation of first contact protocols",
+      "[CLASSIFIED] Truth is out there"
+    ],
+    "icon": "🛸"
+  }
+]

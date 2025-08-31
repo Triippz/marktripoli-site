@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mapbox GL CSS - imported globally like orion-better */
+@import 'mapbox-gl/dist/mapbox-gl.css';
+
+/* Mission Control Base Styles */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #000000;
+    color: #ffffff;
+    height: 100%;
+    width: 100%;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    min-height: 100vh;
+    background-color: #000000;
+    color: #ffffff;
+    overflow-x: hidden;
+    overflow-y: hidden;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #111111;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #00ff00;
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 0, 0.8);
+  }
+}
+
+/* Mission Control Components */
+@layer components {
+  .mc-terminal {
+    background-color: #111111;
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    border-radius: 0.5rem;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+  }
+  
+  .mc-glow {
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .mc-glow:hover {
+    box-shadow: 0 0 40px rgba(0, 255, 0, 0.5);
+  }
+  
+  .mc-button {
+    background-color: transparent;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s, color 0.2s;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .mc-button:hover {
+    background-color: #00ff00;
+    color: #000000;
+  }
+  
+  .mc-text-glow {
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+  }
+
+  /* Floating Card Styles */
+  .floating-card {
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 255, 0, 0.2);
+    border-radius: 12px;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.6),
+      0 0 0 1px rgba(0, 255, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .floating-card-glow {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    border-radius: 12px;
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.7),
+      0 0 20px rgba(0, 255, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .tactical-glass {
+    background: rgba(17, 17, 17, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 255, 0, 0.25);
+    border-radius: 8px;
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(0, 255, 0, 0.1);
+  }
+
+  .mission-panel {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(17, 17, 17, 0.8) 100%);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    border-radius: 16px;
+    box-shadow: 
+      0 16px 48px rgba(0, 0, 0, 0.8),
+      0 0 0 1px rgba(0, 255, 0, 0.2),
+      inset 0 2px 0 rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Animations */
+@layer utilities {
+  .animate-scan-line {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(0, 255, 0, 0.2) 50%,
+      transparent 100%
+    );
+    animation: scanLine 2s linear infinite;
+  }
+  
+  @keyframes scanLine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  
+  .typewriter-cursor::after {
+    content: '█';
+    color: #00ff00;
+    animation: blink 1s infinite;
+  }
+  
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
