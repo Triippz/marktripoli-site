@@ -8,7 +8,7 @@ interface MissionHUDProps {
 export default function MissionHUD({ userRank }: MissionHUDProps) {
   return (
     <motion.div 
-      className="floating-card-glow p-4 max-w-sm"
+      className="floating-card-glow max-w-sm"
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.5 }}

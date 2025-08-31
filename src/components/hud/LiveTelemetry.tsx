@@ -8,7 +8,7 @@ interface LiveTelemetryProps {
 export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
   return (
     <motion.div 
-      className="floating-card p-4 overflow-hidden"
+      className="floating-card overflow-hidden"
       style={{ 
         position: 'fixed', 
         bottom: '1rem', 
