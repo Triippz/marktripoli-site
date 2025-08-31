@@ -19,8 +19,8 @@ export default function MissionHUD({ userRank }: MissionHUDProps) {
       </div>
       <div className="text-white text-xs font-mono space-y-2">
         <div className="flex justify-between">
-          <span>RANK:</span>
-          <span className="text-green-400">{userRank.badge} {userRank.title}</span>
+          <span>USER:</span>
+          <span className="text-green-400">{userRank.username || `${userRank.badge} ${userRank.title}`}</span>
         </div>
       </div>
     </motion.div>

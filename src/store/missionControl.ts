@@ -52,7 +52,7 @@ export const useMissionControl = create<MissionControlState>((set, get) => ({
   telemetryLogs: [],
   visitedSites: JSON.parse(localStorage.getItem('mc-visited') || '[]'),
   unlockedEasterEggs: JSON.parse(localStorage.getItem('mc-easter-eggs') || '[]'),
-  userRank: { level: 1, title: 'Analyst', badge: '★' },
+  userRank: { level: 1, title: 'Analyst', badge: '★', username: 'coffee_addict_3000' },
   soundEnabled: JSON.parse(localStorage.getItem('mc-sound') || 'false'),
   hudVisible: true,
   
@@ -103,9 +103,9 @@ export const useMissionControl = create<MissionControlState>((set, get) => ({
       localStorage.setItem('mc-visited', JSON.stringify(newVisited));
       
       const newRank = newVisited.length > 3 
-        ? { level: 2, title: 'Operator', badge: '★★' }
+        ? { level: 2, title: 'Operator', badge: '★★', username: 'procrastinator_supreme' }
         : newVisited.length > 6
-        ? { level: 3, title: 'Commander', badge: '★★★' }
+        ? { level: 3, title: 'Commander', badge: '★★★', username: 'definitely_not_slacking' }
         : state.userRank;
       
       set({ 

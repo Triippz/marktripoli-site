@@ -62,6 +62,7 @@ export type UserRank = {
   level: number;
   title: string;
   badge: string;
+  username?: string;
 }
 
 export type MapView = {
