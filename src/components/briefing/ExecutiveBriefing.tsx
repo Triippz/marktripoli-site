@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMissionControl } from '../../store/missionControl';
 
 function ExecutiveBriefing() {
+  const navigate = useNavigate();
   const [selectedSection, setSelectedSection] = useState<'overview' | 'technical' | 'leadership' | 'contact'>('overview');
   const [showPDFExport, setShowPDFExport] = useState(false);
   const { unlockEasterEgg } = useMissionControl();
@@ -46,6 +48,14 @@ function ExecutiveBriefing() {
             </p>
           </div>
           <div className="flex items-center space-x-4">
+            <motion.button
+              onClick={() => navigate('/')}
+              className="bg-gray-800 border border-green-500/50 text-green-500 px-4 py-2 rounded hover:bg-green-500/10 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              ← BACK TO MAP
+            </motion.button>
             <motion.button
               onClick={handlePDFExport}
               disabled={showPDFExport}

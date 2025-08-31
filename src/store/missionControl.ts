@@ -23,6 +23,7 @@ interface MissionControlState {
   // UI preferences
   soundEnabled: boolean;
   hudVisible: boolean;
+  bootCompleted: boolean;
   
   // Actions
   selectSite: (site: SiteData | null) => void;
@@ -34,6 +35,7 @@ interface MissionControlState {
   unlockEasterEgg: (id: string) => void;
   toggleSound: () => void;
   toggleHUD: () => void;
+  setBootCompleted: (completed: boolean) => void;
 }
 
 export const useMissionControl = create<MissionControlState>((set, get) => ({
@@ -55,6 +57,7 @@ export const useMissionControl = create<MissionControlState>((set, get) => ({
   userRank: { level: 1, title: 'Analyst', badge: '★', username: 'coffee_addict_3000' },
   soundEnabled: JSON.parse(localStorage.getItem('mc-sound') || 'false'),
   hudVisible: true,
+  bootCompleted: JSON.parse(localStorage.getItem('mc-boot-completed') || 'false'),
   
   // Actions
   selectSite: (site) => {
@@ -141,4 +144,9 @@ export const useMissionControl = create<MissionControlState>((set, get) => ({
   },
   
   toggleHUD: () => set((state) => ({ hudVisible: !state.hudVisible })),
+  
+  setBootCompleted: (completed) => {
+    localStorage.setItem('mc-boot-completed', JSON.stringify(completed));
+    set({ bootCompleted: completed });
+  },
 }));

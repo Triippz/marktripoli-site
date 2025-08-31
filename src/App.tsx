@@ -119,8 +119,8 @@ function MissionControlInterface() {
 }
 
 function App() {
-  const [booting, setBooting] = useState(true);
-  const { addTelemetry, soundEnabled } = useMissionControl();
+  const { addTelemetry, soundEnabled, bootCompleted, setBootCompleted } = useMissionControl();
+  const [booting, setBooting] = useState(!bootCompleted);
 
   useEffect(() => {
     // Initialize audio system
@@ -144,7 +144,10 @@ function App() {
   }, [addTelemetry, soundEnabled]);
 
   if (booting) {
-    return <BootSequence onComplete={() => setBooting(false)} />;
+    return <BootSequence onComplete={() => {
+      setBooting(false);
+      setBootCompleted(true);
+    }} />;
   }
 
   return (

@@ -1,3 +1,5 @@
+import { useNavigate, useLocation } from 'react-router-dom';
+
 interface ButtonGroupProps {
   soundEnabled: boolean;
   toggleSound: () => void;
@@ -5,6 +7,9 @@ interface ButtonGroupProps {
 }
 
 export default function ButtonGroup({ soundEnabled, toggleSound, onContactClick }: ButtonGroupProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   return (
     <div className="flex items-center justify-end space-x-2">
       <button 
@@ -15,9 +20,9 @@ export default function ButtonGroup({ soundEnabled, toggleSound, onContactClick 
       </button>
       <button 
         className="tactical-button text-xs px-3 py-2 min-h-[44px]"
-        onClick={() => window.location.pathname === '/briefing' ? window.location.href = '/' : window.location.href = '/briefing'}
+        onClick={() => location.pathname === '/briefing' ? navigate('/') : navigate('/briefing')}
       >
-        {window.location.pathname === '/briefing' ? 'MAP VIEW' : 'EXEC BRIEF'}
+        {location.pathname === '/briefing' ? 'MAP VIEW' : 'EXEC BRIEF'}
       </button>
       {onContactClick && (
         <button 
