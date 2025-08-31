@@ -1,9 +1,9 @@
+/* Mapbox GL CSS - imported globally like orion-better */
+@import 'mapbox-gl/dist/mapbox-gl.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Mapbox GL CSS - imported globally like orion-better */
-@import 'mapbox-gl/dist/mapbox-gl.css';
 
 /* Mission Control Base Styles */
 @layer base {
@@ -135,6 +135,20 @@
       0 0 0 1px rgba(0, 255, 0, 0.2),
       inset 0 2px 0 rgba(255, 255, 255, 0.1);
   }
+
+  .tactical-popup {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(17, 17, 17, 0.9) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 255, 0, 0.4);
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 200px;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.8),
+      0 0 0 1px rgba(0, 255, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
 }
 
 /* Animations */
@@ -163,6 +177,11 @@
   @keyframes blink {
     0%, 50% { opacity: 1; }
     51%, 100% { opacity: 0; }
+  }
+
+  @keyframes grow {
+    0% { width: 0%; }
+    100% { width: 100%; }
   }
 }
 

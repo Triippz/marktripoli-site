@@ -237,34 +237,67 @@ function MissionControlHUD({ onContactClick }: { onContactClick?: () => void }) 
 
 function MissionControlInterface() {
   const [showContactForm, setShowContactForm] = useState(false);
+  const [earthControlActive, setEarthControlActive] = useState(false);
+  const [showStatusPanel, setShowStatusPanel] = useState(true);
+
+  // Auto-trigger earth control mode after a brief delay
+  useEffect(() => {
+    console.log('[App] 🚀 Mission Control loaded - starting 2 second timer for earth control');
+    const timer = setTimeout(() => {
+      console.log('[App] ⏰ Timer fired - setting earthControlActive to TRUE');
+      setEarthControlActive(true);
+    }, 2000); // 2 seconds after mission control loads
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Debug earth control active state changes
+  useEffect(() => {
+    console.log('[App] 🌍 earthControlActive state changed to:', earthControlActive);
+    if (earthControlActive) {
+      console.log('[App] 📡 Passing interactive=true to MapboxGlobe');
+    }
+  }, [earthControlActive]);
+
+  const handleTransitionComplete = () => {
+    // Keep the status panel visible after transition completes
+    console.log('[App] Transition complete - keeping status panel visible');
+    // If you later want to auto-hide, reintroduce a timeout here.
+  };
   
   return (
     <div className="h-screen w-screen text-white overflow-hidden relative">
       {/* Background Globe */}
-      <MapboxGlobe />
+      <MapboxGlobe 
+        interactive={earthControlActive}
+        onTransitionComplete={handleTransitionComplete}
+        onUserInteraction={() => setShowStatusPanel(false)}
+      />
       
       <SkipNavigation />
       
-      <header role="banner">
+      <header role="banner" className={earthControlActive ? 'z-30' : 'z-40'}>
         <MissionControlHUD onContactClick={() => setShowContactForm(true)} />
       </header>
       
       {/* Main Content Area - Tactical Overlays */}
-      <SkipTarget id="main-content" className="pt-32 h-full w-full relative z-10">
-        <main role="main" aria-label="Mission Control tactical interface">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 1 }}
-            className="h-full flex items-center justify-center"
-          >
-            {/* Central Mission Status Card */}
+      <SkipTarget id="main-content" className={`pt-32 h-full w-full relative z-10 ${!showStatusPanel ? 'pointer-events-none' : ''}`}>
+        <main role="main" aria-label="Mission Control tactical interface" className={!showStatusPanel ? 'pointer-events-none' : ''}>
+          {showStatusPanel && (
             <motion.div
-              className="mission-panel p-8 max-w-2xl"
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ delay: 1.2, duration: 0.8 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, scale: 0.95, y: -20 }}
+              transition={{ delay: 1, duration: 1 }}
+              className="h-full flex items-center justify-center"
             >
+              {/* Central Mission Status Card */}
+              <motion.div
+                className="mission-panel p-8 max-w-2xl"
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: showStatusPanel ? 1 : 0, scale: showStatusPanel ? 1 : 0.9, y: showStatusPanel ? 0 : -20 }}
+                transition={{ delay: 1.2, duration: 0.8 }}
+              >
               <div className="text-center">
                 <div className="flex items-center justify-center mb-6">
                   <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-3" />
@@ -306,7 +339,8 @@ function MissionControlInterface() {
                 </div>
               </div>
             </motion.div>
-          </motion.div>
+            </motion.div>
+          )}
         </main>
       </SkipTarget>
 
