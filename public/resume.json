@@ -339,15 +339,39 @@
         "Mobile",
         "Platform"
       ]
+    },
+    {
+      "name": "JYTB",
+      "description": "Open-source project",
+      "url": "https://github.com/triippz-tech/JYTB",
+      "keywords": ["Open Source", "GitHub"]
+    },
+    {
+      "name": "awesome-hubspot-projects",
+      "description": "Curated list of HubSpot-related projects",
+      "url": "https://github.com/Triippz/awesome-hubspot-projects",
+      "keywords": ["Open Source", "HubSpot", "GitHub"]
+    },
+    {
+      "name": "ghillied_up_api",
+      "description": "Ghillied Up backend API (open source)",
+      "url": "https://github.com/vetsmm/ghillied_up_api",
+      "keywords": ["Open Source", "NestJS", "AWS", "GitHub"]
+    },
+    {
+      "name": "ghillied-up-mobile",
+      "description": "Ghillied Up mobile app (open source)",
+      "url": "https://github.com/vetsmm/ghillied-up-mobile",
+      "keywords": ["Open Source", "React Native", "Expo", "GitHub"]
+    },
+    {
+      "name": "legion-simulations",
+      "description": "Simulation tooling for Picogrid Legion",
+      "url": "https://github.com/picogrid/legion-simulations",
+      "keywords": ["Open Source", "Simulation", "GitHub"]
     }
   ],
   "awards": [
-    {
-      "title": "DoD Contract Award ($9.3M)",
-      "date": "2025-01",
-      "awarder": "US Department of Defense",
-      "summary": "Technical vision and platform re-architecture credited as a key driver."
-    }
   ],
   "publications": [],
   "certificates": [],

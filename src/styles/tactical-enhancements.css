@@ -259,6 +259,134 @@
   line-height: 1.4;
 }
 
+/* ============================================================================
+   CENTER HEADER CLASSIFIED STAMP
+   ============================================================================ */
+.classified-stamp {
+  position: relative;
+  padding: 4px 12px;
+  border: 2px solid rgba(255, 64, 64, 0.88);
+  background: rgba(255, 0, 0, 0.10);
+  box-shadow:
+    0 0 14px rgba(255, 64, 64, 0.45),
+    0 0 28px rgba(255, 64, 64, 0.18),
+    inset 0 0 14px rgba(255, 64, 64, 0.14);
+  transform: rotate(-3deg) skewX(-6deg);
+  backdrop-filter: blur(2px);
+  filter: contrast(1.05) saturate(1.15) drop-shadow(0 0 10px rgba(255, 64, 64, 0.25));
+  /* Slightly irregular edges for ink-stamp feel */
+  clip-path: polygon(
+    2% 0%, 98% 0%, 100% 6%, 100% 94%, 98% 100%, 2% 100%, 0% 94%, 0% 6%
+  );
+  animation: stampJitter 5s ease-in-out infinite, borderPulse 2.6s ease-in-out infinite, glowFlicker 3.2s linear infinite;
+}
+
+.classified-stamp-text {
+  display: inline-block;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  color: #ff6b6b;
+  text-shadow:
+    0 0 6px rgba(255, 64, 64, 0.95),
+    0 0 18px rgba(255, 64, 64, 0.6),
+    0 0 28px rgba(255, 64, 64, 0.35),
+    0 0 40px rgba(255, 64, 64, 0.22);
+  font-weight: 700;
+  font-size: 12px;
+  position: relative;
+}
+
+/* Ink texture overlay */
+.classified-stamp-text::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 64, 64, 0.08) 0 2px, transparent 2px 4px),
+    repeating-linear-gradient(135deg, rgba(255, 64, 64, 0.06) 0 3px, transparent 3px 6px);
+  mix-blend-mode: multiply;
+  opacity: 0.7;
+  filter: blur(0.2px) contrast(1.05);
+}
+
+.classified-stamp::before,
+.classified-stamp::after {
+  content: '';
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 64, 64, 0.9), transparent);
+}
+
+.classified-stamp::before { top: -6px; }
+.classified-stamp::after { bottom: -6px; }
+
+/* Subtle text glitch for cyber vibe (applies to inner text only) */
+@keyframes textGlitch {
+  0%, 100% { transform: translate(0, 0); opacity: 1; }
+  32% { transform: translate(1.0px, -0.2px); opacity: 0.98; }
+  40% { transform: translate(-1.2px, 0.2px); opacity: 1; }
+  66% { transform: translate(0.8px, 0px); opacity: 0.99; }
+}
+
+.classified-stamp-text {
+  animation: textGlitch 2.2s linear infinite;
+}
+
+/* Occasional rotation jitter for stamp */
+@keyframes stampJitter {
+  0%, 92%, 100% { transform: rotate(-3deg) skewX(-6deg); }
+  36% { transform: rotate(-4.6deg) skewX(-6deg); }
+  44% { transform: rotate(-2.2deg) skewX(-6deg); }
+  50% { transform: rotate(-3.8deg) skewX(-6deg); }
+}
+
+/* Gentle border pulse to sell the ink-impression */
+@keyframes borderPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(255, 64, 64, 0.40), inset 0 0 12px rgba(255, 64, 64, 0.14); }
+  50% { box-shadow: 0 0 20px rgba(255, 64, 64, 0.55), inset 0 0 18px rgba(255, 64, 64, 0.18); }
+}
+
+/* Additional glow flicker for cyberpunk feel */
+@keyframes glowFlicker {
+  0%, 100% { filter: contrast(1.05) saturate(1.15) drop-shadow(0 0 10px rgba(255, 64, 64, 0.25)); }
+  45% { filter: contrast(1.08) saturate(1.2) drop-shadow(0 0 14px rgba(255, 64, 64, 0.35)); }
+  55% { filter: contrast(1.02) saturate(1.1) drop-shadow(0 0 8px rgba(255, 64, 64, 0.2)); }
+}
+
+/* Double-stamp ghost for authenticity */
+.classified-stamp-text::before {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(1px, 1px);
+  color: rgba(255, 64, 64, 0.35);
+  filter: blur(0.3px);
+  pointer-events: none;
+  animation: doubleStamp 6s ease-in-out infinite;
+}
+
+@keyframes doubleStamp {
+  0%, 100% { transform: translate(1px, 1px); opacity: 0.35; }
+  45% { transform: translate(0.6px, 0.8px); opacity: 0.28; }
+  60% { transform: translate(1.2px, 0.4px); opacity: 0.32; }
+}
+
+/* Animate the ink texture sweep */
+@keyframes textureSweep {
+  0% { background-position: 0 0, 0 0; }
+  100% { background-position: 40px 0, -30px 0; }
+}
+
+.classified-stamp-text::after {
+  animation: textureSweep 8s linear infinite;
+}
+
+
 .terminal-cursor::after {
   content: '█';
   animation: terminalBlink 1s infinite;
@@ -571,4 +699,11 @@
   .social-links-section {
     display: none !important;
   }
+}
+
+/* Utility visibility helpers for print vs screen */
+.print-only { display: none; }
+@media print {
+  .print-only { display: block !important; }
+  .screen-only { display: none !important; }
 }
