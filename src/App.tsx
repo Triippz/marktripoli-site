@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 // Store & Utils
 import { useMissionControl } from './store/missionControl';
 import { missionAudio } from './utils/audioSystem';
+import SEO from './components/SEO';
 
 // Base Components
 import BootSequence from './components/boot/BootSequence';
@@ -64,6 +65,12 @@ function MissionControlInterface() {
 
   return (
     <div className="h-screen w-screen text-white overflow-hidden relative">
+      <SEO
+        title="Mission Control — Mark Tripoli"
+        description="Command and Control interface for Mark Tripoli's professional operations. Interactive career map with mission sites and tactical briefings."
+        url={typeof window !== 'undefined' ? window.location.origin : undefined}
+        image="/logos/og-cover.png"
+      />
       {/* Global Alert Ribbon */}
       {alertActive && (
         <div className="alert-ribbon" aria-live="assertive" aria-atomic="true">

@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useTerminalState } from './hooks/useTerminalState';
 import { CommandProcessor } from './services/CommandProcessor';
 import TerminalWindow from './components/TerminalWindow';
 import { useUXVState } from '../uxv';
 import { CareerMapData } from '../career/types';
+import resumeDataService from '../../services/resumeDataService';
 import { TerminalAction } from './types';
 import { missionAudio } from '../../utils/audioSystem';
 import { useMissionControl } from '../../store/missionControl';
@@ -27,19 +28,31 @@ const TerminalSystem: React.FC<TerminalSystemProps> = ({
   const uxv = uxvProp ?? useUXVState();
   const { triggerAlert } = useMissionControl() as any;
   const processorRef = useRef<CommandProcessor | null>(null);
+  const [careerDataLocal, setCareerDataLocal] = useState<CareerMapData | null>(null);
+
+  // Load career data locally if not provided
+  useEffect(() => {
+    let mounted = true;
+    if (!careerData) {
+      resumeDataService.getCareerMapData()
+        .then((data: any) => { if (mounted) setCareerDataLocal(data as CareerMapData); })
+        .catch(() => {});
+    }
+    return () => { mounted = false; };
+  }, [careerData]);
 
   // Initialize command processor
   useEffect(() => {
-    processorRef.current = new CommandProcessor(careerData, map);
-  }, [careerData, map]);
+    processorRef.current = new CommandProcessor(careerData || careerDataLocal, map);
+  }, [careerData, careerDataLocal, map]);
 
   // Update processor when dependencies change
   useEffect(() => {
     if (processorRef.current) {
-      processorRef.current.updateCareerData(careerData);
+      processorRef.current.updateCareerData(careerData || careerDataLocal);
       processorRef.current.updateMap(map);
     }
-  }, [careerData, map]);
+  }, [careerData, careerDataLocal, map]);
 
   // Handle keyboard shortcuts
   useEffect(() => {

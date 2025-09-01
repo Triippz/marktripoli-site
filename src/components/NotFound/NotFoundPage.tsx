@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
+import SEO from '../SEO';
 
 const NotFoundPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +20,12 @@ const NotFoundPage: React.FC = () => {
 
   return (
     <div className="h-screen w-screen bg-black overflow-y-auto flex items-start justify-center p-4 py-8">
+      <SEO
+        title="Mission Not Found — Mark Tripoli"
+        description="Navigation error - coordinates invalid. Return to Mission Control base for reorientation."
+        url={typeof window !== 'undefined' ? `${window.location.origin}${location.pathname}` : undefined}
+        noIndex={true}
+      />
       <motion.div
         initial={{ opacity: 0, scale: 0.9, rotateX: -10 }}
         animate={{ opacity: 1, scale: 1, rotateX: 0 }}

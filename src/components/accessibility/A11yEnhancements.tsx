@@ -93,7 +93,6 @@ interface AccessibleMissionPinProps {
 }
 
 export function AccessibleMissionPin({
-  id,
   name,
   type,
   codename,

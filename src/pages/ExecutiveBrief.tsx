@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import SEO from '../components/SEO';
 import { useNavigate } from 'react-router-dom';
 import { useMissionControl } from '../store/missionControl';
 import { createDefaultFS, resolvePath as fsResolve, isDir as fsIsDir, listDir as fsList, readFile as fsRead } from '../utils/fauxFS';
@@ -477,6 +478,12 @@ export default function ExecutiveBrief() {
 
   return (
     <div className="relative w-full h-screen overflow-y-auto text-white">
+      <SEO
+        title={`Executive Briefing — ${resume?.basics?.name || 'Mark Tripoli'}`}
+        description={resume?.basics?.summary || 'Executive briefing, strengths, career timeline, awards, and projects.'}
+        url={typeof window !== 'undefined' ? `${window.location.origin}/briefing` : undefined}
+        image={'/logos/og-cover.png'}
+      />
       {/* Screen-only Briefing UI */}
       <div className={`screen-only ${neonPulse ? 'neon-pulse' : ''}`}>
         {/* Easter egg overlays */}
