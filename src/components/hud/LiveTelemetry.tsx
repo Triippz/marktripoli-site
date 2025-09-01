@@ -11,7 +11,8 @@ export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
   const [history, setHistory] = useState<TelemetryEntry[]>(telemetryLogs || []);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [pinToBottom, setPinToBottom] = useState(true);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  type PanelMode = 'expanded' | 'collapsed' | 'hidden';
+  const [mode, setMode] = useState<PanelMode>('expanded');
 
   // Merge incoming logs into local history (dedupe by timestamp+message+level)
   useEffect(() => {
@@ -76,7 +77,20 @@ export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
   };
 
   const logStyle = getLogStyle(latestLog?.level);
-  const heightClass = isCollapsed ? 'h-24' : 'h-48';
+  const heightClass = mode === 'collapsed' ? 'h-20' : 'h-48';
+
+  // Fully hidden state: show a tiny restore button only
+  if (mode === 'hidden') {
+    return (
+      <button
+        onClick={() => setMode('expanded')}
+        className="fixed bottom-4 right-4 z-60 bg-gray-900/85 border border-green-500/40 text-green-300 font-mono text-xs px-3 py-1 rounded-full shadow backdrop-blur-sm hover:border-green-400/70 hover:text-green-200"
+        title="Show telemetry"
+      >
+        📡 Telemetry
+      </button>
+    );
+  }
 
   return (
     <motion.div 
@@ -117,7 +131,7 @@ export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
           </button>
           <button
             onClick={() => {
-              setIsCollapsed(v => !v);
+              setMode(prev => prev === 'expanded' ? 'collapsed' : 'expanded');
               setPinToBottom(true);
               requestAnimationFrame(() => {
                 const el = scrollRef.current;
@@ -125,9 +139,16 @@ export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
               });
             }}
             className="border border-green-500/30 text-green-300 hover:text-green-200 hover:border-green-400/50 rounded px-2 py-0.5 font-mono text-[10px] uppercase"
-            title={isCollapsed ? 'Expand' : 'Collapse'}
+            title={mode === 'collapsed' ? 'Expand' : 'Collapse'}
           >
-            {isCollapsed ? 'Expand' : 'Collapse'}
+            {mode === 'collapsed' ? 'Expand' : 'Collapse'}
+          </button>
+          <button
+            onClick={() => setMode('hidden')}
+            className="border border-green-500/30 text-green-300 hover:text-green-200 hover:border-green-400/50 rounded px-2 py-0.5 font-mono text-[10px] uppercase"
+            title="Hide telemetry"
+          >
+            Hide
           </button>
         </div>
       </div>

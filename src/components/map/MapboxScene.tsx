@@ -738,9 +738,9 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
             </div>
           </div>
 
-          {/* Career Legend */}
+          {/* Career Legend (Mission Legend) - moved to top right */}
           {careerData && (
-            <div className="absolute bottom-4 right-4">
+            <div className="absolute right-4 z-60 top-20 md:top-24">
               <div className="bg-gray-900/90 border border-green-500/30 rounded-lg p-3 backdrop-blur-sm">
                 <div className="text-green-500 text-xs font-mono mb-2">
                   MISSION LEGEND
