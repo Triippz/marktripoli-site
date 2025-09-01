@@ -92,7 +92,7 @@ export default function ExecutiveBrief() {
     try { console.log('%c[Hint]', 'color:#45ffb0', 'Press ? on /briefing for hidden controls.'); } catch {}
   }, []);
 
-  // Easter egg listeners: Konami (Matrix), U (UFO fleet), D (paws), G (glitch), P (neon), H (hiking), V (scanlines), B (beam), ` or Ctrl+Alt+T (terminal)
+  // Easter egg listeners: Konami (Matrix), U (UFO fleet), D (paws), G (glitch), P (neon), H (hiking), V (scanlines), B (beam), ` or Ctrl/Cmd+Alt+T (terminal)
   useEffect(() => {
     const seq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
     let buffer: string[] = [];
@@ -165,8 +165,11 @@ export default function ExecutiveBrief() {
       if (key === 'Escape' && helpOpen) {
         setHelpOpen(false);
       }
-      // Secret terminal
-      if (key === '`' || (e.ctrlKey && e.altKey && key.toLowerCase() === 't')) {
+      // Secret terminal (support Ctrl+Alt+T and Cmd+Alt+T)
+      if (
+        key === '`' ||
+        ((e.ctrlKey || e.metaKey) && e.altKey && key.toLowerCase() === 't')
+      ) {
         setTermOpen(v => !v);
       }
       // Konami buffer
@@ -559,7 +562,7 @@ export default function ExecutiveBrief() {
                 <div><span className="text-green-400">V</span>: CRT scanlines</div>
                 <div><span className="text-green-400">B</span>: UFO beam spotlight</div>
                 <div><span className="text-green-400">?</span>: Toggle this help</div>
-                <div><span className="text-green-400">`</span> or <span className="text-green-400">Ctrl+Alt+T</span>: Secret terminal</div>
+                <div><span className="text-green-400">`</span> or <span className="text-green-400">Ctrl/Cmd+Alt+T</span>: Secret terminal</div>
                 <div className="pt-2 text-gray-400">Map: idle for random events (UFO blips, satellite streaks, anomaly pings, aurora).</div>
               </div>
               <div className="text-[11px] font-mono text-gray-400 mt-3">See docs/EASTER_EGGS.md for details.</div>

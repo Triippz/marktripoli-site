@@ -19,11 +19,11 @@ How to trigger
   - Toggles CRT scanlines overlay with a soft flicker.
 - B — UFO Beam
   - A hovering saucer appears with a tractor‑beam spotlight over the header.
-- ` (backtick) or Ctrl+Alt+T — Secret Terminal
+- ` (backtick) or Ctrl/Cmd+Alt+T — Secret Terminal
   - Open a hidden terminal overlay. Type 'help' to see commands.
   - 'login' then password 'legion' for admin. 3 wrong attempts => alert mode.
   - 'eggs', 'trigger <name>', 'scan', 'unlock-all' to play with effects.
-  - Map Terminal (same hotkeys on map): 'regions', 'goto <key>', 'zoom <n>', 'center <lng> <lat>', 'scan'.
+  - Map Terminal (same hotkeys on map, supports Cmd on macOS): 'regions', 'goto <key>', 'zoom <n>', 'center <lng> <lat>', 'scan'.
   - Achievements persist (unlockedEasterEggs/localStorage) and show in the 🏆 panel.
 
 Implementation notes

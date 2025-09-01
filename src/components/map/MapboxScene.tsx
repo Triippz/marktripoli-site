@@ -120,7 +120,10 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   // Secret terminal hotkeys (map context)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === '`' || (e.ctrlKey && e.altKey && e.key.toLowerCase() === 't')) {
+      if (
+        e.key === '`' ||
+        ((e.ctrlKey || e.metaKey) && e.altKey && e.key.toLowerCase() === 't')
+      ) {
         e.preventDefault(); setSecretOpen(v => !v);
       }
       if (e.key === 'Escape' && secretOpen) setSecretOpen(false);
