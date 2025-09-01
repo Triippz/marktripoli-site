@@ -102,12 +102,16 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
           if (!map.current) return;
 
           try {
-            // Hide native cursor inside map to rely on custom crosshair
-            const cursorStyle = document.createElement('style');
-            cursorStyle.textContent = `
-              .mapboxgl-map, .mapboxgl-canvas, .mapboxgl-canvas-container { cursor: none !important; }
-            `;
-            document.head.appendChild(cursorStyle);
+            // Hide native cursor inside map to rely on custom crosshair (insert once)
+            const styleId = 'mc-hide-native-cursor';
+            if (!document.getElementById(styleId)) {
+              const cursorStyle = document.createElement('style');
+              cursorStyle.id = styleId;
+              cursorStyle.textContent = `
+                .mapboxgl-map, .mapboxgl-canvas, .mapboxgl-canvas-container { cursor: none !important; }
+              `;
+              document.head.appendChild(cursorStyle);
+            }
 
             // Enable globe projection for cinematic effect
             if (map.current.setProjection) {
