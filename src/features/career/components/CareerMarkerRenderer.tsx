@@ -240,28 +240,7 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
       });
     });
 
-    // Fit map to show all career markers after delay
-    setTimeout(() => {
-      if (careerData.markers.length > 0) {
-        const bounds = new mapboxgl.LngLatBounds();
-        
-        careerData.markers.forEach(marker => {
-          bounds.extend([marker.location.lng, marker.location.lat]);
-        });
-        
-        console.log('[CareerMarkerRenderer] 🗺️ Fitting map bounds to show all career markers:', {
-          bounds: bounds,
-          markerCount: careerData.markers.length,
-          padding: { top: 50, bottom: 50, left: 50, right: 50 },
-          maxZoom: 6
-        });
-        
-        map.fitBounds(bounds, {
-          padding: { top: 50, bottom: 50, left: 50, right: 50 },
-          maxZoom: 6
-        });
-      }
-    }, 1000);
+    // Note: removed automatic fitBounds on load to avoid fighting intro animations and user interactions.
 
     // Cleanup function
     return () => {

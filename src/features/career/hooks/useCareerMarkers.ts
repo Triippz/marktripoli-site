@@ -72,12 +72,15 @@ export function useCareerMarkers(): CareerMarkerState & CareerMarkerControls {
   }, []);
 
   const flyToMarker = useCallback((marker: CareerMarker, map: mapboxgl.Map) => {
+    try { map.stop(); } catch {}
     map.flyTo({
       center: [marker.location.lng, marker.location.lat],
       zoom: 8,
       pitch: 10,
       bearing: 0,
-      duration: 2000
+      duration: 2000,
+      essential: true,
+      easing: (t) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t)
     });
 
     addCareerTelemetry({

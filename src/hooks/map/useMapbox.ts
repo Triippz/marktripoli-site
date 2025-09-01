@@ -1,42 +1,9 @@
-import { useEffect, useRef, useCallback } from 'react';
-import type * as MapboxGL from 'mapbox-gl';
+import { useEffect, useRef, useCallback, useState } from 'react';
+import mapboxgl from 'mapbox-gl';
 import { useMissionControl } from '../../store/missionControl';
 
-// Lazy-loaded runtime instance to reduce initial bundle cost
-let mapboxRuntime: any = null;
-
-// Early cache of env token so dynamic import can retrieve it later reliably
-try {
-  const initialEnvToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string | undefined;
-  if (initialEnvToken && initialEnvToken.trim()) {
-    localStorage.setItem('mc-mapbox-token', initialEnvToken.trim());
-  }
-} catch {}
-
-function resolveMapboxToken(): string | null {
-  try {
-    const envToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string | undefined;
-    if (envToken && envToken.trim()) return envToken.trim();
-
-    if (typeof localStorage !== 'undefined') {
-      const cached = localStorage.getItem('mc-mapbox-token');
-      if (cached && cached.trim()) return cached.trim();
-    }
-
-    if (typeof document !== 'undefined') {
-      const meta = document.querySelector('meta[name="mapbox-token"]') as HTMLMetaElement | null;
-      if (meta?.content && meta.content.trim()) return meta.content.trim();
-    }
-
-    if (typeof window !== 'undefined') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const anyWin = window as any;
-      const winToken = anyWin.MAPBOX_TOKEN || anyWin.__MC_MAPBOX_TOKEN;
-      if (winToken && typeof winToken === 'string' && winToken.trim()) return winToken.trim();
-    }
-  } catch {}
-  return null;
-}
+// Set Mapbox access token from environment variables (primary, explicit path)
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string;
 
 interface MapboxOptions {
   center?: [number, number];
@@ -47,12 +14,12 @@ interface MapboxOptions {
 }
 
 interface UseMapboxReturn {
-  map: MapboxGL.Map | null;
+  map: mapboxgl.Map | null;
   mapContainer: React.RefObject<HTMLDivElement>;
   isLoaded: boolean;
   error: Error | null;
   flyTo: (options: { center: [number, number]; zoom?: number; pitch?: number; bearing?: number; duration?: number }) => void;
-  fitBounds: (bounds: MapboxGL.LngLatBounds, options?: MapboxGL.FitBoundsOptions) => void;
+  fitBounds: (bounds: mapboxgl.LngLatBounds, options?: mapboxgl.FitBoundsOptions) => void;
   resetView: () => void;
 }
 
@@ -91,9 +58,10 @@ const generateTacticalGrid = () => {
 
 export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<MapboxGL.Map | null>(null);
-  const isLoadedRef = useRef(false);
-  const errorRef = useRef<Error | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const [map, setMap] = useState<mapboxgl.Map | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const { addTelemetry } = useMissionControl() as any;
 
   const addMapTelemetry = useCallback((log: any) => {
@@ -102,36 +70,16 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
 
   // Map initialization
   useEffect(() => {
-    if (map.current || !mapContainer.current) return;
+    if (mapRef.current || !mapContainer.current) return;
 
-    let mapInstance: MapboxGL.Map | null = null;
+    let mapInstance: mapboxgl.Map | null = null;
 
     const initializeMap = async () => {
       try {
         console.log('[useMapbox] Initializing map with API key:', import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.substring(0, 20) + '...');
 
-        if (!mapboxRuntime) {
-          const mod = await import('mapbox-gl');
-          const gl: any = (mod as any)?.default ?? mod;
-          mapboxRuntime = gl;
-          const token = resolveMapboxToken();
-          if (!token) {
-            const err = new Error('Mapbox access token missing. Set VITE_MAPBOX_ACCESS_TOKEN or provide a <meta name="mapbox-token" content="...">');
-            console.error('[useMapbox] ❌', err.message);
-            errorRef.current = err;
-            addMapTelemetry({
-              source: 'MAP',
-              message: err.message,
-              level: 'error'
-            });
-            throw err;
-          }
-          mapboxRuntime.accessToken = token;
-          try { localStorage.setItem('mc-mapbox-token', token); } catch {}
-        }
-
         // Initialize map with global view for smooth transition from boot
-        mapInstance = new mapboxRuntime.Map({
+        mapInstance = new mapboxgl.Map({
           container: mapContainer.current!,
           style: options.style || import.meta.env.VITE_MAPBOX_STYLE || 'mapbox://styles/mapbox/dark-v11',
           center: options.center || [0, 20],
@@ -142,7 +90,8 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
           attributionControl: false
         });
         
-        map.current = mapInstance;
+        mapRef.current = mapInstance;
+        setMap(mapInstance);
         console.log('[useMapbox] Map instance created successfully');
 
         addMapTelemetry({
@@ -152,7 +101,7 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
         });
 
         mapInstance.once('load', () => {
-          if (!map.current) return;
+          if (!mapRef.current) return;
 
           try {
             // Hide native cursor inside map to rely on custom crosshair (insert once)
@@ -167,14 +116,14 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
             }
 
             // Enable globe projection for cinematic effect
-            if (map.current.setProjection) {
-              map.current.setProjection('globe');
+            if (mapRef.current.setProjection) {
+              mapRef.current.setProjection('globe');
               console.log('[useMapbox] ✅ Globe projection enabled');
             } else {
               console.log('[useMapbox] ⚠️ Globe projection not available');
             }
             
-            isLoadedRef.current = true;
+            setIsLoaded(true);
             
             // Add tactical overlay (idempotent)
             const overlayData = {
@@ -186,23 +135,23 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
               }
             };
 
-            const existingOverlaySource = map.current.getSource('tactical-overlay') as MapboxGL.GeoJSONSource | undefined;
+            const existingOverlaySource = mapRef.current.getSource('tactical-overlay') as mapboxgl.GeoJSONSource | undefined;
             if (existingOverlaySource && (existingOverlaySource as any).setData) {
               (existingOverlaySource as any).setData(overlayData as any);
             } else {
-              map.current.addSource('tactical-overlay', {
+              mapRef.current.addSource('tactical-overlay', {
                 type: 'geojson',
                 data: overlayData as any
               });
             }
 
             // Insert tactical overlay below symbol layers
-            const style = map.current.getStyle();
+            const style = mapRef.current.getStyle();
             const firstSymbolLayer = style?.layers?.find(l => l.type === 'symbol');
             const beforeId = firstSymbolLayer?.id;
 
-            if (!map.current.getLayer('tactical-overlay')) {
-              map.current.addLayer({
+            if (!mapRef.current.getLayer('tactical-overlay')) {
+              mapRef.current.addLayer({
                 id: 'tactical-overlay',
                 type: 'fill',
                 source: 'tactical-overlay',
@@ -215,18 +164,18 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
 
             // Add tactical grid
             const gridData = generateTacticalGrid();
-            const existingGridSource = map.current.getSource('tactical-grid') as MapboxGL.GeoJSONSource | undefined;
+            const existingGridSource = mapRef.current.getSource('tactical-grid') as mapboxgl.GeoJSONSource | undefined;
             if (existingGridSource && (existingGridSource as any).setData) {
               (existingGridSource as any).setData(gridData as any);
             } else {
-              map.current.addSource('tactical-grid', {
+              mapRef.current.addSource('tactical-grid', {
                 type: 'geojson',
                 data: gridData as any
               });
             }
 
-            if (!map.current.getLayer('tactical-grid')) {
-              map.current.addLayer({
+            if (!mapRef.current.getLayer('tactical-grid')) {
+              mapRef.current.addLayer({
                 id: 'tactical-grid',
                 type: 'line',
                 source: 'tactical-grid',
@@ -240,7 +189,7 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
 
             // Start dramatic flyTo USA animation after delay
             setTimeout(() => {
-              if (!map.current) return;
+              if (!mapRef.current) return;
               
               console.log('[useMapbox] 🚀 Starting flyTo USA transition');
               addMapTelemetry({
@@ -249,12 +198,13 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
                 level: 'info'
               });
               
-              map.current.flyTo({
+              try { mapRef.current.stop(); } catch {}
+              mapRef.current.flyTo({
                 center: [-98.5795, 39.8283], // USA center
                 zoom: 4,
                 pitch: 0,
                 bearing: 0,
-                duration: 4500,
+                duration: 4000,
                 essential: true,
                 easing: (t) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t)
               });
@@ -265,7 +215,7 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
                   message: 'USA tactical display operational',
                   level: 'success'
                 });
-              }, 4800);
+              }, 4200);
             }, 500);
             
             addMapTelemetry({
@@ -316,44 +266,46 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
       try {
         console.log('[useMapbox] Starting map cleanup...');
         
-        const mapToCleanup = mapInstance || map.current;
+        const mapToCleanup = mapInstance || mapRef.current;
         if (mapToCleanup && !mapToCleanup._removed) {
           console.log('[useMapbox] Removing map instance...');
           mapToCleanup.remove();
         }
         
-        map.current = null;
-        isLoadedRef.current = false;
-        errorRef.current = null;
+        mapRef.current = null;
+        setMap(null);
+        setIsLoaded(false);
+        setError(null);
         console.log('[useMapbox] Map cleanup completed successfully');
         
       } catch (cleanupError) {
         console.warn('[useMapbox] Map cleanup error:', cleanupError);
-        map.current = null;
-        isLoadedRef.current = false;
-        errorRef.current = null;
+        mapRef.current = null;
+        setMap(null);
+        setIsLoaded(false);
+        setError(null);
       }
     };
   }, [addMapTelemetry, options.style, options.center, options.zoom, options.pitch, options.bearing]);
 
   // Map control functions
   const flyTo = useCallback((flyOptions: { center: [number, number]; zoom?: number; pitch?: number; bearing?: number; duration?: number }) => {
-    if (!map.current) return;
+    if (!mapRef.current) return;
     
-    map.current.flyTo({
+    mapRef.current.flyTo({
       center: flyOptions.center,
-      zoom: flyOptions.zoom || map.current.getZoom(),
-      pitch: flyOptions.pitch || map.current.getPitch(),
-      bearing: flyOptions.bearing || map.current.getBearing(),
+      zoom: flyOptions.zoom || mapRef.current.getZoom(),
+      pitch: flyOptions.pitch || mapRef.current.getPitch(),
+      bearing: flyOptions.bearing || mapRef.current.getBearing(),
       duration: flyOptions.duration || 2000,
       essential: true
     });
   }, []);
 
-  const fitBounds = useCallback((bounds: MapboxGL.LngLatBounds, fitOptions?: MapboxGL.FitBoundsOptions) => {
-    if (!map.current) return;
+  const fitBounds = useCallback((bounds: mapboxgl.LngLatBounds, fitOptions?: mapboxgl.FitBoundsOptions) => {
+    if (!mapRef.current) return;
     
-    map.current.fitBounds(bounds, {
+    mapRef.current.fitBounds(bounds, {
       padding: { top: 50, bottom: 50, left: 50, right: 50 },
       maxZoom: 10,
       ...fitOptions
@@ -361,9 +313,9 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
   }, []);
 
   const resetView = useCallback(() => {
-    if (!map.current) return;
+    if (!mapRef.current) return;
     
-    map.current.flyTo({
+    mapRef.current.flyTo({
       center: [-98.5795, 39.8283],
       zoom: 4,
       pitch: 0,
@@ -379,10 +331,10 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
   }, [addMapTelemetry]);
 
   return {
-    map: map.current,
+    map,
     mapContainer,
-    isLoaded: isLoadedRef.current,
-    error: errorRef.current,
+    isLoaded,
+    error,
     flyTo,
     fitBounds,
     resetView
