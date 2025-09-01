@@ -316,8 +316,7 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
           }
         });
 
-        // Start rotation
-        startRotation();
+        // Rotation will be started by useEffect when conditions are met
         setMapReady(true);
         console.log('[MapboxGlobe] 🎯 Map fully initialized and ready');
         console.log('[MapboxGlobe] State check - Interactive prop:', interactive, 'Map Ready:', true);
@@ -563,36 +562,6 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
     timerRefs.current.push(fallbackTimer3);
   }, [isTransitioning, onTransitionComplete]);
 
-  const startRotation = useCallback(() => {
-    if (!map.current || isInteractive || isTransitioning) {
-      console.log('[MapboxGlobe] Rotation blocked - Interactive:', isInteractive, 'Transitioning:', isTransitioning);
-      return;
-    }
-
-    console.log('[MapboxGlobe] Starting rotation animation');
-    let bearing = 0;
-    const rotationSpeed = 0.1; // Slow rotation
-
-    const animate = () => {
-      // Stop animation if interactive mode is enabled or transitioning
-      if (!map.current || isInteractive || isTransitioning) {
-        console.log('[MapboxGlobe] Stopping rotation - Interactive:', isInteractive, 'Transitioning:', isTransitioning);
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current);
-          animationFrameRef.current = undefined;
-        }
-        return;
-      }
-
-      bearing += rotationSpeed;
-      if (bearing >= 360) bearing = 0;
-
-      map.current.setBearing(bearing);
-      animationFrameRef.current = requestAnimationFrame(animate);
-    };
-
-    animate();
-  }, [isInteractive, isTransitioning]);
 
   // Effect to handle interactive mode transition
   useEffect(() => {
@@ -628,7 +597,67 @@ function MapboxGlobe({ className = '', interactive = false, onTransitionComplete
         }
       } else {
         // Start rotation only if not interactive and not transitioning
-        startRotation();
+        if (!map.current || isInteractive || isTransitioning) {
+          console.log('[MapboxGlobe] Rotation blocked - Interactive:', isInteractive, 'Transitioning:', isTransitioning);
+          return;
+        }
+
+        console.log('[MapboxGlobe] Starting rotation animation');
+        let bearing = 0;
+        const rotationSpeed = 0.1; // Slow rotation
+        let isAnimating = true;
+
+        const animate = () => {
+          // Check if we should continue animating
+          if (!isAnimating || !map.current) {
+            console.log('[MapboxGlobe] Stopping rotation - Animation cancelled or map removed');
+            if (animationFrameRef.current) {
+              cancelAnimationFrame(animationFrameRef.current);
+              animationFrameRef.current = undefined;
+            }
+            return;
+          }
+
+          // Get current state to avoid stale closure issues
+          const currentlyInteractive = isInteractive;
+          const currentlyTransitioning = isTransitioning;
+          
+          if (currentlyInteractive || currentlyTransitioning) {
+            console.log('[MapboxGlobe] Stopping rotation - Interactive:', currentlyInteractive, 'Transitioning:', currentlyTransitioning);
+            isAnimating = false;
+            if (animationFrameRef.current) {
+              cancelAnimationFrame(animationFrameRef.current);
+              animationFrameRef.current = undefined;
+            }
+            return;
+          }
+
+          bearing += rotationSpeed;
+          if (bearing >= 360) bearing = 0;
+
+          try {
+            map.current.setBearing(bearing);
+            animationFrameRef.current = requestAnimationFrame(animate);
+          } catch (error) {
+            console.warn('[MapboxGlobe] Error during rotation animation:', error);
+            isAnimating = false;
+            if (animationFrameRef.current) {
+              cancelAnimationFrame(animationFrameRef.current);
+              animationFrameRef.current = undefined;
+            }
+          }
+        };
+
+        // Store cleanup function to stop animation from outside
+        const stopAnimation = () => {
+          isAnimating = false;
+          if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = undefined;
+          }
+        };
+
+        animate();
       }
     }
     

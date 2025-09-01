@@ -6,6 +6,38 @@ interface LiveTelemetryProps {
 }
 
 export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
+  const latestLog = telemetryLogs.slice(-1)[0];
+  
+  // Determine colors and icons based on log level
+  const getLogStyle = (level?: string) => {
+    switch (level) {
+      case 'error':
+        return {
+          indicatorColor: 'bg-red-500',
+          textColor: 'text-red-400',
+          messageColor: 'text-red-300',
+          icon: '⚠️'
+        };
+      case 'warning':
+        return {
+          indicatorColor: 'bg-yellow-500',
+          textColor: 'text-yellow-400',
+          messageColor: 'text-yellow-300',
+          icon: '⚠️'
+        };
+      case 'info':
+      default:
+        return {
+          indicatorColor: 'bg-green-500',
+          textColor: 'text-green-400',
+          messageColor: 'text-green-300',
+          icon: '🔗'
+        };
+    }
+  };
+
+  const logStyle = getLogStyle(latestLog?.level);
+
   return (
     <motion.div 
       className="floating-card overflow-hidden"
@@ -20,14 +52,24 @@ export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
       transition={{ delay: 0.9 }}
     >
       <div className="flex items-center mb-2">
-        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2" />
-        <span className="text-green-400 font-mono text-xs uppercase">Live Telemetry</span>
+        <div className={`w-2 h-2 ${logStyle.indicatorColor} rounded-full animate-pulse mr-2`} />
+        <span className={`${logStyle.textColor} font-mono text-xs uppercase`}>
+          Live Telemetry
+        </span>
+        {latestLog?.level === 'error' && (
+          <span className="text-red-500 ml-1 animate-pulse">●</span>
+        )}
       </div>
-      <div className="matrix-text text-xs">
-        {telemetryLogs.slice(-1)[0] ? (
-          `[${new Date().toLocaleTimeString()}] ${telemetryLogs.slice(-1)[0].message}`
+      <div className={`matrix-text text-xs ${logStyle.messageColor}`}>
+        {latestLog ? (
+          <span>
+            <span className="opacity-60">[{new Date().toLocaleTimeString()}]</span>{' '}
+            {logStyle.icon} {latestLog.message}
+          </span>
         ) : (
-          '[STANDBY] Awaiting mission parameters...'
+          <span className="text-green-400">
+            🔗 [STANDBY] Awaiting mission parameters...
+          </span>
         )}
       </div>
     </motion.div>

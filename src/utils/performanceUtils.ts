@@ -47,16 +47,14 @@ class PerformanceMonitor {
         for (const entry of list.getEntries()) {
           if (entry.name === 'first-contentful-paint') {
             this.metrics.firstContentfulPaint = entry.startTime;
-            console.log(`[PERF] First Contentful Paint: ${entry.startTime.toFixed(2)}ms`);
           }
         }
       });
       
       observer.observe({ entryTypes: ['paint'] });
       this.observers.push(observer);
-    } catch (error) {
-      console.warn('[PERF] Paint timing not supported:', error);
-    }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) { /* empty */ }
   }
 
   private observeLCP() {
@@ -65,14 +63,12 @@ class PerformanceMonitor {
         const entries = list.getEntries() as PerformanceEntry[];
         const lastEntry = entries[entries.length - 1];
         this.metrics.largestContentfulPaint = lastEntry.startTime;
-        console.log(`[PERF] Largest Contentful Paint: ${lastEntry.startTime.toFixed(2)}ms`);
       });
       
       observer.observe({ entryTypes: ['largest-contentful-paint'] });
       this.observers.push(observer);
-    } catch (error) {
-      console.warn('[PERF] LCP not supported:', error);
-    }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) { /* empty */ }
   }
 
   private observeFID() {
@@ -104,14 +100,12 @@ class PerformanceMonitor {
           }
         }
         this.metrics.cumulativeLayoutShift = clsValue;
-        console.log(`[PERF] Cumulative Layout Shift: ${clsValue.toFixed(4)}`);
       });
       
       observer.observe({ entryTypes: ['layout-shift'] });
       this.observers.push(observer);
-    } catch (error) {
-      console.warn('[PERF] CLS not supported:', error);
-    }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error: unknown) { /* empty */ }
   }
 
   getMetrics(): Partial<PerformanceMetrics> {

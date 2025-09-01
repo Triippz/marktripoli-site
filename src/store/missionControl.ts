@@ -89,7 +89,7 @@ export const useMissionControl = create<MissionControlState>((set, get) => ({
   addTelemetry: (entry) => {
     // Play different sounds based on telemetry level
     if (entry.level === 'error') {
-      missionAudio.playError();
+      missionAudio.playEffect('error');
     } else if (entry.level === 'success') {
       missionAudio.playEngagement();
     }

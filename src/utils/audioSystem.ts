@@ -15,7 +15,7 @@ class MissionControlAudio {
   private audioContext: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private isEnabled = false;
-  private ambientLoop: AudioBufferSourceNode | null = null;
+  private ambientLoop: OscillatorNode | null = null;
   private effects: Map<string, AudioEffect> = new Map();
 
   constructor() {
@@ -81,8 +81,18 @@ class MissionControlAudio {
 
   private createOscillator(frequency: number, type: OscillatorType = 'sine'): OscillatorNode {
     if (!this.audioContext) throw new Error('Audio context not initialized');
+    if (!this.audioContext.currentTime && this.audioContext.currentTime !== 0) throw new Error('Audio context in invalid state');
+    if (typeof frequency !== 'number' || isNaN(frequency) || frequency <= 0) {
+      throw new Error(`Invalid frequency: ${frequency}`);
+    }
     
     const oscillator = this.audioContext.createOscillator();
+    
+    // Validate oscillator frequency property exists before setting
+    if (!oscillator.frequency || typeof oscillator.frequency.setValueAtTime !== 'function') {
+      throw new Error('Oscillator frequency property unavailable');
+    }
+    
     oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
     oscillator.type = type;
     return oscillator;
@@ -110,6 +120,12 @@ class MissionControlAudio {
     const effect = this.effects.get(effectName);
     if (!effect) {
       console.warn(`[AUDIO] Unknown effect: ${effectName}`);
+      return;
+    }
+
+    // Validate effect object has required properties
+    if (typeof effect.frequency !== 'number' || typeof effect.duration !== 'number') {
+      console.warn(`[AUDIO] Invalid effect properties for ${effectName}:`, effect);
       return;
     }
 
@@ -319,6 +335,11 @@ class MissionControlAudio {
     }
   }
 
+  // Generic play method for backward compatibility
+  async play(effectName: string): Promise<void> {
+    await this.playEffect(effectName);
+  }
+
   // Convenience methods for common actions
   async playTerminalKey(): Promise<void> {
     await this.playEffect('terminal');
@@ -343,7 +364,6 @@ class MissionControlAudio {
   async playBriefing(): Promise<void> {
     await this.playEffect('briefing');
   }
-
 
   // Cleanup
   destroy(): void {

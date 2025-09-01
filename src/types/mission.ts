@@ -71,3 +71,160 @@ export type MapView = {
   bearing: number;
   pitch: number;
 }
+
+// Enhanced types for JSON Resume integration
+export type SecurityClearance = 'unclassified' | 'confidential' | 'secret' | 'top-secret';
+export type OperationalStatus = 'active' | 'standby' | 'terminated' | 'archived';
+export type MissionClassification = 'open-source' | 'proprietary' | 'classified';
+
+// Extended SiteData with resume integration fields
+export type EnhancedSiteData = SiteData & {
+  // Resume data mapping
+  resumeSourceId?: string; // Maps to work.name or project.name from JSON Resume
+  skills?: string[]; // Technologies/skills used in this position
+  achievements?: string[]; // Quantified accomplishments
+  clearanceLevel?: SecurityClearance;
+  classification?: MissionClassification;
+  
+  // Enhanced mission control fields
+  operationalStatus?: OperationalStatus;
+  organizationSize?: string; // e.g., "Fortune 500", "Startup", "Agency"
+  teamSize?: number;
+  budgetImpact?: string; // e.g., "$2.5M cost savings"
+  
+  // Location intelligence
+  timezone?: string;
+  region?: 'CONUS' | 'OCONUS' | 'Remote';
+  
+  // Social proof
+  endorsements?: string[];
+  references?: string[];
+};
+
+// Executive briefing data structure
+export type ExecutiveBriefing = {
+  // Core profile
+  operatorProfile: {
+    callsign: string;
+    rank: string;
+    specialties: string[];
+    clearanceLevel: SecurityClearance;
+    yearsOfService: number;
+    location: string;
+  };
+  
+  // Mission summary
+  missionSummary: {
+    totalOperations: number;
+    activeDeployments: number;
+    completedMissions: number;
+    successRate: string;
+    primaryAOR: string; // Area of Responsibility
+  };
+  
+  // Core competencies (skills)
+  coreCompetencies: {
+    technical: {
+      category: string;
+      proficiency: 'novice' | 'proficient' | 'expert' | 'master';
+      technologies: string[];
+      yearsExperience: number;
+    }[];
+    operational: string[];
+    leadership: string[];
+  };
+  
+  // Recent deployments (work history)
+  recentDeployments: {
+    id: string;
+    codename: string;
+    organization: string;
+    role: string;
+    duration: DateRange;
+    classification: MissionClassification;
+    keyOutcomes: string[];
+    location: string;
+  }[];
+  
+  // Notable achievements
+  commendations: {
+    title: string;
+    organization: string;
+    date: string;
+    description?: string;
+  }[];
+  
+  // Education & certifications
+  training: {
+    formal: {
+      institution: string;
+      degree: string;
+      field: string;
+      completed: string;
+    }[];
+    certifications: {
+      name: string;
+      issuer: string;
+      obtained: string;
+      expires?: string;
+      verificationId?: string;
+    }[];
+  };
+  
+  // Contact protocols
+  contactProtocols: {
+    primary: string; // email
+    secondary?: string; // phone
+    socialChannels: {
+      platform: string;
+      handle: string;
+      url: string;
+      classification: 'public' | 'professional' | 'restricted';
+    }[];
+  };
+};
+
+// Resume to Mission Control transformation metadata
+export type TransformationMetadata = {
+  sourceUrl: string;
+  transformedAt: Date;
+  version: string;
+  mappingRules: {
+    workToJob: boolean;
+    projectsToProject: boolean;
+    skillsToCapabilities: boolean;
+    educationToTraining: boolean;
+  };
+  qualityScore: number; // 0-100 based on data completeness
+  warnings: string[];
+};
+
+// Data loading and synchronization states
+export type DataSyncState = {
+  isOnline: boolean;
+  lastSync: Date | null;
+  syncInProgress: boolean;
+  pendingChanges: number;
+  conflicts: {
+    field: string;
+    localValue: any;
+    remoteValue: any;
+    resolvedWith?: 'local' | 'remote' | 'merged';
+  }[];
+};
+
+// Enhanced user progress with resume integration
+export type EnhancedUserProgress = {
+  profileCompleteness: number; // 0-100%
+  dataFreshness: {
+    resumeAge: number; // days since last resume update
+    siteDataAge: number; // days since last site data update
+    stalenessLevel: 'fresh' | 'aging' | 'stale' | 'critical';
+  };
+  integrationHealth: {
+    resumeLinked: boolean;
+    sitesGenerated: number;
+    manualOverrides: number;
+    dataConflicts: number;
+  };
+};

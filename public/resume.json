@@ -1,0 +1,319 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json",
+  "basics": {
+    "name": "Mark Tripoli",
+    "email": "me@marktripoli.com",
+    "phone": "(610) 908-2901",
+    "location": {
+      "city": "Lancaster",
+      "region": "PA",
+      "countryCode": "US"
+    },
+    "summary": "Engineering Lead and Manager with 9+ years scaling teams and delivering secure, distributed platforms—from early-stage startups to large tech firms. Architected and led development of IL5/IL6 compliant systems and developer platforms, achieving >50% build-time reductions, FedRAMP readiness, and high-user SLA compliance.",
+    "profiles": [
+      {
+        "network": "LinkedIn",
+        "url": "https://www.linkedin.com/in/mark-tripoli"
+      },
+      {
+        "network": "Twitter",
+        "username": "Triperoni",
+        "url": "https://twitter.com/Triperoni"
+      },
+      {
+        "network": "GitHub",
+        "username": "Triippz",
+        "url": "https://github.com/Triippz"
+      }
+    ]
+  },
+  "work": [
+    {
+      "name": "Picogrid",
+      "position": "Engineering Manager",
+      "location": "Remote",
+      "startDate": "2024-09",
+      "summary": "Led engineering org and technical vision for Legion as a modular integration layer, enabling interoperability across defense/commercial systems and unlocking classified deployments.",
+      "highlights": [
+        "Created and communicated a unifying technical vision for Legion; credited with >$15M in new contracts, including a $9.3M award.",
+        "Scaled engineering org from 4 → 15 across software, solutions, and security engineering.",
+        "Established secure SDLC practices aligned with FedRAMP, IL5/IL6, and NIST 800-53/171.",
+        "Partnered with BD to translate DoD field requirements into roadmap priorities (e.g., TAK Server-as-a-Service, ATAK plugins).",
+        "Built self-service integration framework for rapid onboarding of integrations.",
+        "Directed FedRAMP SSP & continuous monitoring compliance workstreams."
+      ],
+      "x_location": {
+        "city": "El Segundo",
+        "region": "CA",
+        "countryCode": "US",
+        "geo": {
+          "lat": 33.9164,
+          "lon": -118.4041
+        }
+      }
+    },
+    {
+      "name": "HubSpot",
+      "position": "Technical Lead",
+      "location": "Remote",
+      "startDate": "2022-06",
+      "endDate": "2024-09",
+      "summary": "Drove the technical vision for HubSpot’s Developer Platform, scaling reliability and developer experience.",
+      "highlights": [
+        "Defined and drove Developer Platform technical vision aligned with company strategy.",
+        "Built distributed build & deploy orchestration platform (Java, Vitess, Kafka, SQS, ZooKeeper), reducing build times 50–80%.",
+        "Designed proprietary caching mechanism for incremental builds, saving thousands of developer hours annually.",
+        "Created JSON schema validation service (S3 + CloudFront) serving 5M+ daily requests.",
+        "Mentored engineers; supported multiple promotions and intern conversions."
+      ],
+      "x_location": {
+        "city": "Cambridge",
+        "region": "MA",
+        "countryCode": "US",
+        "geo": {
+          "lat": 42.3736,
+          "lon": -71.1097
+        }
+      }
+    },
+    {
+      "name": "HubSpot",
+      "position": "Senior Software Engineer",
+      "location": "Remote",
+      "startDate": "2022-02",
+      "endDate": "2022-06",
+      "summary": "Delivered observability infrastructure for HubSpot’s Private Applications.",
+      "highlights": [
+        "Built a custom logging system (Java, Kafka, Vitess, HBase) handling 3–6M daily requests at 99.99% SLA."
+      ],
+      "x_location": {
+        "city": "Cambridge",
+        "region": "MA",
+        "countryCode": "US",
+        "geo": {
+          "lat": 42.3736,
+          "lon": -71.1097
+        }
+      }
+    },
+    {
+      "name": "Ghillied Up",
+      "position": "Technical Co-Founder",
+      "location": "Remote",
+      "startDate": "2022-02",
+      "endDate": "2023-06",
+      "summary": "Built a veteran-focused anonymous discussion platform.",
+      "highlights": [
+        "Co-founded platform for veterans and active military to discuss taboo topics safely.",
+        "Developed cross-platform mobile app (React Native, Expo) and backend (NestJS) deployed to AWS and app stores."
+      ]
+    },
+    {
+      "name": "Comcast",
+      "position": "Software Engineer",
+      "location": "Philadelphia, PA",
+      "startDate": "2020-01",
+      "endDate": "2022-02",
+      "summary": "Developed tools to modernize Comcast Test Labs operations.",
+      "highlights": [
+        "Built asset management platform for Test Labs improving datacenter tracking.",
+        "Led React Native audit app development, reducing inventory audit time from 1 month to 1–2 days."
+      ],
+      "x_location": {
+        "city": "Philadelphia",
+        "region": "PA",
+        "countryCode": "US",
+        "geo": {
+          "lat": 39.9526,
+          "lon": -75.1652
+        }
+      }
+    },
+    {
+      "name": "Amtrak",
+      "position": "Senior Software Engineer",
+      "location": "Philadelphia, PA",
+      "startDate": "2016-09",
+      "endDate": "2020-12",
+      "summary": "Built and supported mission-critical applications for Amtrak operations.",
+      "highlights": [],
+      "x_location": {
+        "city": "Philadelphia",
+        "region": "PA",
+        "countryCode": "US",
+        "geo": {
+          "lat": 39.9526,
+          "lon": -75.1652
+        }
+      }
+    },
+    {
+      "name": "United States Marine Corps",
+      "position": "E4 - Corporal, CBRN Defense Specialist",
+      "location": "California, US",
+      "startDate": "2009-06",
+      "endDate": "2014-04",
+      "summary": "CBRN Defense specialist; military service.",
+      "highlights": [],
+      "x_location": {
+        "region": "California",
+        "countryCode": "US",
+        "geo": {
+          "lat": 36.7783,
+          "lon": -119.4179
+        }
+      }
+    }
+  ],
+  "education": [
+    {
+      "institution": "The Pennsylvania State University",
+      "area": "Information, Science and Technology - Design and Development",
+      "studyType": "BS",
+      "endDate": "2021-12",
+      "x_location": {
+        "city": "State College",
+        "region": "PA",
+        "countryCode": "US",
+        "geo": {
+          "lat": 40.7934,
+          "lon": -77.86
+        }
+      }
+    }
+  ],
+  "projects": [
+    {
+      "name": "Legion Integration Layer",
+      "description": "Redesigned Picogrid's Legion into a modular integration layer for C2, AI, and analytics systems.",
+      "highlights": [
+        "Unlocked IL5/IL6 classified deployments",
+        "Contributed to >$15M in new defense contracts"
+      ],
+      "keywords": [
+        "C2",
+        "Integration",
+        "DefenseTech"
+      ]
+    },
+    {
+      "name": "Build & Deploy Orchestration System",
+      "description": "Distributed orchestration system that reduced build times 50–80% across HubSpot engineering.",
+      "highlights": [
+        "Java",
+        "Kafka",
+        "Vitess",
+        "ZooKeeper",
+        "SQS"
+      ],
+      "keywords": [
+        "CI/CD",
+        "Distributed Systems"
+      ]
+    },
+    {
+      "name": "Ghillied Up",
+      "description": "Anonymous discussion platform for veterans/active military.",
+      "highlights": [
+        "React Native",
+        "Expo",
+        "NestJS",
+        "AWS",
+        "iOS/Android"
+      ],
+      "keywords": [
+        "Mobile",
+        "Platform"
+      ]
+    }
+  ],
+  "awards": [
+    {
+      "title": "DoD Contract Award ($9.3M)",
+      "date": "2025-01",
+      "awarder": "US Department of Defense",
+      "summary": "Technical vision and platform re-architecture credited as a key driver."
+    }
+  ],
+  "publications": [],
+  "certificates": [],
+  "skills": [
+    {
+      "name": "Leadership & Management",
+      "keywords": [
+        "Leadership",
+        "Hiring",
+        "Mentorship",
+        "Technical Strategy",
+        "Roadmap Alignment",
+        "Product Management"
+      ]
+    },
+    {
+      "name": "Architecture & Systems",
+      "keywords": [
+        "Systems Architecture",
+        "Distributed Systems",
+        "Microservices",
+        "Edge Computing"
+      ]
+    },
+    {
+      "name": "Programming",
+      "keywords": [
+        "Java",
+        "Python",
+        "Go",
+        "TypeScript",
+        "React"
+      ]
+    },
+    {
+      "name": "Infrastructure",
+      "keywords": [
+        "Kubernetes",
+        "Kafka",
+        "PostgreSQL",
+        "AWS",
+        "NATS/Jetstream",
+        "CI/CD"
+      ]
+    },
+    {
+      "name": "Compliance",
+      "keywords": [
+        "FedRAMP/IL5/IL6 Deployments",
+        "NIST 800-53",
+        "NIST 800-171",
+        "NIST 800-207"
+      ]
+    }
+  ],
+  "interests": [
+    {
+      "name": "Edge Computing",
+      "keywords": [
+        "Jetson Orin",
+        "Ruggedized hardware"
+      ]
+    },
+    {
+      "name": "Defense Tech",
+      "keywords": [
+        "C2 Systems",
+        "Sensor Integration"
+      ]
+    }
+  ],
+  "volunteer": [],
+  "references": [
+    {
+      "name": "Available upon request",
+      "reference": ""
+    }
+  ],
+  "meta": {
+    "clearance": "Top Secret",
+    "createdAt": "2025-08-31T21:15:26"
+  }
+}

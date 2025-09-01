@@ -1,0 +1,55 @@
+{
+  "basics": {
+    "name": "Mark Tripoli (Malformed Test)",
+    "email": "invalid-email-format", 
+    "location": {
+      "city": null,
+      "region": "",
+      "coordinates": "invalid-coords"
+    },
+    "profiles": [
+      {
+        "network": "LinkedIn"
+        // Missing comma and URL
+      },
+      {
+        "network": null,
+        "url": "not-a-valid-url"
+      }
+    ]
+  },
+  "work": [
+    {
+      "name": "",
+      "position": null,
+      "startDate": "invalid-date-format",
+      "endDate": "2024-13-45", // Invalid date
+      "highlights": "should-be-array-not-string",
+      "location": 123 // Should be string
+    },
+    // Missing closing brace for work item
+  ],
+  "skills": [
+    {
+      "name": "Test Skills",
+      "keywords": null // Should be array
+    },
+    {
+      // Missing name field
+      "keywords": ["Valid", "Array"]
+    }
+  ],
+  "education": "should-be-array", // Invalid type
+  "projects": [
+    {
+      "name": "Test Project",
+      "startDate": "2022-01-01",
+      "endDate": "2021-01-01", // End before start
+      "keywords": [null, "", 123] // Mixed invalid types
+    }
+  ],
+  "meta": {
+    "version": "invalid-version-number",
+    "lastModified": "not-a-date"
+  }
+  // Missing closing brace

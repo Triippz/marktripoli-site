@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import mapboxgl from 'mapbox-gl';
 import { useMissionControl } from '../../store/missionControl';
-import type { SiteData } from '../../types/mission';
+import type { SiteData, EnhancedSiteData } from '../../types';
 import sitesData from '../../data/sites.json';
 import FlightPathAnimations from './FlightPathAnimations';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -10,14 +10,56 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 // Set Mapbox access token from environment variables or fallback to demo token
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
 
-function MapboxScene() {
+interface MapboxSceneProps {
+  sites?: SiteData[];
+}
+
+function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const stylesRef = useRef<HTMLStyleElement[]>([]);
   const { selectSite, selectedSite, addTelemetry } = useMissionControl();
-  const [sites] = useState<SiteData[]>(sitesData as SiteData[]);
+  
+  const [sites, setSites] = useState<SiteData[]>(propSites || sitesData as SiteData[]);
+  const [initialized, setInitialized] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [currentCoords, setCurrentCoords] = useState({ lat: 42.3601, lng: -71.0589 }); // Boston
   const [containerDimensions, setContainerDimensions] = useState({ width: 800, height: 600 });
+
+  // Memoize telemetry function to prevent infinite loops
+  const addMapTelemetry = useCallback((log: any) => {
+    addTelemetry(log);
+  }, [addTelemetry]);
+
+  // Initialize component once with error handling
+  useEffect(() => {
+    if (!initialized) {
+      try {
+        console.log('[MapboxScene] Loading static mission sites from sites.json');
+        setSites(sitesData as SiteData[]);
+        setInitialized(true);
+        
+        addMapTelemetry({
+          source: 'MAP',
+          message: `Static mission sites loaded - ${sitesData.length} sites operational`,
+          level: 'info'
+        });
+      } catch (initError) {
+        console.error('[MapboxScene] Critical initialization error:', initError);
+        addMapTelemetry({
+          source: 'MAP',
+          message: `Component initialization failed: ${initError instanceof Error ? initError.message : 'Unknown error'}`,
+          level: 'error'
+        });
+        // Still mark as initialized to prevent retry loops
+        setInitialized(true);
+        throw initError; // Let error boundary handle it
+      }
+    }
+  }, [initialized, addMapTelemetry]);
+
+
 
   // Track container size for flight path animations
   useEffect(() => {
@@ -33,96 +75,183 @@ function MapboxScene() {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
+  // Initialize map once with comprehensive error handling
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
-    // Initialize map
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: import.meta.env.VITE_MAPBOX_STYLE || 'mapbox://styles/mapbox/satellite-v9',
-      center: [-71.0589, 42.3601], // Boston
-      zoom: 4,
-      pitch: 45,
-      bearing: 0,
-      antialias: true,
-      attributionControl: false
-    });
+    let mapInstance: mapboxgl.Map | null = null;
 
-    map.current.on('load', () => {
-      if (!map.current) return;
+    const initializeMap = async () => {
+      try {
+        console.log('[MapboxScene] Initializing map with API key:', import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.substring(0, 20) + '...');
 
-      setMapLoaded(true);
-      
-      // Add custom dark overlay for tactical feel
-      map.current.addSource('tactical-overlay', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {},
-          geometry: {
-            type: 'Polygon',
-            coordinates: [[
-              [-180, -90],
-              [180, -90],
-              [180, 90],
-              [-180, 90],
-              [-180, -90]
-            ]]
-          }
-        }
-      });
-
-      map.current.addLayer({
-        id: 'tactical-overlay',
-        type: 'fill',
-        source: 'tactical-overlay',
-        paint: {
-          'fill-color': '#000000',
-          'fill-opacity': 0.7
-        }
-      });
-
-      // Add tactical grid
-      map.current.addSource('tactical-grid', {
-        type: 'geojson',
-        data: generateTacticalGrid()
-      });
-
-      map.current.addLayer({
-        id: 'tactical-grid',
-        type: 'line',
-        source: 'tactical-grid',
-        paint: {
-          'line-color': '#00ff00',
-          'line-width': 0.5,
-          'line-opacity': 0.3
-        }
-      });
-
-      // Add mission sites
-      addMissionSites();
-
-      addTelemetry({
-        source: 'MAP',
-        message: `Mapbox tactical display initialized - ${sites.length} sites detected`,
-        level: 'success'
-      });
-
-      // Update coordinates on map move
-      map.current.on('mousemove', (e) => {
-        setCurrentCoords({
-          lat: parseFloat(e.lngLat.lat.toFixed(4)),
-          lng: parseFloat(e.lngLat.lng.toFixed(4))
+        // Initialize map centered on USA
+        mapInstance = new mapboxgl.Map({
+          container: mapContainer.current!,
+          style: import.meta.env.VITE_MAPBOX_STYLE || 'mapbox://styles/mapbox/satellite-v9',
+          center: [-98.5795, 39.8283], // Center of USA
+          zoom: 4,
+          pitch: 45,
+          bearing: 0,
+          antialias: true,
+          attributionControl: false
         });
-      });
+        
+        map.current = mapInstance;
+        console.log('[MapboxScene] Map instance created successfully');
+
+        addMapTelemetry({
+          source: 'MAP',
+          message: 'Tactical display initialized - USA theater of operations',
+          level: 'info'
+        });
+
+        mapInstance.on('load', () => {
+          if (!map.current) return;
+
+          try {
+            setMapLoaded(true);
+            
+            // Add custom dark overlay for tactical feel
+            map.current.addSource('tactical-overlay', {
+              type: 'geojson',
+              data: {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'Polygon',
+                  coordinates: [[
+                    [-180, -90],
+                    [180, -90],
+                    [180, 90],
+                    [-180, 90],
+                    [-180, -90]
+                  ]]
+                }
+              }
+            });
+
+            map.current.addLayer({
+              id: 'tactical-overlay',
+              type: 'fill',
+              source: 'tactical-overlay',
+              paint: {
+                'fill-color': '#000000',
+                'fill-opacity': 0.7
+              }
+            });
+
+            // Add tactical grid
+            map.current.addSource('tactical-grid', {
+              type: 'geojson',
+              data: generateTacticalGrid()
+            });
+
+            map.current.addLayer({
+              id: 'tactical-grid',
+              type: 'line',
+              source: 'tactical-grid',
+              paint: {
+                'line-color': '#00ff00',
+                'line-width': 0.5,
+                'line-opacity': 0.3
+              }
+            });
+
+            addMapTelemetry({
+              source: 'MAP',
+              message: `Mapbox tactical display initialized`,
+              level: 'success'
+            });
+
+            // Update coordinates on map move
+            map.current.on('mousemove', (e) => {
+              setCurrentCoords({
+                lat: parseFloat(e.lngLat.lat.toFixed(4)),
+                lng: parseFloat(e.lngLat.lng.toFixed(4))
+              });
+            });
+          } catch (loadError) {
+            console.error('[MapboxScene] Map load configuration failed:', loadError);
+            addMapTelemetry({
+              source: 'MAP',
+              message: `Map load failed: ${loadError instanceof Error ? loadError.message : 'Unknown error'}`,
+              level: 'error'
+            });
+            throw loadError;
+          }
+        });
+
+        mapInstance.on('error', (e) => {
+          console.error('[MapboxScene] Map error event:', e.error);
+          addMapTelemetry({
+            source: 'MAP',
+            message: `Map error: ${e.error.message}`,
+            level: 'error'
+          });
+        });
+
+      } catch (error) {
+        console.error('[MapboxScene] Failed to create map instance:', error);
+        addMapTelemetry({
+          source: 'MAP',
+          message: `Map initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          level: 'error'
+        });
+        throw error; // Let error boundary handle it
+      }
+    };
+
+    // Initialize map with error handling
+    initializeMap().catch(error => {
+      console.error('[MapboxScene] Map initialization promise failed:', error);
+      // Error boundary will catch the throw from initializeMap
     });
 
     return () => {
-      if (map.current) {
-        map.current.remove();
+      try {
+        console.log('[MapboxScene] Starting map cleanup...');
+        
+        // Clean up markers first
+        markersRef.current.forEach(marker => {
+          try {
+            marker.remove();
+          } catch (error) {
+            console.warn('[MapboxScene] Error removing marker during cleanup:', error);
+          }
+        });
+        markersRef.current = [];
+        
+        // Clean up dynamically added styles
+        stylesRef.current.forEach(style => {
+          try {
+            if (style.parentNode) {
+              style.parentNode.removeChild(style);
+            }
+          } catch (error) {
+            console.warn('[MapboxScene] Error removing style during cleanup:', error);
+          }
+        });
+        stylesRef.current = [];
+        
+        // Clean up the map instance (only call remove() once)
+        const mapToCleanup = mapInstance || map.current;
+        if (mapToCleanup && !mapToCleanup._removed) {
+          console.log('[MapboxScene] Removing map instance...');
+          mapToCleanup.remove();
+        }
+        
+        // Clear the reference
+        map.current = null;
+        console.log('[MapboxScene] Map cleanup completed successfully');
+        
+      } catch (cleanupError) {
+        console.warn('[MapboxScene] Map cleanup error:', cleanupError);
+        // Still clear the reference even if cleanup failed
+        map.current = null;
       }
     };
-  }, [addTelemetry, sites]);
+  }, [addMapTelemetry]);
 
   const generateTacticalGrid = () => {
     const features = [];
@@ -157,8 +286,18 @@ function MapboxScene() {
     };
   };
 
-  const addMissionSites = () => {
+  const addMissionSites = useCallback(() => {
     if (!map.current) return;
+
+    // Clear existing markers first
+    markersRef.current.forEach(marker => {
+      try {
+        marker.remove();
+      } catch (error) {
+        console.warn('[MapboxScene] Error removing marker:', error);
+      }
+    });
+    markersRef.current = [];
 
     // Create custom marker elements for each site
     sites.forEach((site) => {
@@ -185,16 +324,20 @@ function MapboxScene() {
         }
       `;
       document.head.appendChild(style);
+      stylesRef.current.push(style);
 
       // Create marker
       const marker = new mapboxgl.Marker(markerElement)
         .setLngLat([site.hq.lng, site.hq.lat])
         .addTo(map.current!);
+      
+      // Store marker reference for cleanup
+      markersRef.current.push(marker);
 
       // Add click handler
       markerElement.addEventListener('click', () => {
         selectSite(site);
-        addTelemetry({
+        addMapTelemetry({
           source: 'MAP',
           message: `Engaging target: ${site.codename || site.name}`,
           level: 'success'
@@ -243,7 +386,14 @@ function MapboxScene() {
         popup.remove();
       });
     });
-  };
+  }, [sites, selectSite, addMapTelemetry]);
+
+  // Update markers when sites change
+  useEffect(() => {
+    if (mapLoaded && sites.length > 0) {
+      addMissionSites();
+    }
+  }, [mapLoaded, sites, addMissionSites]);
 
   const resetView = () => {
     if (!map.current) return;
@@ -256,7 +406,7 @@ function MapboxScene() {
       duration: 2000
     });
 
-    addTelemetry({
+    addMapTelemetry({
       source: 'MAP',
       message: 'Tactical display reset to global overview',
       level: 'info'

@@ -5,9 +5,10 @@ import { createTerminalSlice, type TerminalSlice } from './slices/terminalSlice'
 import { createUserSlice, type UserSlice } from './slices/userSlice';
 import { createTelemetrySlice, type TelemetrySlice } from './slices/telemetrySlice';
 import { createUISlice, type UISlice } from './slices/uiSlice';
+import { createDataSlice, type DataSlice } from './slices/dataSlice';
 
 // Combined store type
-export type MissionControlStore = MapSlice & TerminalSlice & UserSlice & TelemetrySlice & UISlice;
+export type MissionControlStore = MapSlice & TerminalSlice & UserSlice & TelemetrySlice & UISlice & DataSlice;
 
 // Create the combined store
 export const useMissionControlV2 = create<MissionControlStore>()(
@@ -18,6 +19,7 @@ export const useMissionControlV2 = create<MissionControlStore>()(
       ...createUserSlice(...a),
       ...createTelemetrySlice(...a),
       ...createUISlice(...a),
+      ...createDataSlice(...a),
     }),
     {
       name: 'mission-control-store',
@@ -29,6 +31,14 @@ export const useMissionControlV2 = create<MissionControlStore>()(
         soundEnabled: state.soundEnabled,
         theme: state.theme,
         mapView: state.mapView,
+        resumeUrl: state.resumeUrl,
+        lastResumeUpdate: state.lastResumeUpdate,
+        
+        // Enhanced persistence fields
+        transformConfig: state.transformConfig,
+        briefingConfig: state.briefingConfig,
+        skillCategories: state.skillCategories,
+        executiveBriefing: state.executiveBriefing,
       }),
     }
   )
@@ -40,7 +50,12 @@ export const useMapStore = () => useMissionControlV2(state => ({
   mapView: state.mapView,
   selectSite: state.selectSite,
   setMapView: state.setMapView,
-}));
+}), (a, b) => 
+  a.selectedSite === b.selectedSite && 
+  a.mapView === b.mapView && 
+  a.selectSite === b.selectSite && 
+  a.setMapView === b.setMapView
+);
 
 export const useTerminalStore = () => useMissionControlV2(state => ({
   terminalState: state.terminalState,
@@ -51,7 +66,16 @@ export const useTerminalStore = () => useMissionControlV2(state => ({
   setCurrentDossier: state.setCurrentDossier,
   setActiveTab: state.setActiveTab,
   addCommand: state.addCommand,
-}));
+}), (a, b) => 
+  a.terminalState === b.terminalState &&
+  a.currentDossier === b.currentDossier &&
+  a.activeTab === b.activeTab &&
+  a.commandHistory === b.commandHistory &&
+  a.setTerminalState === b.setTerminalState &&
+  a.setCurrentDossier === b.setCurrentDossier &&
+  a.setActiveTab === b.setActiveTab &&
+  a.addCommand === b.addCommand
+);
 
 export const useUserStore = () => useMissionControlV2(state => ({
   visitedSites: state.visitedSites,
@@ -60,14 +84,26 @@ export const useUserStore = () => useMissionControlV2(state => ({
   visitSite: state.visitSite,
   unlockEasterEgg: state.unlockEasterEgg,
   calculateRank: state.calculateRank,
-}));
+}), (a, b) => 
+  a.visitedSites === b.visitedSites &&
+  a.unlockedEasterEggs === b.unlockedEasterEggs &&
+  a.userRank === b.userRank &&
+  a.visitSite === b.visitSite &&
+  a.unlockEasterEgg === b.unlockEasterEgg &&
+  a.calculateRank === b.calculateRank
+);
 
 export const useTelemetryStore = () => useMissionControlV2(state => ({
   telemetryLogs: state.telemetryLogs,
   addTelemetry: state.addTelemetry,
   clearTelemetry: state.clearTelemetry,
   getTelemetryByLevel: state.getTelemetryByLevel,
-}));
+}), (a, b) => 
+  a.telemetryLogs === b.telemetryLogs && 
+  a.addTelemetry === b.addTelemetry && 
+  a.clearTelemetry === b.clearTelemetry && 
+  a.getTelemetryByLevel === b.getTelemetryByLevel
+);
 
 export const useUIStore = () => useMissionControlV2(state => ({
   soundEnabled: state.soundEnabled,
@@ -76,7 +112,89 @@ export const useUIStore = () => useMissionControlV2(state => ({
   toggleSound: state.toggleSound,
   toggleHUD: state.toggleHUD,
   setTheme: state.setTheme,
-}));
+}), (a, b) => 
+  a.soundEnabled === b.soundEnabled &&
+  a.hudVisible === b.hudVisible &&
+  a.theme === b.theme &&
+  a.toggleSound === b.toggleSound &&
+  a.toggleHUD === b.toggleHUD &&
+  a.setTheme === b.setTheme
+);
+
+// Memoized selector to prevent infinite re-renders
+const dataStoreSelector = (state: any) => ({
+  // Core data
+  sites: state.sites,
+  resumeData: state.resumeData,
+  resumeDataState: state.resumeDataState,
+  resumeDataError: state.resumeDataError,
+  lastResumeUpdate: state.lastResumeUpdate,
+  resumeUrl: state.resumeUrl,
+  
+  // Enhanced data
+  executiveBriefing: state.executiveBriefing,
+  skillCategories: state.skillCategories,
+  transformationMetadata: state.transformationMetadata,
+  dataSync: state.dataSync,
+  
+  // Processing state
+  processingStatus: state.processingStatus,
+  validation: state.validation,
+  generatedBriefing: state.generatedBriefing,
+  performanceMetrics: state.performanceMetrics,
+  
+  // Configuration
+  transformConfig: state.transformConfig,
+  briefingConfig: state.briefingConfig,
+  
+  // Core actions
+  loadResumeData: state.loadResumeData,
+  refreshResumeData: state.refreshResumeData,
+  setSites: state.setSites,
+  addSite: state.addSite,
+  removeSite: state.removeSite,
+  updateSite: state.updateSite,
+  clearResumeData: state.clearResumeData,
+  retryResumeLoad: state.retryResumeLoad,
+  
+  // Enhanced actions
+  generateExecutiveBriefing: state.generateExecutiveBriefing,
+  updateTransformConfig: state.updateTransformConfig,
+  updateBriefingConfig: state.updateBriefingConfig,
+  validateResumeData: state.validateResumeData,
+  syncDataState: state.syncDataState,
+  enrichSiteData: state.enrichSiteData,
+  
+  // Selectors
+  getSiteById: state.getSiteById,
+  getSitesByType: state.getSitesByType,
+  getWorkSites: state.getWorkSites,
+  getProjectSites: state.getProjectSites,
+  getHobbySites: state.getHobbySites,
+  getSkillsByCategory: state.getSkillsByCategory,
+  getSitesBySkill: state.getSitesBySkill,
+  getRecentWork: state.getRecentWork,
+  getFeaturedProjects: state.getFeaturedProjects,
+  getDataQualityScore: state.getDataQualityScore,
+  getTransformationHealth: state.getTransformationHealth,
+});
+
+export const useDataStore = () => useMissionControlV2(dataStoreSelector, (a, b) => {
+  // Shallow equality check to prevent unnecessary re-renders
+  if (a === b) return true;
+  if (!a || !b) return false;
+  
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  
+  if (keysA.length !== keysB.length) return false;
+  
+  for (const key of keysA) {
+    if (a[key] !== b[key]) return false;
+  }
+  
+  return true;
+});
 
 // Computed selectors for complex state derivations
 export const useUserStats = () => useMissionControlV2(state => {
@@ -145,3 +263,157 @@ export const useCombinedActions = () => useMissionControlV2(state => ({
     });
   },
 }));
+
+// =============================================================================
+// ENHANCED HOOKS FOR JSON RESUME INTEGRATION
+// =============================================================================
+
+// Hook for executive briefing functionality
+export const useExecutiveBriefing = () => useMissionControlV2(state => ({
+  briefing: state.executiveBriefing,
+  isGenerating: state.processingStatus?.stage === 'generating',
+  config: state.briefingConfig,
+  
+  generate: state.generateExecutiveBriefing,
+  updateConfig: state.updateBriefingConfig,
+  
+  // Computed properties
+  hasValidBriefing: !!state.executiveBriefing,
+  lastGenerated: state.generatedBriefing?.generatedAt || null,
+  dataQuality: state.getDataQualityScore(),
+}));
+
+// Hook for skills matrix and categories
+export const useSkillsMatrix = () => useMissionControlV2(state => ({
+  categories: state.skillCategories,
+  
+  // Actions
+  getSkillsByCategory: state.getSkillsByCategory,
+  getSitesBySkill: state.getSitesBySkill,
+  
+  // Computed properties
+  totalSkills: state.skillCategories.reduce((sum, cat) => sum + cat.skills.length, 0),
+  topSkills: state.skillCategories
+    .flatMap(cat => cat.skills)
+    .sort((a, b) => (b.yearsExperience || 0) - (a.yearsExperience || 0))
+    .slice(0, 10),
+  
+  skillsByProficiency: (level: string) => 
+    state.skillCategories
+      .flatMap(cat => cat.skills)
+      .filter(skill => skill.level === level),
+}));
+
+// Hook for data transformation and processing
+export const useDataTransformation = () => useMissionControlV2(state => ({
+  // Processing state
+  isProcessing: state.processingStatus !== null,
+  processingStage: state.processingStatus?.stage || null,
+  progress: state.processingStatus?.progress || 0,
+  
+  // Configuration
+  transformConfig: state.transformConfig,
+  updateConfig: state.updateTransformConfig,
+  
+  // Quality metrics
+  validation: state.validation,
+  dataQuality: state.getDataQualityScore(),
+  health: state.getTransformationHealth(),
+  
+  // Performance
+  metrics: state.performanceMetrics,
+  
+  // Metadata
+  transformationMeta: state.transformationMetadata,
+  syncState: state.dataSync,
+}));
+
+// Hook for enhanced site data management
+export const useEnhancedSites = () => useMissionControlV2(state => ({
+  sites: state.sites,
+  
+  // Enhanced selectors
+  getRecentWork: state.getRecentWork,
+  getFeaturedProjects: state.getFeaturedProjects,
+  getSitesBySkill: state.getSitesBySkill,
+  
+  // Site enhancement
+  enrichSite: state.enrichSiteData,
+  updateSite: state.updateSite,
+  
+  // Analytics
+  sitesByType: {
+    jobs: state.getWorkSites(),
+    projects: state.getProjectSites(),
+    hobbies: state.getHobbySites(),
+  },
+  
+  totalSites: state.sites.length,
+  enhancedSitesCount: state.sites.filter(site => 
+    'skills' in site || 'achievements' in site || 'clearanceLevel' in site
+  ).length,
+}));
+
+// Hook for comprehensive mission control analytics
+export const useMissionAnalytics = () => useMissionControlV2(state => {
+  const workSites = state.getWorkSites();
+  const projectSites = state.getProjectSites();
+  const hobbySites = state.getHobbySites();
+  
+  return {
+    // Data composition
+    composition: {
+      totalSites: state.sites.length,
+      workSites: workSites.length,
+      projectSites: projectSites.length,
+      hobbySites: hobbySites.length,
+      enhancedSites: state.sites.filter(site => 'skills' in site).length,
+    },
+    
+    // Skills analysis
+    skills: {
+      totalCategories: state.skillCategories.length,
+      totalSkills: state.skillCategories.reduce((sum, cat) => sum + cat.skills.length, 0),
+      expertLevel: state.skillCategories
+        .flatMap(cat => cat.skills)
+        .filter(skill => skill.level === 'expert').length,
+    },
+    
+    // Timeline analysis
+    timeline: {
+      careerSpan: workSites.length > 0 ? {
+        start: Math.min(...workSites.map(site => 
+          new Date(site.period?.start || Date.now()).getFullYear()
+        )),
+        end: Math.max(...workSites.map(site => 
+          new Date(site.period?.end || Date.now()).getFullYear()
+        )),
+      } : null,
+      
+      averageJobDuration: workSites.length > 0 ? 
+        workSites
+          .filter(site => site.period?.start && site.period?.end)
+          .reduce((sum, site) => {
+            const start = new Date(site.period!.start);
+            const end = new Date(site.period!.end!);
+            return sum + (end.getTime() - start.getTime());
+          }, 0) / workSites.length / (1000 * 60 * 60 * 24 * 365) // Convert to years
+        : 0,
+    },
+    
+    // Quality metrics
+    quality: {
+      dataQualityScore: state.getDataQualityScore(),
+      transformationHealth: state.getTransformationHealth(),
+      completeness: state.validation?.completeness?.overall || 0,
+      resumeLinked: !!state.resumeData,
+    },
+    
+    // User engagement
+    engagement: {
+      visitedSites: state.visitedSites.length,
+      completionRate: state.visitedSites.length / Math.max(state.sites.length, 1) * 100,
+      currentRank: state.userRank,
+    },
+  };
+});

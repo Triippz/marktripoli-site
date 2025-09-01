@@ -1,12 +1,14 @@
 import { useState, useEffect, Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+// import { useTelemetryStore, useUserStore, useUIStore } from './store/missionControlV2';
 import { useMissionControl } from './store/missionControl';
-import ErrorBoundary from './components/ErrorBoundary';
+// import { GlobalErrorBoundary, DataErrorBoundary, MapErrorBoundary, UIErrorBoundary } from './components/ErrorBoundary/GlobalErrorBoundary';
+// import MapDataErrorBoundary from './components/ErrorBoundary/MapDataErrorBoundary';
+// import ResumeDataErrorBoundary from './components/ErrorBoundary/ResumeDataErrorBoundary';
 import { InitializingLoader } from './components/LoadingSpinner';
 import { AccessibilityProvider, AccessibilityStyles } from './components/AccessibilityProvider';
 import { SkipNavigation } from './components/SkipNavigation';
-import MapboxGlobe from './components/MapboxGlobe';
+import MapboxScene from './components/map/MapboxScene';
 import { missionAudio } from './utils/audioSystem';
 import BootSequence from './components/boot/BootSequence';
 import HUDTopLeftStack from './components/layout/HUDTopLeftStack';
@@ -15,16 +17,17 @@ import MainStatusPanel from './components/layout/MainStatusPanel';
 import TerminalOverlay from './components/layout/TerminalOverlay';
 import AchievementOverlay from './components/layout/AchievementOverlay';
 import ContactFormOverlay from './components/layout/ContactFormOverlay';
-import BackgroundGridOverlay from './components/BackgroundGridOverlay';
+// import BackgroundGridOverlay from './components/BackgroundGridOverlay';
 import LiveTelemetry from './components/hud/LiveTelemetry';
 import StatusIndicators from './components/hud/StatusIndicators';
-import TacticalStatusBar from './components/enhanced/TacticalStatusBar';
+import DataSourceRetry from './components/hud/DataSourceRetry';
+// import TacticalStatusBar from './components/enhanced/TacticalStatusBar';
 import './App.css';
 import './styles/tactical-enhancements.css';
 
 // Lazy load components for better performance
 // const MapboxScene = lazy(() => import('./components/map/MapboxScene'));
-const ExecutiveBriefing = lazy(() => import('./components/briefing/ExecutiveBriefing'));
+// const ExecutiveBriefing = lazy(() => import('./components/briefing/ExecutiveBriefing'));
 
 
 
@@ -32,7 +35,6 @@ function MissionControlInterface() {
   const { telemetryLogs, userRank, soundEnabled, toggleSound } = useMissionControl();
   const [showContactForm, setShowContactForm] = useState(false);
   const [earthControlActive, setEarthControlActive] = useState(false);
-  const [showStatusPanel, setShowStatusPanel] = useState(true);
 
   // Auto-trigger earth control mode after a brief delay
   useEffect(() => {
@@ -49,57 +51,66 @@ function MissionControlInterface() {
   useEffect(() => {
     console.log('[App] 🌍 earthControlActive state changed to:', earthControlActive);
     if (earthControlActive) {
-      console.log('[App] 📡 Passing interactive=true to MapboxGlobe');
+      console.log('[App] 📡 Earth control active - interactive mode enabled');
     }
   }, [earthControlActive]);
 
-  const handleTransitionComplete = () => {
-    // Keep the status panel visible after transition completes
-    console.log('[App] Transition complete - keeping status panel visible');
-    // If you later want to auto-hide, reintroduce a timeout here.
-  };
-  
+
   return (
     <div className="h-screen w-screen text-white overflow-hidden relative">
-      {/* Background Globe */}
-      <MapboxGlobe 
-        interactive={earthControlActive}
-        onTransitionComplete={handleTransitionComplete}
-        onUserInteraction={() => setShowStatusPanel(false)}
-      />
-      
+      {/* Background Globe with Error Boundaries */}
+      {/* Temporarily commented out for testing */}
+      {/* <MapErrorBoundary>
+        <MapDataErrorBoundary>
+          <ResumeDataErrorBoundary showFallback={false}> */}
+            <MapboxScene />
+          {/* </ResumeDataErrorBoundary>
+        </MapDataErrorBoundary>
+      </MapErrorBoundary> */}
+
       <SkipNavigation />
-      
+
       {/* HUD Cluster: top-left stack (MissionHUD + StatusIndicators) */}
-      <HUDTopLeftStack userRank={userRank} />
+      {/* <UIErrorBoundary componentName="HUD Top Left Stack">
+        <HUDTopLeftStack userRank={userRank} />
+      </UIErrorBoundary>
 
-      {/* Top-right button controls */}
-      <TopRightButtonControls 
-        soundEnabled={soundEnabled}
-        toggleSound={toggleSound}
-        onContactClick={() => setShowContactForm(true)}
-      />
+      <UIErrorBoundary componentName="Top Right Controls">
+        <TopRightButtonControls 
+          soundEnabled={soundEnabled}
+          toggleSound={toggleSound}
+          onContactClick={() => setShowContactForm(true)}
+        />
+      </UIErrorBoundary>
       
-      {/* Main Content Area - Tactical Overlays */}
-      <MainStatusPanel showStatusPanel={showStatusPanel} />
+      <UIErrorBoundary componentName="Main Status Panel">
+        <MainStatusPanel showStatusPanel={true} />
+      </UIErrorBoundary>
 
-      {/* Terminal Overlay */}
-      <TerminalOverlay />
+      <UIErrorBoundary componentName="Terminal Overlay">
+        <TerminalOverlay />
+      </UIErrorBoundary>
 
-      {/* Achievement System */}
-      <AchievementOverlay />
+      <UIErrorBoundary componentName="Achievement Overlay">
+        <AchievementOverlay />
+      </UIErrorBoundary> */}
 
       {/* Contact Form */}
-      <ContactFormOverlay 
-        isOpen={showContactForm}
-        onClose={() => setShowContactForm(false)}
-      />
+      {/* <UIErrorBoundary componentName="Contact Form">
+        <ContactFormOverlay 
+          isOpen={showContactForm}
+          onClose={() => setShowContactForm(false)}
+        />
+      </UIErrorBoundary>
 
-      {/* Live Telemetry */}
-      <LiveTelemetry telemetryLogs={telemetryLogs} />
+      <UIErrorBoundary componentName="Live Telemetry">
+        <LiveTelemetry telemetryLogs={telemetryLogs} />
+      </UIErrorBoundary> */}
+
+      {/* <DataSourceRetry /> */}
 
       {/* Status Indicators - Top Header */}
-      <div 
+      <div
         style={{
           position: 'fixed',
           top: '0',
@@ -112,17 +123,87 @@ function MissionControlInterface() {
         <StatusIndicators />
       </div>
 
-      {/* Tactical Status Bar */}
-      <TacticalStatusBar />
+      {/* Top Right Button Controls */}
+      <TopRightButtonControls
+        soundEnabled={soundEnabled}
+        toggleSound={toggleSound}
+        onContactClick={() => setShowContactForm(true)}
+      />
 
-      {/* Grid overlay for authentic terminal feel */}
-      <BackgroundGridOverlay />
+      {/* Contact Form */}
+      <ContactFormOverlay 
+        isOpen={showContactForm}
+        onClose={() => setShowContactForm(false)}
+      />
+
+      {/* HUD Top Left Stack - User Rank */}
+      <HUDTopLeftStack userRank={userRank} />
+
+      {/* Main Status Panel - Center Information */}
+      <MainStatusPanel showStatusPanel={true} />
+
+      {/* Terminal Overlay - Interactive Site Viewer */}
+      <TerminalOverlay />
+
+      {/* Achievement Overlay - Gamification System */}
+      <AchievementOverlay />
+
+      {/* Live Telemetry */}
+      <LiveTelemetry telemetryLogs={telemetryLogs} />
     </div>
   );
 }
 
+// Global keyboard handler component
+function GlobalKeyboardHandler() {
+  const navigate = useNavigate();
+  // const { addTelemetry } = useTelemetryStore();
+
+  useEffect(() => {
+    const handleGlobalKeyPress = (event: KeyboardEvent) => {
+      // Executive Briefing shortcuts
+      if ((event.metaKey || event.ctrlKey) && event.key === 'b') {
+        event.preventDefault();
+        navigate('/briefing');
+        // addTelemetry({
+        //   source: 'USER',
+        //   message: 'Executive briefing accessed via keyboard shortcut',
+        //   level: 'info'
+        // });
+      } else if (event.key === 'b' && (!event.target || (event.target as HTMLElement)?.tagName !== 'INPUT')) {
+        event.preventDefault();
+        navigate('/briefing');
+        // addTelemetry({
+        //   source: 'USER',
+        //   message: 'Executive briefing accessed via B key',
+        //   level: 'info'
+        // });
+      }
+
+      // Mission Control shortcut - ESC or M to return to main
+      if (event.key === 'Escape' || (event.key === 'm' && (!event.target || (event.target as HTMLElement)?.tagName !== 'INPUT'))) {
+        event.preventDefault();
+        navigate('/');
+        // addTelemetry({
+        //   source: 'USER',
+        //   message: 'Returned to Mission Control interface',
+        //   level: 'info'
+        // });
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyPress);
+    return () => window.removeEventListener('keydown', handleGlobalKeyPress);
+  }, [navigate]);
+
+  return null; // This component only handles events
+}
+
 function App() {
-  const { addTelemetry, soundEnabled, bootCompleted, setBootCompleted } = useMissionControl();
+  const { addTelemetry, soundEnabled } = useMissionControl();
+
+  // Use local state for boot status to avoid cross-store dependencies
+  const [bootCompleted, setBootCompleted] = useState(false);
   const [booting, setBooting] = useState(!bootCompleted);
 
   useEffect(() => {
@@ -130,14 +211,14 @@ function App() {
     const initAudio = async () => {
       await missionAudio.initialize();
       missionAudio.setEnabled(soundEnabled);
-      
+
       if (soundEnabled) {
         await missionAudio.playBootup();
       }
     };
-    
+
     initAudio();
-    
+
     // Add initial telemetry when app loads
     addTelemetry({
       source: 'SYSTEM',
@@ -146,31 +227,29 @@ function App() {
     });
   }, [addTelemetry, soundEnabled]);
 
+
   if (booting) {
     return <BootSequence onComplete={() => {
       setBooting(false);
       setBootCompleted(true);
+      localStorage.setItem('mc-boot-completed', 'true');
     }} />;
   }
 
   return (
-    <AccessibilityProvider>
-      <AccessibilityStyles />
-      <ErrorBoundary>
-        <Router>
-          <Routes>
-            <Route path="/" element={<MissionControlInterface />} />
-            <Route path="/briefing" element={
-              <ErrorBoundary>
-                <Suspense fallback={<InitializingLoader message="LOADING EXECUTIVE BRIEFING..." />}>
-                  <ExecutiveBriefing />
-                </Suspense>
-              </ErrorBoundary>
-            } />
-          </Routes>
-        </Router>
-      </ErrorBoundary>
-    </AccessibilityProvider>
+    <div>
+      <Router>
+        <GlobalKeyboardHandler />
+        <Routes>
+          <Route path="/" element={<MissionControlInterface />} />
+          <Route path="/briefing" element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <div>Executive Briefing Placeholder</div>
+            </Suspense>
+          } />
+        </Routes>
+      </Router>
+    </div>
   );
 }
 

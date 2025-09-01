@@ -1,0 +1,130 @@
+{
+  "basics": {
+    "name": "Mark Tripoli (Test Data)",
+    "label": "Senior Engineering Manager",
+    "email": "test@marktripoli.com",
+    "phone": "(555) 123-4567",
+    "url": "https://test.marktripoli.com",
+    "summary": "Senior Engineering Manager with 15+ years of experience in C2 systems, platform engineering, and team leadership. Test data for QA validation.",
+    "location": {
+      "city": "Los Angeles",
+      "region": "CA",
+      "countryCode": "US"
+    },
+    "profiles": [
+      {
+        "network": "LinkedIn",
+        "username": "marktripoli-test",
+        "url": "https://linkedin.com/in/marktripoli-test"
+      },
+      {
+        "network": "GitHub", 
+        "username": "tripolipg-test",
+        "url": "https://github.com/tripolipg-test"
+      },
+      {
+        "network": "Twitter",
+        "username": "marktripoli_test",
+        "url": "https://twitter.com/marktripoli_test"
+      }
+    ]
+  },
+  "work": [
+    {
+      "name": "Test Company Alpha",
+      "position": "VP Engineering (Test)",
+      "url": "https://testcompany-alpha.com",
+      "startDate": "2023-01-01",
+      "endDate": "2024-12-31",
+      "summary": "Led engineering team of 25+ engineers in test scenario. Built scalable platform serving 1M+ users daily.",
+      "highlights": [
+        "Scaled engineering team from 5 to 25 members during test period",
+        "Achieved 99.9% uptime SLA for critical platform services",
+        "Reduced deployment time from 4 hours to 15 minutes via CI/CD",
+        "Generated $5M+ ARR through platform feature development"
+      ],
+      "location": "San Francisco, CA"
+    },
+    {
+      "name": "Test Company Beta",
+      "position": "Senior Engineering Manager (Test)",
+      "url": "https://testcompany-beta.com",
+      "startDate": "2021-06-01", 
+      "endDate": "2022-12-31",
+      "summary": "Managed platform infrastructure team for test scenario. Led migration to microservices architecture.",
+      "highlights": [
+        "Successfully migrated monolithic application to microservices",
+        "Improved system performance by 300% through optimization",
+        "Mentored 12 engineers in modern development practices",
+        "Implemented event-driven architecture with 50M+ events/day"
+      ],
+      "location": "Boston, MA"
+    }
+  ],
+  "education": [
+    {
+      "institution": "Test University",
+      "area": "Computer Science", 
+      "studyType": "Bachelor of Science",
+      "startDate": "2005-09-01",
+      "endDate": "2009-05-01",
+      "gpa": "3.8",
+      "courses": ["Data Structures", "Algorithms", "Software Engineering", "Database Systems"]
+    }
+  ],
+  "skills": [
+    {
+      "name": "Leadership & Management",
+      "keywords": ["Team Leadership", "Strategic Planning", "Agile/Scrum", "Performance Management", "Hiring & Onboarding"]
+    },
+    {
+      "name": "Technical Stack", 
+      "keywords": ["JavaScript/TypeScript", "React/Node.js", "Python/Go", "AWS/GCP", "Docker/Kubernetes"]
+    },
+    {
+      "name": "Infrastructure & DevOps",
+      "keywords": ["CI/CD Pipelines", "Infrastructure as Code", "Monitoring & Observability", "Security & Compliance"]
+    },
+    {
+      "name": "Architecture & Design",
+      "keywords": ["Microservices", "Event-Driven Architecture", "API Design", "Database Design", "System Scalability"]
+    }
+  ],
+  "projects": [
+    {
+      "name": "Test Platform Alpha",
+      "description": "Built scalable developer platform serving 100K+ developers with test data",
+      "highlights": [
+        "Designed RESTful API handling 10M+ requests/day",
+        "Implemented OAuth 2.0 authentication and authorization", 
+        "Built real-time notification system with WebSockets",
+        "Achieved sub-200ms API response times"
+      ],
+      "keywords": ["Node.js", "React", "PostgreSQL", "Redis", "Docker"],
+      "startDate": "2022-01-01",
+      "endDate": "2023-06-01",
+      "url": "https://github.com/testcompany/platform-alpha",
+      "type": "platform"
+    }
+  ],
+  "languages": [
+    {
+      "language": "English",
+      "fluency": "Native"
+    },
+    {
+      "language": "Spanish", 
+      "fluency": "Conversational"
+    }
+  ],
+  "interests": [
+    {
+      "name": "Technology",
+      "keywords": ["Machine Learning", "Cloud Architecture", "Open Source"]
+    },
+    {
+      "name": "Outdoor Activities",
+      "keywords": ["Hiking", "Photography", "Trail Running"]
+    }
+  ]
+}

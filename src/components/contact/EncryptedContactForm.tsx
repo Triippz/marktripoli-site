@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMissionControl } from '../../store/missionControl';
 import { missionAudio } from '../../utils/audioSystem';
+import SocialLinksSection from './SocialLinksSection';
 
 interface ContactFormData {
   name: string;
@@ -46,7 +47,7 @@ function EncryptedContactForm({ isOpen, onClose }: EncryptedContactFormProps) {
     e.preventDefault();
     
     if (!formData.name || !formData.email || !formData.message) {
-      await missionAudio.playError();
+      missionAudio.play('error');
       addTelemetry({
         source: 'COMMS',
         message: 'Transmission failed: Missing required fields',
@@ -109,7 +110,7 @@ function EncryptedContactForm({ isOpen, onClose }: EncryptedContactFormProps) {
         }, 3000);
         
       } catch (error) {
-        await missionAudio.playError();
+        missionAudio.play('error');
         addTelemetry({
           source: 'COMMS',
           message: 'Transmission failed: Network security protocol error',
@@ -279,6 +280,15 @@ function EncryptedContactForm({ isOpen, onClose }: EncryptedContactFormProps) {
                   <div className="text-xs text-gray-400 font-mono mt-1">
                     Message length: {formData.message.length}/2000 characters
                   </div>
+                </div>
+
+                {/* Social Links Section */}
+                <div className="border-t border-green-500/20 pt-6 mt-6">
+                  <SocialLinksSection 
+                    variant="grid" 
+                    showLabels={true}
+                    className="mb-6"
+                  />
                 </div>
 
                 {/* Encryption Notice */}

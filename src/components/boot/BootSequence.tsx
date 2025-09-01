@@ -100,7 +100,7 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
                     boxShadow: '0 0 20px rgba(0, 255, 0, 0.5)'
                   }}
                   initial={{ width: 0 }}
-                  animate={{ width: `${((currentMessage + 1) / bootMessages.length) * 100}%` }}
+                  animate={{ width: `${Math.min(((currentMessage + 1) / bootMessages.length) * 100, 100)}%` }}
                   transition={{ duration: 0.3 }}
                 >
                   {/* Animated scanner line */}
@@ -114,7 +114,7 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
               
               <div className="flex justify-between text-green-400 font-mono text-sm">
                 <span>INITIALIZATION PROGRESS</span>
-                <span>{Math.round(((currentMessage + 1) / bootMessages.length) * 100)}% COMPLETE</span>
+                <span>{Math.min(Math.round(((currentMessage + 1) / bootMessages.length) * 100), 100)}% COMPLETE</span>
               </div>
             </div>
           </div>

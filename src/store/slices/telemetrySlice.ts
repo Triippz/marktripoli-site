@@ -2,6 +2,10 @@ import type { StateCreator } from 'zustand';
 import type { TelemetryEntry } from '../../types/mission';
 import { missionAudio } from '../../utils/audioSystem';
 
+// Throttle telemetry to prevent UI blocking
+let telemetryBuffer: Array<Omit<TelemetryEntry, 'timestamp'>> = [];
+let telemetryTimeout: number | null = null;
+
 export interface TelemetrySlice {
   // State
   telemetryLogs: TelemetryEntry[];
@@ -23,16 +27,38 @@ export const createTelemetrySlice: StateCreator<
   
   // Actions
   addTelemetry: (entry) => {
-    // Play different sounds based on telemetry level
-    if (entry.level === 'error') {
-      missionAudio.playError();
-    } else if (entry.level === 'success') {
-      missionAudio.playEngagement();
-    }
+    // Add to buffer for throttled processing
+    telemetryBuffer.push(entry);
     
-    set((state) => ({
-      telemetryLogs: [...state.telemetryLogs.slice(-49), { ...entry, timestamp: new Date() }] // Keep last 50
-    }));
+    if (!telemetryTimeout) {
+      telemetryTimeout = setTimeout(() => {
+        // Process all buffered entries
+        const entriesToProcess = [...telemetryBuffer];
+        telemetryBuffer = [];
+        telemetryTimeout = null;
+        
+        entriesToProcess.forEach(bufferedEntry => {
+          // Play different sounds based on telemetry level
+          try {
+            if (bufferedEntry.level === 'error') {
+              missionAudio.playEffect('error');
+            } else if (bufferedEntry.level === 'success') {
+              missionAudio.playEngagement();
+            }
+          } catch (error) {
+            console.warn('[Telemetry] Audio playback failed:', error);
+          }
+        });
+        
+        // Add all entries to state in one batch
+        set((state) => ({
+          telemetryLogs: [
+            ...state.telemetryLogs.slice(-(50 - entriesToProcess.length)), 
+            ...entriesToProcess.map(e => ({ ...e, timestamp: new Date() }))
+          ]
+        }));
+      }, 100); // Batch every 100ms
+    }
   },
   
   clearTelemetry: () => set({ telemetryLogs: [] }),

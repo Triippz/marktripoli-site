@@ -1,25 +1,106 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useMissionControl } from '../../store/missionControl';
-import type { SiteData } from '../../types/mission';
+import { useMapStore, useTelemetryStore } from '../../store/missionControlV2';
+import { useDataStore } from '../../store/missionControlV2';
+import type { SiteData, EnhancedSiteData } from '../../types/mission';
+import { ResumeDataLoader } from '../LoadingStates/ResumeDataLoader';
 import MissionPin from './MissionPin';
 import sitesData from '../../data/sites.json';
 
-// Simple tactical grid map component (placeholder for Mapbox)
+// Enhanced MapScene with resume data integration and USA flyTo
 function MapScene() {
-  const { selectSite, selectedSite, addTelemetry } = useMissionControl();
-  const [sites] = useState<SiteData[]>(sitesData as SiteData[]);
+  const { selectSite, selectedSite } = useMapStore();
+  const { addTelemetry } = useTelemetryStore();
+  const {
+    sites: dynamicSites,
+    resumeDataState,
+    resumeDataError,
+    loadResumeData,
+    resumeUrl
+  } = useDataStore();
+  
+  // State management
+  const [staticSites] = useState<SiteData[]>(sitesData as SiteData[]);
+  const [allSites, setAllSites] = useState<EnhancedSiteData[]>(staticSites as EnhancedSiteData[]);
   const [hoveredSite, setHoveredSite] = useState<string | null>(null);
+  const [mapInitialized, setMapInitialized] = useState(false);
+  const [resumeDataUrl, setResumeDataUrl] = useState<string>('');
 
+  // USA flyTo initialization effect
   useEffect(() => {
+    if (!mapInitialized) {
+      // Simulate USA flyTo initialization
+      addTelemetry({
+        source: 'MAP',
+        message: 'Initializing tactical display - Flying to USA theater of operations',
+        level: 'info'
+      });
+      
+      // Simulate flyTo animation completion
+      setTimeout(() => {
+        setMapInitialized(true);
+        addTelemetry({
+          source: 'MAP',
+          message: 'USA theater established - Tactical display operational',
+          level: 'success'
+        });
+      }, 2000);
+    }
+  }, [addTelemetry, mapInitialized]);
+
+  // Sites data integration effect
+  useEffect(() => {
+    let sitesToUse: EnhancedSiteData[] = staticSites as EnhancedSiteData[];
+
+    // If we have dynamic sites from resume data, merge them
+    if (dynamicSites.length > 0) {
+      // Merge dynamic sites with static sites, prioritizing dynamic data
+      const staticSiteIds = new Set(staticSites.map(site => site.id));
+      const dynamicSitesToAdd = dynamicSites.filter(site => !staticSiteIds.has(site.id));
+      sitesToUse = [...staticSites as EnhancedSiteData[], ...dynamicSitesToAdd];
+      
+      addTelemetry({
+        source: 'DATA',
+        message: `Resume data integrated - ${dynamicSitesToAdd.length} new sites from external source`,
+        level: 'success'
+      });
+    }
+
+    setAllSites(sitesToUse);
+    
     addTelemetry({
       source: 'MAP',
-      message: `Tactical display initialized - ${sites.length} sites detected`,
+      message: `Tactical display updated - ${sitesToUse.length} total sites detected`,
       level: 'info'
     });
-  }, [addTelemetry, sites.length]);
+  }, [dynamicSites, staticSites, addTelemetry]);
 
-  const handleSiteClick = (site: SiteData) => {
+  // Resume data URL handling
+  useEffect(() => {
+    // Check if we have a resume URL from environment or config
+    const envResumeUrl = process.env.VITE_RESUME_URL;
+    if (envResumeUrl && resumeDataUrl !== envResumeUrl) {
+      setResumeDataUrl(envResumeUrl);
+      
+      // Auto-load resume data if URL is available
+      if (!resumeUrl && resumeDataState === 'idle') {
+        addTelemetry({
+          source: 'DATA',
+          message: `Detected resume data source - Initiating data acquisition`,
+          level: 'info'
+        });
+        loadResumeData(envResumeUrl).catch(error => {
+          addTelemetry({
+            source: 'DATA',
+            message: `Resume data acquisition failed: ${error.message}`,
+            level: 'error'
+          });
+        });
+      }
+    }
+  }, [resumeUrl, resumeDataState, resumeDataUrl, loadResumeData, addTelemetry]);
+
+  const handleSiteClick = (site: EnhancedSiteData) => {
     selectSite(site);
     addTelemetry({
       source: 'MAP',
@@ -27,6 +108,47 @@ function MapScene() {
       level: 'success'
     });
   };
+
+  // Loading component for resume data
+  const LoadingComponent = () => (
+    <div className="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+      <div className="text-center">
+        <div className="loading-radar mb-4">
+          <motion.div
+            className="w-16 h-16 border-2 border-green-500 rounded-full relative"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          >
+            <div className="absolute inset-0 border-t-2 border-green-500"></div>
+          </motion.div>
+        </div>
+        <div className="text-green-500 font-mono text-sm">
+          ACQUIRING EXTERNAL INTELLIGENCE...
+        </div>
+        <div className="text-green-300 font-mono text-xs mt-2">
+          Establishing secure data link
+        </div>
+      </div>
+    </div>
+  );
+
+  // Error component for resume data failures
+  const ErrorComponent = ({ error, retry }: { error: { message?: string }; retry: () => void }) => (
+    <div className="absolute bottom-4 right-4 bg-red-900 bg-opacity-80 border border-red-500 rounded p-3 z-40">
+      <div className="text-red-400 font-mono text-xs mb-2">
+        DATA ACQUISITION FAILED
+      </div>
+      <div className="text-red-300 font-mono text-xs mb-2">
+        {error.message || 'Unknown error'}
+      </div>
+      <button 
+        onClick={retry}
+        className="bg-red-700 hover:bg-red-600 text-red-100 font-mono text-xs px-2 py-1 rounded"
+      >
+        RETRY
+      </button>
+    </div>
+  );
 
   // Convert lat/lng to screen coordinates (simplified)
   const getScreenPosition = (lat: number, lng: number) => {
@@ -36,7 +158,7 @@ function MapScene() {
     return { x: Math.min(95, Math.max(5, x)), y: Math.min(90, Math.max(10, y)) };
   };
 
-  return (
+  const mapContent = (
     <div className="relative w-full h-full bg-black overflow-hidden">
       {/* Tactical grid overlay */}
       <div 
@@ -79,7 +201,7 @@ function MapScene() {
       </div>
 
       {/* Mission Sites */}
-      {sites.map((site) => {
+      {allSites.map((site) => {
         const position = getScreenPosition(site.hq.lat, site.hq.lng);
         return (
           <MissionPin
@@ -102,8 +224,17 @@ function MapScene() {
             TACTICAL DISPLAY
           </div>
           <div className="text-white text-xs font-mono space-y-1">
-            <div>SITES: {sites.length}</div>
-            <div>STATUS: <span className="text-green-500">ACTIVE</span></div>
+            <div>SITES: {allSites.length}</div>
+            <div>STATUS: <span className="text-green-500">{mapInitialized ? 'ACTIVE' : 'INITIALIZING'}</span></div>
+            {resumeDataState === 'loading' && (
+              <div>DATA: <span className="text-yellow-500">ACQUIRING</span></div>
+            )}
+            {resumeDataState === 'loaded' && dynamicSites.length > 0 && (
+              <div>INTEL: <span className="text-green-500">LINKED</span></div>
+            )}
+            {resumeDataState === 'error' && (
+              <div>INTEL: <span className="text-red-500">ERROR</span></div>
+            )}
             {selectedSite && (
               <div>TARGET: <span className="text-green-500">{selectedSite.codename || selectedSite.name}</span></div>
             )}
@@ -131,8 +262,44 @@ function MapScene() {
           repeatDelay: 1
         }}
       />
+
+      {/* Resume data loading overlay */}
+      {resumeDataState === 'loading' && <LoadingComponent />}
+      
+      {/* Resume data error display */}
+      {resumeDataState === 'error' && resumeDataError && (
+        <ErrorComponent 
+          error={resumeDataError} 
+          retry={async () => {
+            if (resumeDataUrl) {
+              try {
+                await loadResumeData(resumeDataUrl);
+              } catch {
+                // Error handling is managed by the store
+              }
+            }
+          }} 
+        />
+      )}
     </div>
   );
+
+  // Wrap with resume data loader if we have a resume URL configured
+  if (resumeDataUrl && process.env.VITE_ENABLE_RESUME_LOADER !== 'false') {
+    return (
+      <ResumeDataLoader
+        resumeUrl={resumeDataUrl}
+        loadingComponent={LoadingComponent}
+        fallbackComponent={ErrorComponent}
+        autoLoad={true}
+      >
+        {mapContent}
+      </ResumeDataLoader>
+    );
+  }
+
+  // Return map content directly if no resume integration
+  return mapContent;
 }
 
 export default MapScene;
