@@ -173,7 +173,11 @@ class ResumeDataService {
       highlights: entry.highlights,
       logo: entry.x_logo,
       codename: TACTICAL_CODENAMES[entry.name] || `OPERATION ${entry.name.toUpperCase()}`,
-      isCurrent
+      isCurrent,
+      skills: (entry as any).x_skills || undefined,
+      languages: (entry as any).x_languages || undefined,
+      frameworks: (entry as any).x_frameworks || undefined,
+      technologies: (entry as any).x_technologies || undefined
     };
   }
 
@@ -223,7 +227,11 @@ class ResumeDataService {
       highlights: [], // Education entries don't have highlights in resume schema
       logo: entry.x_logo,
       codename: TACTICAL_CODENAMES[entry.institution] || `OPERATION ${entry.institution.toUpperCase()}`,
-      isCurrent: false
+      isCurrent: false,
+      skills: (entry as any).x_skills || undefined,
+      languages: (entry as any).x_languages || undefined,
+      frameworks: (entry as any).x_frameworks || undefined,
+      technologies: (entry as any).x_technologies || undefined
     };
   }
 

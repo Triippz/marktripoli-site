@@ -1,6 +1,16 @@
 # Multi-stage build for Mission Control React app
 FROM node:lts-alpine AS build
 
+# Accept build arguments for environment variables
+ARG VITE_MAPBOX_ACCESS_TOKEN
+ARG VITE_DEV_MODE=false
+ARG NODE_ENV=production
+
+# Set environment variables from build args
+ENV VITE_MAPBOX_ACCESS_TOKEN=$VITE_MAPBOX_ACCESS_TOKEN
+ENV VITE_DEV_MODE=$VITE_DEV_MODE
+ENV NODE_ENV=$NODE_ENV
+
 # Disable npm update notifications and funding messages
 ENV NPM_CONFIG_UPDATE_NOTIFIER=false
 ENV NPM_CONFIG_FUND=false

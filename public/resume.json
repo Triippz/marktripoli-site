@@ -42,6 +42,34 @@
         "Built self-service integration framework for rapid onboarding of integrations.",
         "Directed FedRAMP SSP & continuous monitoring compliance workstreams."
       ],
+      "x_languages": ["Go", "TypeScript", "Python"],
+      "x_frameworks": ["Gin", "FastAPI", "React"],
+      "x_technologies": [
+        "PostgreSQL",
+        "TimescaleDB",
+        "Redis",
+        "NATS JetStream",
+        "MQTT",
+        "MinIO",
+        "AWS",
+        "Kubernetes",
+        "Docker"
+      ],
+      "x_skills": [
+        "Leadership",
+        "Project Management",
+        "Technical Strategy",
+        "People Management",
+        "Org Design",
+        "Hiring",
+        "Mentorship",
+        "Roadmapping",
+        "Stakeholder Management",
+        "Cross-Functional Collaboration",
+        "Security & Compliance",
+        "Program Management",
+        "Change Management"
+      ],
       "x_logo": "/logos/picogrid.png",
       "x_location": {
         "city": "El Segundo",
@@ -67,6 +95,10 @@
         "Created JSON schema validation service (S3 + CloudFront) serving 5M+ daily requests.",
         "Mentored engineers; supported multiple promotions and intern conversions."
       ],
+      "x_languages": ["Java", "TypeScript"],
+      "x_frameworks": ["Dropwizard"],
+      "x_technologies": ["Memcached", "Vitess", "MySQL", "Elasticsearch", "Maven"],
+      "x_skills": ["Leadership", "Mentorship", "Vision", "Project Management", "Ownership"],
       "x_logo": "/logos/hubspot.svg",
       "x_location": {
         "city": "Cambridge",
@@ -88,6 +120,10 @@
       "highlights": [
         "Built a custom logging system (Java, Kafka, Vitess, HBase) handling 3–6M daily requests at 99.99% SLA."
       ],
+      "x_languages": ["Java", "TypeScript"],
+      "x_frameworks": ["Dropwizard"],
+      "x_technologies": ["Memcached", "Vitess", "MySQL", "Elasticsearch", "Maven"],
+      "x_skills": ["Leadership", "Mentorship", "Vision", "Project Management", "Ownership"],
       "x_logo": "/logos/hubspot.svg",
       "x_location": {
         "city": "Cambridge",
@@ -110,6 +146,10 @@
         "Co-founded platform for veterans and active military to discuss taboo topics safely.",
         "Developed cross-platform mobile app (React Native, Expo) and backend (NestJS) deployed to AWS and app stores."
       ],
+      "x_languages": ["Java", "TypeScript"],
+      "x_frameworks": ["Spring Boot", "React", "React Native", "Expo"],
+      "x_technologies": ["NestJS", "AWS"],
+      "x_skills": ["Business"],
       "x_logo": "/logos/ghillied-up.png",
       "x_location": {
         "city": "Lancaster",
@@ -129,6 +169,10 @@
         "Built asset management platform for Test Labs improving datacenter tracking.",
         "Led React Native audit app development, reducing inventory audit time from 1 month to 1–2 days."
       ],
+      "x_languages": ["Java", "TypeScript"],
+      "x_frameworks": ["React", "Spring Boot"],
+      "x_technologies": ["MySQL", "Elasticsearch", "Maven", "Data Centers", "Networking", "Microservices"],
+      "x_skills": ["Leadership"],
       "x_logo": "/logos/comcast.png",
       "x_location": {
         "city": "Philadelphia",
@@ -148,6 +192,10 @@
       "endDate": "2020-12",
       "summary": "Built and supported mission-critical applications for Amtrak operations.",
       "highlights": [],
+      "x_languages": ["C/C++", "Java", "TypeScript", "Python"],
+      "x_frameworks": ["Spring Boot"],
+      "x_technologies": ["HP NonStop"],
+      "x_skills": ["Railroad", "Operations"],
       "x_logo": "/logos/amtrak.svg",
       "x_location": {
         "city": "Philadelphia",

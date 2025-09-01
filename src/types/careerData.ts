@@ -22,6 +22,11 @@ export interface CareerMarker {
   logo?: string; // Path to company/institution logo
   codename?: string; // Mission control style codename
   isCurrent?: boolean; // Still active position
+  // Optional tech stacks and metadata
+  skills?: string[];
+  languages?: string[];
+  frameworks?: string[];
+  technologies?: string[];
 }
 
 export interface CareerMapData {
