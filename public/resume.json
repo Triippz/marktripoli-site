@@ -7,7 +7,8 @@
     "location": {
       "city": "Lancaster",
       "region": "PA",
-      "countryCode": "US"
+      "countryCode": "US",
+
     },
     "summary": "Engineering Lead and Manager with 9+ years scaling teams and delivering secure, distributed platforms—from early-stage startups to large tech firms. Architected and led development of IL5/IL6 compliant systems and developer platforms, achieving >50% build-time reductions, FedRAMP readiness, and high-user SLA compliance.",
     "profiles": [
@@ -42,6 +43,7 @@
         "Built self-service integration framework for rapid onboarding of integrations.",
         "Directed FedRAMP SSP & continuous monitoring compliance workstreams."
       ],
+      "x_logo": "/logos/picogrid.png",
       "x_location": {
         "city": "El Segundo",
         "region": "CA",
@@ -66,6 +68,7 @@
         "Created JSON schema validation service (S3 + CloudFront) serving 5M+ daily requests.",
         "Mentored engineers; supported multiple promotions and intern conversions."
       ],
+      "x_logo": "/logos/hubspot.svg",
       "x_location": {
         "city": "Cambridge",
         "region": "MA",
@@ -86,6 +89,7 @@
       "highlights": [
         "Built a custom logging system (Java, Kafka, Vitess, HBase) handling 3–6M daily requests at 99.99% SLA."
       ],
+      "x_logo": "/logos/hubspot.svg",
       "x_location": {
         "city": "Cambridge",
         "region": "MA",
@@ -119,6 +123,7 @@
         "Built asset management platform for Test Labs improving datacenter tracking.",
         "Led React Native audit app development, reducing inventory audit time from 1 month to 1–2 days."
       ],
+      "x_logo": "/logos/comcast.png",
       "x_location": {
         "city": "Philadelphia",
         "region": "PA",
@@ -137,6 +142,7 @@
       "endDate": "2020-12",
       "summary": "Built and supported mission-critical applications for Amtrak operations.",
       "highlights": [],
+      "x_logo": "/logos/amtrak.svg",
       "x_location": {
         "city": "Philadelphia",
         "region": "PA",
@@ -155,6 +161,7 @@
       "endDate": "2014-04",
       "summary": "CBRN Defense specialist; military service.",
       "highlights": [],
+      "x_logo": "/logos/usmc.svg",
       "x_location": {
         "region": "California",
         "countryCode": "US",
@@ -171,6 +178,7 @@
       "area": "Information, Science and Technology - Design and Development",
       "studyType": "BS",
       "endDate": "2021-12",
+      "x_logo": "/logos/psu.svg",
       "x_location": {
         "city": "State College",
         "region": "PA",

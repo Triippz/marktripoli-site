@@ -22,7 +22,7 @@ export default function StatusIndicators({ soundEnabled, toggleSound, onContactC
   }, []);
 
   return (
-    <div className="tactical-panel relative overflow-hidden px-4 md:px-8 py-3 md:py-4">
+    <div className="tactical-panel relative px-4 md:px-8 py-3 md:py-4" style={{ overflow: 'visible' }}>
       {/* Animated scan line */}
       <div className="animate-scan-line absolute top-0 left-0 right-0 h-full opacity-30" />
       
@@ -63,7 +63,7 @@ export default function StatusIndicators({ soundEnabled, toggleSound, onContactC
           </button>
           {/* Dropdown */}
           {open && (
-            <div className="absolute right-0 top-full mt-2 bg-gray-900/95 border border-green-500/30 rounded-md p-3 min-w-[200px] shadow-lg backdrop-blur-sm z-10">
+            <div className="absolute right-0 top-full mt-2 bg-gray-900/95 border border-green-500/30 rounded-md p-3 min-w-[200px] shadow-lg backdrop-blur-sm z-50">
               <div className="text-green-500 font-mono text-xs mb-2">USER</div>
               <div className="text-white font-mono text-sm mb-3">
                 {userLabel || 'Guest Operator'}

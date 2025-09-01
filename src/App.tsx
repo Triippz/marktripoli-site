@@ -12,7 +12,6 @@ import BootSequence from './components/boot/BootSequence';
 import MapboxScene from './components/map/MapboxScene';
 
 // Layout Components
-import HUDTopLeftStack from './components/layout/HUDTopLeftStack';
 import MainStatusPanel from './components/layout/MainStatusPanel';
 import TerminalOverlay from './components/layout/TerminalOverlay';
 import AchievementOverlay from './components/layout/AchievementOverlay';
@@ -70,7 +69,7 @@ function MissionControlInterface() {
           top: '0',
           left: '0',
           right: '0',
-          zIndex: 60,
+          zIndex: 100,
           pointerEvents: 'auto'
         }}
       >
@@ -88,8 +87,6 @@ function MissionControlInterface() {
         onClose={() => setShowContactForm(false)}
       />
 
-      {/* HUD Top Left Stack - User Rank */}
-      <HUDTopLeftStack userRank={userRank} />
 
       {/* Main Status Panel - Center Information */}
       <MainStatusPanel showStatusPanel={true} />
