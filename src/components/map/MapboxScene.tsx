@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import type * as mapboxgl from 'mapbox-gl';
 import { motion } from 'framer-motion';
 import type { SiteData } from '../../types';
 import sitesData from '../../data/sites.json';

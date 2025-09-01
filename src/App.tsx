@@ -1,5 +1,5 @@
 // React & Router
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 
 // Store & Utils
@@ -8,7 +8,7 @@ import { missionAudio } from './utils/audioSystem';
 
 // Base Components
 import BootSequence from './components/boot/BootSequence';
-import MapboxScene from './components/map/MapboxScene';
+const MapboxScene = lazy(() => import('./components/map/MapboxScene'));
 import { EnhancedErrorBoundary } from './components/ErrorBoundary/EnhancedErrorBoundary';
 import ExecutiveBrief from './pages/ExecutiveBrief';
 import NotFoundPage from './components/NotFound/NotFoundPage';
@@ -86,7 +86,9 @@ function MissionControlInterface() {
           console.error('[App] MapboxScene error boundary triggered:', error);
         }}
       >
-        <MapboxScene />
+        <Suspense fallback={<div className="absolute inset-0 bg-black flex items-center justify-center text-green-500 font-mono text-sm">LOADING MAP SYSTEM...</div>}>
+          <MapboxScene />
+        </Suspense>
       </EnhancedErrorBoundary>
 
       {/* Status Indicators - Top Header with actions on right */}

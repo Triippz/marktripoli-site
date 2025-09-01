@@ -3,7 +3,40 @@ import type * as MapboxGL from 'mapbox-gl';
 import { useMissionControl } from '../../store/missionControl';
 
 // Lazy-loaded runtime instance to reduce initial bundle cost
-let mapboxRuntime: typeof import('mapbox-gl') | null = null;
+let mapboxRuntime: any = null;
+
+// Early cache of env token so dynamic import can retrieve it later reliably
+try {
+  const initialEnvToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string | undefined;
+  if (initialEnvToken && initialEnvToken.trim()) {
+    localStorage.setItem('mc-mapbox-token', initialEnvToken.trim());
+  }
+} catch {}
+
+function resolveMapboxToken(): string | null {
+  try {
+    const envToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string | undefined;
+    if (envToken && envToken.trim()) return envToken.trim();
+
+    if (typeof localStorage !== 'undefined') {
+      const cached = localStorage.getItem('mc-mapbox-token');
+      if (cached && cached.trim()) return cached.trim();
+    }
+
+    if (typeof document !== 'undefined') {
+      const meta = document.querySelector('meta[name="mapbox-token"]') as HTMLMetaElement | null;
+      if (meta?.content && meta.content.trim()) return meta.content.trim();
+    }
+
+    if (typeof window !== 'undefined') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyWin = window as any;
+      const winToken = anyWin.MAPBOX_TOKEN || anyWin.__MC_MAPBOX_TOKEN;
+      if (winToken && typeof winToken === 'string' && winToken.trim()) return winToken.trim();
+    }
+  } catch {}
+  return null;
+}
 
 interface MapboxOptions {
   center?: [number, number];
@@ -79,8 +112,22 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
 
         if (!mapboxRuntime) {
           const mod = await import('mapbox-gl');
-          mapboxRuntime = mod;
-          mapboxRuntime.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string;
+          const gl: any = (mod as any)?.default ?? mod;
+          mapboxRuntime = gl;
+          const token = resolveMapboxToken();
+          if (!token) {
+            const err = new Error('Mapbox access token missing. Set VITE_MAPBOX_ACCESS_TOKEN or provide a <meta name="mapbox-token" content="...">');
+            console.error('[useMapbox] ❌', err.message);
+            errorRef.current = err;
+            addMapTelemetry({
+              source: 'MAP',
+              message: err.message,
+              level: 'error'
+            });
+            throw err;
+          }
+          mapboxRuntime.accessToken = token;
+          try { localStorage.setItem('mc-mapbox-token', token); } catch {}
         }
 
         // Initialize map with global view for smooth transition from boot
@@ -104,7 +151,7 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
           level: 'info'
         });
 
-        mapInstance.on('load', () => {
+        mapInstance.once('load', () => {
           if (!map.current) return;
 
           try {
@@ -129,50 +176,67 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
             
             isLoadedRef.current = true;
             
-            // Add tactical overlay
-            map.current.addSource('tactical-overlay', {
-              type: 'geojson',
-              data: {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'Polygon',
-                  coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
-                }
+            // Add tactical overlay (idempotent)
+            const overlayData = {
+              type: 'Feature' as const,
+              properties: {},
+              geometry: {
+                type: 'Polygon' as const,
+                coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
               }
-            });
+            };
+
+            const existingOverlaySource = map.current.getSource('tactical-overlay') as MapboxGL.GeoJSONSource | undefined;
+            if (existingOverlaySource && (existingOverlaySource as any).setData) {
+              (existingOverlaySource as any).setData(overlayData as any);
+            } else {
+              map.current.addSource('tactical-overlay', {
+                type: 'geojson',
+                data: overlayData as any
+              });
+            }
 
             // Insert tactical overlay below symbol layers
             const style = map.current.getStyle();
             const firstSymbolLayer = style?.layers?.find(l => l.type === 'symbol');
             const beforeId = firstSymbolLayer?.id;
 
-            map.current.addLayer({
-              id: 'tactical-overlay',
-              type: 'fill',
-              source: 'tactical-overlay',
-              paint: {
-                'fill-color': '#000000',
-                'fill-opacity': 0.3
-              }
-            }, beforeId);
+            if (!map.current.getLayer('tactical-overlay')) {
+              map.current.addLayer({
+                id: 'tactical-overlay',
+                type: 'fill',
+                source: 'tactical-overlay',
+                paint: {
+                  'fill-color': '#000000',
+                  'fill-opacity': 0.3
+                }
+              }, beforeId);
+            }
 
             // Add tactical grid
-            map.current.addSource('tactical-grid', {
-              type: 'geojson',
-              data: generateTacticalGrid()
-            });
+            const gridData = generateTacticalGrid();
+            const existingGridSource = map.current.getSource('tactical-grid') as MapboxGL.GeoJSONSource | undefined;
+            if (existingGridSource && (existingGridSource as any).setData) {
+              (existingGridSource as any).setData(gridData as any);
+            } else {
+              map.current.addSource('tactical-grid', {
+                type: 'geojson',
+                data: gridData as any
+              });
+            }
 
-            map.current.addLayer({
-              id: 'tactical-grid',
-              type: 'line',
-              source: 'tactical-grid',
-              paint: {
-                'line-color': '#00ff00',
-                'line-width': 0.5,
-                'line-opacity': 0.3
-              }
-            });
+            if (!map.current.getLayer('tactical-grid')) {
+              map.current.addLayer({
+                id: 'tactical-grid',
+                type: 'line',
+                source: 'tactical-grid',
+                paint: {
+                  'line-color': '#00ff00',
+                  'line-width': 0.5,
+                  'line-opacity': 0.3
+                }
+              });
+            }
 
             // Start dramatic flyTo USA animation after delay
             setTimeout(() => {
