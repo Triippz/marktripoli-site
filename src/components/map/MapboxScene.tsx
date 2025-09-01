@@ -371,18 +371,16 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     
     const categoryStyle = resumeDataService.getCategoryStyle(marker.type);
     
-    // Enhanced marker with logo support and proper centering to prevent drift
+    // Enhanced marker with logo support (centered by Mapbox anchor, no transform overrides)
     markerElement.innerHTML = `
-      <div class="marker-centerer">
-        <div class="marker-container">
-          ${marker.logo ? 
-            `<div class="marker-logo">
-               <img src="${marker.logo}" alt="${marker.name}" />
-             </div>` : 
-            `<div class="marker-fallback">${categoryStyle.icon}</div>`
-          }
-          <div class="marker-pulse"></div>
-        </div>
+      <div class="marker-container">
+        ${marker.logo ? 
+          `<div class="marker-logo">
+             <img src="${marker.logo}" alt="${marker.name}" />
+           </div>` : 
+          `<div class="marker-fallback">${categoryStyle.icon}</div>`
+        }
+        <div class="marker-pulse"></div>
       </div>
     `;
     
@@ -390,26 +388,11 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       width: 32px;
       height: 32px;
       cursor: none;
-      position: relative;
     `;
 
-    // Add category-specific styling with anti-drift centering
+    // Add category-specific styling
     const style = document.createElement('style');
     style.textContent = `
-      .career-marker {
-        /* Prevent position drift by removing any transforms */
-        transform: none !important;
-      }
-      
-      .career-marker .marker-centerer {
-        /* Critical: This div handles the centering to prevent drift */
-        position: relative;
-        width: 32px;
-        height: 32px;
-        transform: translate(-50%, -50%);
-        pointer-events: none;
-      }
-      
       .career-marker .marker-container {
         position: relative;
         width: 32px;

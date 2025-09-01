@@ -70,9 +70,9 @@ export default tseslint.config([
 
 ## 🚀 Deployment
 
-### Railway Deployment (Automatic from GitHub)
+### Railway Deployment with Docker + Caddy (Recommended)
 
-This project is configured for easy deployment on Railway:
+This project uses a production-optimized Docker setup with Caddy web server:
 
 1. **Push to GitHub**: Ensure your code is committed and pushed to GitHub
 2. **Connect Railway**: Go to [railway.app](https://railway.app) and connect your GitHub account
@@ -82,13 +82,36 @@ This project is configured for easy deployment on Railway:
    VITE_MAPBOX_ACCESS_TOKEN=your_mapbox_token_here
    VITE_DEV_MODE=false
    ```
-5. **Deploy**: Railway will automatically build and deploy your app
+5. **Deploy**: Railway will automatically detect the Dockerfile and deploy
 
-The project includes:
-- ✅ `railway.json` configuration (NIXPACKS builder)
-- ✅ Optimized Vite build with code splitting
+**Production Stack:**
+- 🐳 **Multi-stage Docker build** (Node.js build → Caddy server)
+- ⚡ **Caddy web server** for optimized static file serving
+- 🗜️ **Gzip compression** and proper caching headers
+- 🔄 **SPA routing** support for React Router
+- 💓 **Health checks** at `/health` endpoint
+- 🔒 **Security headers** and MIME type protection
+
+**Configuration Files:**
+- ✅ `Dockerfile` - Multi-stage build configuration
+- ✅ `Caddyfile` - Web server and routing configuration  
+- ✅ `railway.json` - Railway deployment settings
 - ✅ Environment variable setup
-- ✅ Static asset handling (logos, resume.json)
+
+### Local Docker Testing
+
+Test the Docker build locally before deploying:
+
+```bash
+# Build the Docker image
+docker build -t mission-control .
+
+# Run locally on port 3000
+docker run -p 3000:3000 -e VITE_MAPBOX_ACCESS_TOKEN=your_token mission-control
+
+# Test health check
+curl http://localhost:3000/health
+```
 
 ### Manual Deployment Options
 

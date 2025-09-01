@@ -1,4 +1,5 @@
 import type { CareerMarker, CareerMapData, ResumeData, ResumeWorkEntry, ResumeEducationEntry } from '../types/careerData';
+import { getLocationCoordinates } from '../utils/coordinates';
 
 // Mission control codenames for companies/institutions
 const TACTICAL_CODENAMES: { [key: string]: string } = {
@@ -41,6 +42,19 @@ const CAREER_CATEGORIES = {
 
 class ResumeDataService {
   private resumeData: ResumeData | null = null;
+
+  // Best-effort parser for simple "City, ST" or "City, Region, Country" strings
+  private parseBasicLocation(input?: string): { city?: string; region?: string; countryCode?: string } {
+    if (!input) return {};
+    const parts = input.split(',').map(p => p.trim()).filter(Boolean);
+    if (parts.length === 0) return {};
+    const [city, region, country] = parts;
+    return {
+      city,
+      region,
+      countryCode: country
+    };
+  }
 
   async loadResumeData(): Promise<ResumeData> {
     if (this.resumeData) {
@@ -103,14 +117,25 @@ class ResumeDataService {
   }
 
   private transformWorkEntry(entry: ResumeWorkEntry): CareerMarker | null {
-    // Skip entries without location data
-    if (!entry.x_location?.geo) {
+    // Prefer explicit geo; fallback to inferred coordinates from location string
+    let lat: number | null = null;
+    let lon: number | null = null;
+    if (entry.x_location?.geo) {
+      lat = entry.x_location.geo.lat;
+      lon = entry.x_location.geo.lon;
+    } else if (entry.location) {
+      const inferred = getLocationCoordinates(entry.location);
+      lat = inferred.lat;
+      lon = inferred.lng;
+      console.warn(`[ResumeDataService] Inferred coordinates for ${entry.name} from location "${entry.location}":`, inferred);
+    }
+
+    if (lat === null || lon === null) {
       console.warn(`[ResumeDataService] Skipping ${entry.name} - no location data`);
       return null;
     }
 
     // Validate coordinates before processing
-    const { lat, lon } = entry.x_location.geo;
     if (!this.validateCoordinates(lat, lon, entry.name)) {
       console.error(`[ResumeDataService] Skipping ${entry.name} - invalid coordinates`);
       return null;
@@ -127,6 +152,8 @@ class ResumeDataService {
 
     console.log(`[ResumeDataService] ✅ ${entry.name} processed with coordinates:`, coordinates);
 
+    const parsedLoc = this.parseBasicLocation(entry.location);
+
     return {
       id: this.generateMarkerId(entry.name, 'work'),
       type: category,
@@ -136,9 +163,9 @@ class ResumeDataService {
       location: {
         lat: coordinates.lat,
         lng: coordinates.lng,
-        city: entry.x_location.city,
-        region: entry.x_location.region,
-        countryCode: entry.x_location.countryCode
+        city: entry.x_location?.city || parsedLoc.city,
+        region: entry.x_location?.region || parsedLoc.region,
+        countryCode: entry.x_location?.countryCode || parsedLoc.countryCode
       },
       startDate: entry.startDate,
       endDate: entry.endDate,
@@ -151,18 +178,31 @@ class ResumeDataService {
   }
 
   private transformEducationEntry(entry: ResumeEducationEntry): CareerMarker | null {
-    // Skip entries without location data
-    if (!entry.x_location?.geo) {
+    // Prefer explicit geo; fallback to inferred coordinates
+    let lat: number | null = null;
+    let lon: number | null = null;
+    if (entry.x_location?.geo) {
+      lat = entry.x_location.geo.lat;
+      lon = entry.x_location.geo.lon;
+    } else if ((entry as any).location) {
+      const inferred = getLocationCoordinates((entry as any).location);
+      lat = inferred.lat;
+      lon = inferred.lng;
+      console.warn(`[ResumeDataService] Inferred coordinates for ${entry.institution} from location`, inferred);
+    }
+
+    if (lat === null || lon === null) {
       console.warn(`[ResumeDataService] Skipping ${entry.institution} - no location data`);
       return null;
     }
 
     // Validate coordinates before processing
-    const { lat, lon } = entry.x_location.geo;
     if (!this.validateCoordinates(lat, lon, entry.institution)) {
       console.error(`[ResumeDataService] Skipping ${entry.institution} - invalid coordinates`);
       return null;
     }
+
+    const parsedLoc = this.parseBasicLocation((entry as any).location);
 
     return {
       id: this.generateMarkerId(entry.institution, 'education'),
@@ -173,9 +213,9 @@ class ResumeDataService {
       location: {
         lat: lat,
         lng: lon,
-        city: entry.x_location.city,
-        region: entry.x_location.region,
-        countryCode: entry.x_location.countryCode
+        city: entry.x_location?.city || parsedLoc.city,
+        region: entry.x_location?.region || parsedLoc.region,
+        countryCode: entry.x_location?.countryCode || parsedLoc.countryCode
       },
       startDate: entry.startDate || 'N/A',
       endDate: entry.endDate,
@@ -192,7 +232,7 @@ class ResumeDataService {
     const markers: CareerMarker[] = [];
 
     // Transform work experience entries
-    resumeData.work.forEach(workEntry => {
+    (resumeData.work || []).forEach(workEntry => {
       const marker = this.transformWorkEntry(workEntry);
       if (marker) {
         markers.push(marker);
@@ -200,7 +240,7 @@ class ResumeDataService {
     });
 
     // Transform education entries
-    resumeData.education.forEach(educationEntry => {
+    (resumeData.education || []).forEach(educationEntry => {
       const marker = this.transformEducationEntry(educationEntry);
       if (marker) {
         markers.push(marker);
