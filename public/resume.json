@@ -218,6 +218,48 @@
       }
     },
     {
+      "name": "Amtrak",
+      "position": "Train Dispatcher",
+      "location": "Wilmington, DE",
+      "startDate": "2015-12",
+      "endDate": "2017-11",
+      "summary": "Directed safe, efficient train movements across the Philadelphia–Harrisburg corridor and the Philadelphia–Washington segment. Supervised Train Directors and Block Operators and made real-time decisions to keep trains moving and passengers on time.",
+      "highlights": [
+        "Led territory operations, coordinating Train Directors and Block Operators to balance safety and throughput.",
+        "Maintained accurate movement records and operating orders; communicated changes to crews.",
+        "Mitigated incidents and delays with field crews, maintenance, and adjacent dispatch desks."
+      ],
+      "x_skills": ["Rail Operations", "Dispatching", "Safety", "Incident Management", "Communication"],
+      "x_logo": "/logos/amtrak.svg",
+      "x_location": {
+        "city": "Wilmington",
+        "region": "DE",
+        "countryCode": "US",
+        "geo": { "lat": 39.7356, "lon": -75.5499 }
+      }
+    },
+    {
+      "name": "Amtrak",
+      "position": "Train Director",
+      "location": "Philadelphia, PA",
+      "startDate": "2014-04",
+      "endDate": "2015-12",
+      "summary": "Coordinated station and interlocking movements on the Philadelphia–Harrisburg line, working with the Train Dispatcher to protect safety and on‑time performance in a 24/7 environment.",
+      "highlights": [
+        "Routed trains and track equipment at towers/interlockings; flagged risks early to dispatch.",
+        "Kept precise movement logs and operating orders.",
+        "Relayed field conditions impacting safety and on‑time performance; coordinated with crews and maintenance to reduce delays."
+      ],
+      "x_skills": ["Rail Operations", "Interlocking Control", "Safety", "Documentation", "Communication"],
+      "x_logo": "/logos/amtrak.svg",
+      "x_location": {
+        "city": "Philadelphia",
+        "region": "PA",
+        "countryCode": "US",
+        "geo": { "lat": 40.04295, "lon": -75.4837 }
+      }
+    },
+    {
       "name": "United States Marine Corps",
       "position": "E4 - Corporal, CBRN Defense Specialist",
       "location": "California, US",

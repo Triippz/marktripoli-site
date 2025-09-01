@@ -1,12 +1,13 @@
 {
   "title": "Engineering Manager & Technical Lead",
-  "tagline": "Platform engineering, C2 systems, high-scale infra",
+  "tagline": "Platform engineering, C2 systems, high-scale infra, platform integrations",
   "location": "Lancaster, PA, USA",
   "contact": {
     "email": "me@marktripoli.com",
     "website": "https://www.marktripoli.com",
     "linkedin": "https://www.linkedin.com/in/mark-tripoli",
-    "github": "https://github.com/Triippz"
+    "github": "https://github.com/Triippz",
+    "twitter": "https://twitter.com/Triperoni"
   },
   "strengths": [
     "Technical strategy & vision",
