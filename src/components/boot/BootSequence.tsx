@@ -71,9 +71,11 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
         <motion.div 
           className="mission-panel w-full max-w-[90vw] md:max-w-4xl p-6 md:p-8 lg:p-12 pb-10 md:pb-12 lg:pb-16"
           style={{
-            background: 'linear-gradient(135deg, rgba(0,0,0,0.45) 0%, rgba(17,17,17,0.30) 100%)',
-            backdropFilter: 'blur(14px)',
-            WebkitBackdropFilter: 'blur(14px)'
+            background: 'linear-gradient(135deg, rgba(0,0,0,0.28) 0%, rgba(17,17,17,0.18) 100%)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(0,255,0,0.12)',
+            boxShadow: '0 12px 36px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,255,0,0.08), inset 0 1px 0 rgba(255,255,255,0.04)'
           }}
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
