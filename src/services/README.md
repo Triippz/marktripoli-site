@@ -189,20 +189,13 @@ addLocationMapping('seattle, wa', {
 
 ### Map Integration
 ```tsx
-// Sites automatically appear on map with coordinates
-const workSites = useDataStore(state => state.getWorkSites());
+// Resume-derived markers are rendered via Mapbox in MapboxScene.
+// Each marker uses setLngLat([lng, lat]) and stays anchored during pan/zoom.
+import MapboxScene from '../components/map/MapboxScene';
 
-<MapboxGL>
-  {workSites.map(site => (
-    <Marker
-      key={site.id}
-      latitude={site.hq.lat}
-      longitude={site.hq.lng}
-    >
-      <MissionPin site={site} />
-    </Marker>
-  ))}
-</MapboxGL>
+export default function MissionMap() {
+  return <MapboxScene />;
+}
 ```
 
 ### Terminal Integration
