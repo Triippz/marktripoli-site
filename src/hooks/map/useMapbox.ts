@@ -1,9 +1,9 @@
 import { useEffect, useRef, useCallback } from 'react';
-import mapboxgl from 'mapbox-gl';
+import type * as MapboxGL from 'mapbox-gl';
 import { useMissionControl } from '../../store/missionControl';
 
-// Set Mapbox access token from environment variables
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+// Lazy-loaded runtime instance to reduce initial bundle cost
+let mapboxRuntime: typeof import('mapbox-gl') | null = null;
 
 interface MapboxOptions {
   center?: [number, number];
@@ -14,12 +14,12 @@ interface MapboxOptions {
 }
 
 interface UseMapboxReturn {
-  map: mapboxgl.Map | null;
+  map: MapboxGL.Map | null;
   mapContainer: React.RefObject<HTMLDivElement>;
   isLoaded: boolean;
   error: Error | null;
   flyTo: (options: { center: [number, number]; zoom?: number; pitch?: number; bearing?: number; duration?: number }) => void;
-  fitBounds: (bounds: mapboxgl.LngLatBounds, options?: mapboxgl.FitBoundsOptions) => void;
+  fitBounds: (bounds: MapboxGL.LngLatBounds, options?: MapboxGL.FitBoundsOptions) => void;
   resetView: () => void;
 }
 
@@ -58,7 +58,7 @@ const generateTacticalGrid = () => {
 
 export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+  const map = useRef<MapboxGL.Map | null>(null);
   const isLoadedRef = useRef(false);
   const errorRef = useRef<Error | null>(null);
   const { addTelemetry } = useMissionControl() as any;
@@ -71,14 +71,20 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
-    let mapInstance: mapboxgl.Map | null = null;
+    let mapInstance: MapboxGL.Map | null = null;
 
     const initializeMap = async () => {
       try {
         console.log('[useMapbox] Initializing map with API key:', import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.substring(0, 20) + '...');
 
+        if (!mapboxRuntime) {
+          const mod = await import('mapbox-gl');
+          mapboxRuntime = mod;
+          mapboxRuntime.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string;
+        }
+
         // Initialize map with global view for smooth transition from boot
-        mapInstance = new mapboxgl.Map({
+        mapInstance = new mapboxRuntime.Map({
           container: mapContainer.current!,
           style: options.style || import.meta.env.VITE_MAPBOX_STYLE || 'mapbox://styles/mapbox/dark-v11',
           center: options.center || [0, 20],
@@ -280,7 +286,7 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
     });
   }, []);
 
-  const fitBounds = useCallback((bounds: mapboxgl.LngLatBounds, fitOptions?: mapboxgl.FitBoundsOptions) => {
+  const fitBounds = useCallback((bounds: MapboxGL.LngLatBounds, fitOptions?: MapboxGL.FitBoundsOptions) => {
     if (!map.current) return;
     
     map.current.fitBounds(bounds, {

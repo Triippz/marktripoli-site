@@ -1,4 +1,5 @@
 import React from 'react';
+import type * as mapboxgl from 'mapbox-gl';
 import { motion } from 'framer-motion';
 import { useMapbox } from '../../../hooks/map/useMapbox';
 
