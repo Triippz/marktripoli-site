@@ -373,11 +373,91 @@ export class CommandProcessor {
       };
     }
 
-    // UXV subcommands would be implemented here
-    // For now, return placeholder
-    return {
-      output: [`UXV ${subcommand} - not implemented in refactored version yet`]
-    };
+    // start [lng lat]
+    if (subcommand === 'start') {
+      let position: { lng: number; lat: number } | undefined = undefined;
+      const lng = parseFloat(args[1]);
+      const lat = parseFloat(args[2]);
+      if (!isNaN(lng) && !isNaN(lat)) {
+        position = { lng, lat };
+      } else if (this.map) {
+        const c = this.map.getCenter();
+        position = { lng: c.lng, lat: c.lat };
+      }
+      return {
+        output: ['UXV: start'],
+        newState: { isOpen: false },
+        actions: [
+          { type: 'start_uxv', payload: { position } },
+          { type: 'play_sound', payload: 'engage' }
+        ]
+      };
+    }
+
+    // stop
+    if (subcommand === 'stop') {
+      return { output: ['UXV: stop'], newState: { isOpen: false }, actions: [{ type: 'uxv_stop' }] };
+    }
+
+    // goto <lng> <lat> | region <key>
+    if (subcommand === 'goto') {
+      if (args[1] && args[1].toLowerCase() === 'region') {
+        const key = (args[2] || '').toLowerCase();
+        if (!key) return { output: ['Usage: uxv goto region <key>'] };
+        const g = getGeofences().find(x => x.key === key);
+        if (!g) return { output: [`Unknown region: ${key}`] };
+        const tgt = {
+          lng: (g.box.minLng + g.box.maxLng) / 2,
+          lat: (g.box.minLat + g.box.maxLat) / 2
+        };
+        return {
+          output: [`UXV: target set to ${key}`],
+          newState: { isOpen: false },
+          actions: [
+            { type: 'uxv_goto', payload: { target: tgt } },
+            { type: 'play_sound', payload: 'navigate' }
+          ]
+        };
+      }
+
+      const lng = parseFloat(args[1]);
+      const lat = parseFloat(args[2]);
+      if (isNaN(lng) || isNaN(lat)) return { output: ['Usage: uxv goto <lng> <lat>'] };
+      return {
+        output: [`UXV: target set to ${lng}, ${lat}`],
+        newState: { isOpen: false },
+        actions: [
+          { type: 'uxv_goto', payload: { target: { lng, lat } } },
+          { type: 'play_sound', payload: 'navigate' }
+        ]
+      };
+    }
+
+    // speed <mps>
+    if (subcommand === 'speed') {
+      const speed = parseFloat(args[1]);
+      if (isNaN(speed)) return { output: ['Usage: uxv speed <mps>'] };
+      return { output: [`UXV: speed ${speed} m/s`], newState: { isOpen: false }, actions: [{ type: 'uxv_speed', payload: { speed } }] };
+    }
+
+    // drop
+    if (subcommand === 'drop') {
+      return { output: ['UXV: payload drop'], newState: { isOpen: false }, actions: [{ type: 'uxv_drop' }] };
+    }
+
+    // return
+    if (subcommand === 'return') {
+      return { output: ['UXV: return to base'], newState: { isOpen: false }, actions: [{ type: 'uxv_return' }] };
+    }
+
+    // follow on|off
+    if (subcommand === 'follow') {
+      const val = (args[1] || '').toLowerCase();
+      if (val !== 'on' && val !== 'off') return { output: ['Usage: uxv follow <on|off>'] };
+      return { output: [`UXV: follow ${val}`], newState: { isOpen: false }, actions: [{ type: 'uxv_follow', payload: { follow: val === 'on' } }] };
+    }
+
+    return { output: [`UXV: unknown subcommand '${subcommand}'`] };
   }
 
   private executeLs(args: string[], state: TerminalState): TerminalCommandResult {

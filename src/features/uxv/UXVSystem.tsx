@@ -12,6 +12,7 @@ interface UXVSystemProps {
   containerDimensions: { width: number; height: number };
   onMapClick?: (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => void;
   onMapContextMenu?: (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => void;
+  uxv?: ReturnType<typeof useUXVState>;
 }
 
 const UXVSystem: React.FC<UXVSystemProps> = ({
@@ -19,9 +20,10 @@ const UXVSystem: React.FC<UXVSystemProps> = ({
   isMapLoaded,
   containerDimensions,
   onMapClick,
-  onMapContextMenu
+  onMapContextMenu,
+  uxv
 }) => {
-  const uxvState = useUXVState();
+  const uxvState = uxv ?? useUXVState();
 
   // Set up movement animation
   useUXVMovement({

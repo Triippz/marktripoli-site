@@ -19,7 +19,74 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
   isUXVActive = false
 }) => {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const stylesRef = useRef<HTMLStyleElement[]>([]);
+
+  const ensureMarkerStylesInjected = useCallback(() => {
+    const styleId = 'career-marker-styles';
+    if (document.getElementById(styleId)) return;
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      .career-marker .marker-container {
+        position: relative;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: auto;
+      }
+      .career-marker .marker-logo {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.8);
+        border: 2px solid var(--marker-color, #00ff00);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        position: relative;
+      }
+      .career-marker .marker-logo img {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        object-fit: contain;
+      }
+      .career-marker .marker-fallback {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--marker-color, #00ff00);
+        border: 2px solid var(--marker-color, #00ff00);
+        box-shadow: 0 0 8px var(--marker-glow, rgba(0,255,0,0.6));
+      }
+      .tactical-popup.career-popup .popup-header .mission-codename,
+      .tactical-popup.career-popup .popup-body .date-range,
+      .tactical-popup.career-popup .popup-footer .category {
+        color: var(--marker-color, #00ff00);
+      }
+      .tactical-popup.career-popup .popup-footer .status-current {
+        background: #00ff00;
+        color: #000000;
+        padding: 1px 4px;
+        border-radius: 2px;
+        font-size: 8px;
+        font-weight: bold;
+      }
+      .tactical-popup.career-popup .career-popup-content {
+        background: rgba(0, 0, 0, 0.95);
+        border: 1px solid var(--marker-color, #00ff00);
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 11px;
+        padding: 12px;
+        border-radius: 6px;
+        min-width: 200px;
+      }
+    `;
+    document.head.appendChild(style);
+  }, []);
 
   const createMarkerElement = useCallback((marker: CareerMarker): HTMLElement => {
     const markerElement = document.createElement('div');
@@ -42,52 +109,9 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
       width: 32px;
       height: 32px;
       cursor: none;
+      --marker-color: ${categoryStyle.color};
+      --marker-glow: ${categoryStyle.glowColor};
     `;
-
-    // Add category-specific styling
-    const style = document.createElement('style');
-    style.textContent = `
-      .career-marker .marker-container {
-        position: relative;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        pointer-events: auto;
-      }
-      
-      .career-marker .marker-logo {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.8);
-        border: 2px solid ${categoryStyle.color};
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 2;
-        position: relative;
-      }
-      
-      .career-marker .marker-logo img {
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        object-fit: contain;
-      }
-      
-      .career-marker .marker-fallback {
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: ${categoryStyle.color};
-        border: 2px solid ${categoryStyle.color};
-        box-shadow: 0 0 8px ${categoryStyle.glowColor};
-      }
-    `;
-    document.head.appendChild(style);
-    stylesRef.current.push(style);
 
     return markerElement;
   }, []);
@@ -95,6 +119,8 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
   // Create and manage markers
   useEffect(() => {
     if (!map || !careerData) return;
+
+    ensureMarkerStylesInjected();
 
     // Clear existing markers
     markersRef.current.forEach(marker => {
@@ -144,7 +170,7 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
         closeButton: false,
         className: 'tactical-popup career-popup'
       }).setHTML(`
-        <div class="career-popup-content">
+        <div class="career-popup-content" style="--marker-color: ${resumeDataService.getCategoryStyle(careerMarker.type).color}">
           <div class="popup-header">
             <div class="company-name">${careerMarker.name}</div>
             <div class="mission-codename">${careerMarker.codename}</div>
@@ -161,75 +187,40 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
           </div>
         </div>
       `);
-
-      // Add styled popup CSS
-      const popupStyle = document.createElement('style');
-      popupStyle.textContent = `
-        .career-popup-content {
-          background: rgba(0, 0, 0, 0.95);
-          border: 1px solid ${resumeDataService.getCategoryStyle(careerMarker.type).color};
-          color: #ffffff;
-          font-family: 'Courier New', monospace;
-          font-size: 11px;
-          padding: 12px;
-          border-radius: 6px;
-          min-width: 200px;
-        }
-        
-        .popup-header .company-name {
+      
+      // Add static popup css for general layout (colors come from CSS variables above)
+      const headerStyleId = 'career-popup-static-styles';
+      if (!document.getElementById(headerStyleId)) {
+        const style = document.createElement('style');
+        style.id = headerStyleId;
+        style.textContent = `
+        .tactical-popup.career-popup .popup-header .company-name {
           color: #ffffff;
           font-weight: bold;
           font-size: 13px;
           margin-bottom: 2px;
         }
-        
-        .popup-header .mission-codename {
-          color: ${resumeDataService.getCategoryStyle(careerMarker.type).color};
-          font-size: 10px;
-          margin-bottom: 8px;
-        }
-        
-        .popup-body .position {
+        .tactical-popup.career-popup .popup-header .mission-codename { font-size: 10px; margin-bottom: 8px; }
+        .tactical-popup.career-popup .popup-body .position {
           color: #cccccc;
           margin-bottom: 4px;
         }
-        
-        .popup-body .date-range {
-          color: ${resumeDataService.getCategoryStyle(careerMarker.type).color};
-          font-size: 10px;
-          margin-bottom: 2px;
-        }
-        
-        .popup-body .location,
-        .popup-body .coordinates {
+        .tactical-popup.career-popup .popup-body .date-range { font-size: 10px; margin-bottom: 2px; }
+        .tactical-popup.career-popup .popup-body .location,
+        .tactical-popup.career-popup .popup-body .coordinates {
           color: #888888;
           font-size: 9px;
         }
-        
-        .popup-footer {
+        .tactical-popup.career-popup .popup-footer {
           margin-top: 8px;
           display: flex;
           justify-content: space-between;
           align-items: center;
         }
-        
-        .popup-footer .category {
-          color: ${resumeDataService.getCategoryStyle(careerMarker.type).color};
-          font-size: 9px;
-          text-transform: uppercase;
-        }
-        
-        .popup-footer .status-current {
-          background: #00ff00;
-          color: #000000;
-          padding: 1px 4px;
-          border-radius: 2px;
-          font-size: 8px;
-          font-weight: bold;
-        }
-      `;
-      document.head.appendChild(popupStyle);
-      stylesRef.current.push(popupStyle);
+        .tactical-popup.career-popup .popup-footer .category { font-size: 9px; text-transform: uppercase; }
+        `;
+        document.head.appendChild(style);
+      }
 
       markerElement.addEventListener('mouseenter', () => {
         mapboxMarker.setPopup(popup).togglePopup();
@@ -252,19 +243,8 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
         }
       });
       markersRef.current = [];
-      
-      stylesRef.current.forEach(style => {
-        try {
-          if (style.parentNode) {
-            style.parentNode.removeChild(style);
-          }
-        } catch (error) {
-          console.warn('[CareerMarkerRenderer] Error removing style during cleanup:', error);
-        }
-      });
-      stylesRef.current = [];
     };
-  }, [map, careerData, createMarkerElement, onMarkerClick, onUXVTarget, isUXVActive]);
+  }, [map, careerData, createMarkerElement, onMarkerClick, onUXVTarget, isUXVActive, ensureMarkerStylesInjected]);
 
   return null;
 };

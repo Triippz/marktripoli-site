@@ -84,15 +84,6 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     setMap(mapInstance);
     setIsMapLoaded(true);
 
-    // Track zoom for mothership visibility
-    const onMove = () => {
-      const z = mapInstance.getZoom();
-      setZoomLevel(z);
-      setMothershipVisible(z <= 1.2);
-    };
-    mapInstance.on('move', onMove);
-    onMove();
-
     // Register map easter eggs
     try {
       eggsRef.current = require('../../utils/easterEggs/mapEasterEggs').registerMapEasterEggs(
@@ -117,6 +108,21 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       }
     } catch {}
   }, []);
+
+  // Track zoom for mothership visibility with proper cleanup
+  useEffect(() => {
+    if (!map) return;
+    const onMove = () => {
+      const z = map.getZoom();
+      setZoomLevel(z);
+      setMothershipVisible(z <= 1.2);
+    };
+    map.on('move', onMove);
+    onMove();
+    return () => {
+      try { map.off('move', onMove); } catch {}
+    };
+  }, [map]);
 
   const handleMapMove = useCallback((e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     setCurrentCoords({
@@ -202,6 +208,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
             containerDimensions={containerDimensions}
             onMapClick={handleMapClick}
             onMapContextMenu={handleMapContextMenu}
+            uxv={uxvState}
           />
 
           {/* Career System */}
@@ -218,6 +225,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
             careerData={null} // Will be loaded by CareerSystem
             onAction={handleTerminalAction}
             onStartUXV={handleStartUXV}
+            uxv={uxvState}
           />
         </>
       )}

@@ -24,7 +24,20 @@ export interface TerminalCommandResult {
 }
 
 export interface TerminalAction {
-  type: 'fly_to' | 'zoom' | 'navigate' | 'start_uxv' | 'play_sound' | 'unlock_achievement' | 'trigger_alert';
+  type:
+    | 'fly_to'
+    | 'zoom'
+    | 'navigate'
+    | 'start_uxv'
+    | 'uxv_stop'
+    | 'uxv_goto'
+    | 'uxv_speed'
+    | 'uxv_drop'
+    | 'uxv_return'
+    | 'uxv_follow'
+    | 'play_sound'
+    | 'unlock_achievement'
+    | 'trigger_alert';
   payload?: any;
 }
 

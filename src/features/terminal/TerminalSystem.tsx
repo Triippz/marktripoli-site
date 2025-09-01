@@ -2,24 +2,30 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { useTerminalState } from './hooks/useTerminalState';
 import { CommandProcessor } from './services/CommandProcessor';
 import TerminalWindow from './components/TerminalWindow';
+import { useUXVState } from '../uxv';
 import { CareerMapData } from '../career/types';
 import { TerminalAction } from './types';
 import { missionAudio } from '../../utils/audioSystem';
+import { useMissionControl } from '../../store/missionControl';
 
 interface TerminalSystemProps {
   map: mapboxgl.Map | null;
   careerData: CareerMapData | null;
   onAction?: (action: TerminalAction) => void;
   onStartUXV?: (position?: { lng: number; lat: number }) => void;
+  uxv?: ReturnType<typeof useUXVState>;
 }
 
 const TerminalSystem: React.FC<TerminalSystemProps> = ({
   map,
   careerData,
   onAction,
-  onStartUXV
+  onStartUXV,
+  uxv: uxvProp
 }) => {
   const terminal = useTerminalState();
+  const uxv = uxvProp ?? useUXVState();
+  const { triggerAlert } = useMissionControl() as any;
   const processorRef = useRef<CommandProcessor | null>(null);
 
   // Initialize command processor
@@ -152,11 +158,38 @@ const TerminalSystem: React.FC<TerminalSystemProps> = ({
         break;
       
       case 'trigger_alert':
-        // Handle alert mode
+        // Global alert: engage ribbon/status + sound via mission control
+        try { triggerAlert?.(action.payload || 6000); } catch {}
+        // Local terminal visual alarm (optional)
         (terminal as any).updateState({ alertMode: true });
         setTimeout(() => {
           (terminal as any).updateState({ alertMode: false });
         }, action.payload || 4000);
+        break;
+
+      // UXV integration actions
+      case 'uxv_stop':
+        uxv.stopUXV();
+        break;
+
+      case 'uxv_goto':
+        if (action.payload?.target) uxv.setTarget(action.payload.target);
+        break;
+
+      case 'uxv_speed':
+        if (typeof action.payload?.speed === 'number') uxv.setSpeed(action.payload.speed);
+        break;
+
+      case 'uxv_drop':
+        uxv.dropPayload();
+        break;
+
+      case 'uxv_return':
+        uxv.returnToBase();
+        break;
+
+      case 'uxv_follow':
+        if (typeof action.payload?.follow === 'boolean') uxv.setFollow(action.payload.follow);
         break;
     }
   };
