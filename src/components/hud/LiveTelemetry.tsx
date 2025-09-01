@@ -1,13 +1,45 @@
 import { motion } from 'framer-motion';
-import type { TelemetryEntry } from '../../types/mission';
+import { useEffect, useRef, useState } from 'react';
+import type { TelemetryEntry } from '../../types';
 
 interface LiveTelemetryProps {
   telemetryLogs: TelemetryEntry[];
 }
 
 export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
-  const latestLog = telemetryLogs.slice(-1)[0];
-  
+  // Internal history buffer so the card keeps prior messages locally
+  const [history, setHistory] = useState<TelemetryEntry[]>(telemetryLogs || []);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [pinToBottom, setPinToBottom] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Merge incoming logs into local history (dedupe by timestamp+message+level)
+  useEffect(() => {
+    if (!telemetryLogs || telemetryLogs.length === 0) return;
+    setHistory(prev => {
+      const seen = new Set(prev.map(e => `${new Date(e.timestamp).getTime()}|${e.level}|${e.message}`));
+      const additions = telemetryLogs.filter(e => {
+        const key = `${new Date(e.timestamp).getTime()}|${e.level}|${e.message}`;
+        return !seen.has(key);
+      });
+      const merged = [...prev, ...additions];
+      // Keep a reasonable cap
+      const cap = 200;
+      return merged.length > cap ? merged.slice(merged.length - cap) : merged;
+    });
+  }, [telemetryLogs]);
+
+  // Auto-scroll to bottom when new logs arrive if user is pinned to bottom
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (pinToBottom) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [history, pinToBottom]);
+
+  const latestLog = history.slice(-1)[0];
+
   // Determine colors and icons based on log level
   const getLogStyle = (level?: string) => {
     switch (level) {
@@ -25,6 +57,13 @@ export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
           messageColor: 'text-yellow-300',
           icon: '⚠️'
         };
+      case 'success':
+        return {
+          indicatorColor: 'bg-green-500',
+          textColor: 'text-green-400',
+          messageColor: 'text-green-300',
+          icon: '✅'
+        };
       case 'info':
       default:
         return {
@@ -37,10 +76,11 @@ export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
   };
 
   const logStyle = getLogStyle(latestLog?.level);
+  const heightClass = isCollapsed ? 'h-24' : 'h-48';
 
   return (
     <motion.div 
-      className="floating-card overflow-hidden"
+      className="floating-card"
       style={{ 
         position: 'fixed', 
         bottom: '1rem', 
@@ -59,17 +99,63 @@ export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
         {latestLog?.level === 'error' && (
           <span className="text-red-500 ml-1 animate-pulse">●</span>
         )}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => {
+              setHistory([]);
+              setPinToBottom(true);
+              // Scroll to bottom after clear
+              requestAnimationFrame(() => {
+                const el = scrollRef.current;
+                if (el) el.scrollTop = el.scrollHeight;
+              });
+            }}
+            className="border border-green-500/30 text-green-300 hover:text-green-200 hover:border-green-400/50 rounded px-2 py-0.5 font-mono text-[10px] uppercase"
+            title="Clear telemetry"
+          >
+            Clear
+          </button>
+          <button
+            onClick={() => {
+              setIsCollapsed(v => !v);
+              setPinToBottom(true);
+              requestAnimationFrame(() => {
+                const el = scrollRef.current;
+                if (el) el.scrollTop = el.scrollHeight;
+              });
+            }}
+            className="border border-green-500/30 text-green-300 hover:text-green-200 hover:border-green-400/50 rounded px-2 py-0.5 font-mono text-[10px] uppercase"
+            title={isCollapsed ? 'Expand' : 'Collapse'}
+          >
+            {isCollapsed ? 'Expand' : 'Collapse'}
+          </button>
+        </div>
       </div>
-      <div className={`matrix-text text-xs ${logStyle.messageColor}`}>
-        {latestLog ? (
-          <span>
-            <span className="opacity-60">[{new Date().toLocaleTimeString()}]</span>{' '}
-            {logStyle.icon} {latestLog.message}
-          </span>
+      {/* Scrollable history */}
+      <div 
+        ref={scrollRef}
+        className={`matrix-text text-xs border border-green-500/20 rounded-md p-2 pr-3 ${heightClass} overflow-y-auto`}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          const threshold = 16; // px
+          const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= threshold;
+          setPinToBottom(atBottom);
+        }}
+      >
+        {history.length === 0 ? (
+          <div className="text-green-400">🔗 [STANDBY] Awaiting mission parameters...</div>
         ) : (
-          <span className="text-green-400">
-            🔗 [STANDBY] Awaiting mission parameters...
-          </span>
+          history.map((log, idx) => {
+            const style = getLogStyle(log.level);
+            const ts = new Date(log.timestamp);
+            const time = isNaN(ts.getTime()) ? '' : ts.toLocaleTimeString();
+            return (
+              <div key={`${ts.getTime()}-${idx}`} className={`mb-1 ${style.messageColor} whitespace-pre-wrap break-words`}>
+                <span className="opacity-60">[{time}]</span>{' '}
+                {style.icon} {log.message}
+              </div>
+            );
+          })
         )}
       </div>
     </motion.div>
