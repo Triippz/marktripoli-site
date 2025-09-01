@@ -1,34 +1,32 @@
-import { useState, useEffect, Suspense, lazy } from 'react';
+// React & Router
+import { useState, useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-// import { useTelemetryStore, useUserStore, useUIStore } from './store/missionControlV2';
+
+// Store & Utils
 import { useMissionControl } from './store/missionControl';
-// import { GlobalErrorBoundary, DataErrorBoundary, MapErrorBoundary, UIErrorBoundary } from './components/ErrorBoundary/GlobalErrorBoundary';
-// import MapDataErrorBoundary from './components/ErrorBoundary/MapDataErrorBoundary';
-// import ResumeDataErrorBoundary from './components/ErrorBoundary/ResumeDataErrorBoundary';
-import { InitializingLoader } from './components/LoadingSpinner';
-import { AccessibilityProvider, AccessibilityStyles } from './components/AccessibilityProvider';
-import { SkipNavigation } from './components/SkipNavigation';
-import MapboxScene from './components/map/MapboxScene';
 import { missionAudio } from './utils/audioSystem';
+
+// Base Components
+import { SkipNavigation } from './components/SkipNavigation';
 import BootSequence from './components/boot/BootSequence';
+import MapboxScene from './components/map/MapboxScene';
+
+// Layout Components
 import HUDTopLeftStack from './components/layout/HUDTopLeftStack';
 import TopRightButtonControls from './components/layout/TopRightButtonControls';
 import MainStatusPanel from './components/layout/MainStatusPanel';
 import TerminalOverlay from './components/layout/TerminalOverlay';
 import AchievementOverlay from './components/layout/AchievementOverlay';
 import ContactFormOverlay from './components/layout/ContactFormOverlay';
-// import BackgroundGridOverlay from './components/BackgroundGridOverlay';
+import BackgroundGridOverlay from './components/BackgroundGridOverlay';
+
+// HUD Components
 import LiveTelemetry from './components/hud/LiveTelemetry';
 import StatusIndicators from './components/hud/StatusIndicators';
-import DataSourceRetry from './components/hud/DataSourceRetry';
-// import TacticalStatusBar from './components/enhanced/TacticalStatusBar';
+
+// Styles
 import './App.css';
 import './styles/tactical-enhancements.css';
-
-// Lazy load components for better performance
-// const MapboxScene = lazy(() => import('./components/map/MapboxScene'));
-// const ExecutiveBriefing = lazy(() => import('./components/briefing/ExecutiveBriefing'));
-
 
 
 function MissionControlInterface() {
@@ -58,56 +56,13 @@ function MissionControlInterface() {
 
   return (
     <div className="h-screen w-screen text-white overflow-hidden relative">
-      {/* Background Globe with Error Boundaries */}
-      {/* Temporarily commented out for testing */}
-      {/* <MapErrorBoundary>
-        <MapDataErrorBoundary>
-          <ResumeDataErrorBoundary showFallback={false}> */}
-            <MapboxScene />
-          {/* </ResumeDataErrorBoundary>
-        </MapDataErrorBoundary>
-      </MapErrorBoundary> */}
+      {/* Tactical Grid Background */}
+      <BackgroundGridOverlay />
+      
+      {/* Interactive Map */}
+      <MapboxScene />
 
       <SkipNavigation />
-
-      {/* HUD Cluster: top-left stack (MissionHUD + StatusIndicators) */}
-      {/* <UIErrorBoundary componentName="HUD Top Left Stack">
-        <HUDTopLeftStack userRank={userRank} />
-      </UIErrorBoundary>
-
-      <UIErrorBoundary componentName="Top Right Controls">
-        <TopRightButtonControls 
-          soundEnabled={soundEnabled}
-          toggleSound={toggleSound}
-          onContactClick={() => setShowContactForm(true)}
-        />
-      </UIErrorBoundary>
-      
-      <UIErrorBoundary componentName="Main Status Panel">
-        <MainStatusPanel showStatusPanel={true} />
-      </UIErrorBoundary>
-
-      <UIErrorBoundary componentName="Terminal Overlay">
-        <TerminalOverlay />
-      </UIErrorBoundary>
-
-      <UIErrorBoundary componentName="Achievement Overlay">
-        <AchievementOverlay />
-      </UIErrorBoundary> */}
-
-      {/* Contact Form */}
-      {/* <UIErrorBoundary componentName="Contact Form">
-        <ContactFormOverlay 
-          isOpen={showContactForm}
-          onClose={() => setShowContactForm(false)}
-        />
-      </UIErrorBoundary>
-
-      <UIErrorBoundary componentName="Live Telemetry">
-        <LiveTelemetry telemetryLogs={telemetryLogs} />
-      </UIErrorBoundary> */}
-
-      {/* <DataSourceRetry /> */}
 
       {/* Status Indicators - Top Header */}
       <div
@@ -157,7 +112,6 @@ function MissionControlInterface() {
 // Global keyboard handler component
 function GlobalKeyboardHandler() {
   const navigate = useNavigate();
-  // const { addTelemetry } = useTelemetryStore();
 
   useEffect(() => {
     const handleGlobalKeyPress = (event: KeyboardEvent) => {
@@ -165,30 +119,15 @@ function GlobalKeyboardHandler() {
       if ((event.metaKey || event.ctrlKey) && event.key === 'b') {
         event.preventDefault();
         navigate('/briefing');
-        // addTelemetry({
-        //   source: 'USER',
-        //   message: 'Executive briefing accessed via keyboard shortcut',
-        //   level: 'info'
-        // });
       } else if (event.key === 'b' && (!event.target || (event.target as HTMLElement)?.tagName !== 'INPUT')) {
         event.preventDefault();
         navigate('/briefing');
-        // addTelemetry({
-        //   source: 'USER',
-        //   message: 'Executive briefing accessed via B key',
-        //   level: 'info'
-        // });
       }
 
       // Mission Control shortcut - ESC or M to return to main
       if (event.key === 'Escape' || (event.key === 'm' && (!event.target || (event.target as HTMLElement)?.tagName !== 'INPUT'))) {
         event.preventDefault();
         navigate('/');
-        // addTelemetry({
-        //   source: 'USER',
-        //   message: 'Returned to Mission Control interface',
-        //   level: 'info'
-        // });
       }
     };
 

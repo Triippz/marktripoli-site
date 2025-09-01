@@ -73,13 +73,10 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
               }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              MISSION CONTROL v2.0
+                TACTICAL OPERATIONS SYSTEM
             </motion.div>
-            <div className="text-green-400 font-mono text-base md:text-lg mb-2">
-              TACTICAL OPERATIONS SYSTEM
-            </div>
             <div className="text-gray-400 font-mono text-xs md:text-sm">
-              Earth Surveillance Network • Global Command Interface
+              Global Command Interface
             </div>
           </div>
           

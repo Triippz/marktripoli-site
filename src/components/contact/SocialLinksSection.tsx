@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Profile } from '../../types/resume';
-import { useDataStore, useTelemetryStore } from '../../store/missionControlV2';
+import { useMissionControl } from '../../store/missionControl';
 import { missionAudio } from '../../utils/audioSystem';
 
 interface SocialLink {
@@ -99,10 +99,46 @@ export default function SocialLinksSection({
   showLabels = true, 
   variant = 'horizontal' 
 }: SocialLinksSectionProps) {
-  const { resumeData, resumeDataState } = useDataStore();
-  const { addTelemetry } = useTelemetryStore();
+  const { addTelemetry } = useMissionControl();
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [resumeData, setResumeData] = useState<any>(null);
+  const [resumeDataState, setResumeDataState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  useEffect(() => {
+    const loadResumeData = async () => {
+      setResumeDataState('loading');
+      setIsLoading(true);
+      
+      try {
+        const response = await fetch('/resume.json');
+        if (!response.ok) {
+          throw new Error(`Failed to load resume: ${response.status}`);
+        }
+        const data = await response.json();
+        setResumeData(data);
+        setResumeDataState('success');
+        
+        addTelemetry({
+          source: 'COMMS',
+          message: 'Resume data loaded successfully',
+          level: 'success'
+        });
+      } catch (error) {
+        console.error('[SocialLinksSection] Failed to load resume data:', error);
+        setResumeDataState('error');
+        addTelemetry({
+          source: 'COMMS',
+          message: `Resume data load failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          level: 'error'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadResumeData();
+  }, []);
 
   useEffect(() => {
     const loadSocialLinks = () => {

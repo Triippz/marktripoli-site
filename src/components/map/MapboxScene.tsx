@@ -2,13 +2,13 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import mapboxgl from 'mapbox-gl';
 import { useMissionControl } from '../../store/missionControl';
-import type { SiteData, EnhancedSiteData } from '../../types';
+import type { SiteData } from '../../types';
 import sitesData from '../../data/sites.json';
 import FlightPathAnimations from './FlightPathAnimations';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 // Set Mapbox access token from environment variables or fallback to demo token
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 interface MapboxSceneProps {
   sites?: SiteData[];

@@ -1,16 +1,8 @@
 import { motion } from 'framer-motion';
-import { useMissionControlV2 } from '../../store/missionControlV2';
+import { useMissionControl } from '../../store/missionControl';
 
 export default function DataSourceRetry() {
-  // Use focused selector to prevent unnecessary re-renders
-  const { resumeDataState, resumeDataError, loadResumeData, addTelemetry } = useMissionControlV2(
-    (state) => ({
-      resumeDataState: state.resumeDataState,
-      resumeDataError: state.resumeDataError,
-      loadResumeData: state.loadResumeData,
-      addTelemetry: state.addTelemetry,
-    })
-  );
+  const { addTelemetry } = useMissionControl();
   
   const handleRetry = async () => {
     const resumeUrl = import.meta.env.VITE_RESUME_URL;

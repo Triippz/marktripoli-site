@@ -264,8 +264,21 @@
         "Java",
         "Python",
         "Go",
-        "TypeScript",
-        "React"
+        "TypeScript"
+      ]
+    },
+    {
+      "name": "Frameworks & Libraries",
+      "keywords": [
+        "Spring Boot",
+        "React",
+        "React Native",
+        "NestJS",
+        "Express",
+        "Gin",
+        "Django",
+        "FastAPI",
+        "Dropwizard"
       ]
     },
     {
@@ -274,8 +287,15 @@
         "Kubernetes",
         "Kafka",
         "PostgreSQL",
+        "TimescaleDB",
+        "Vitess",
+        "MySQL",
         "AWS",
         "NATS/Jetstream",
+        "Redis",
+        "Memcached",
+        "MQTT",
+        "Elasticsearch",
         "CI/CD"
       ]
     },
