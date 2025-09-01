@@ -26,6 +26,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [currentCoords, setCurrentCoords] = useState({ lat: 42.3601, lng: -71.0589 }); // Boston
   const [containerDimensions, setContainerDimensions] = useState({ width: 800, height: 600 });
+  const [cursorPoint, setCursorPoint] = useState<{ x: number; y: number } | null>(null);
 
   // Memoize telemetry function to prevent infinite loops
   const addMapTelemetry = useCallback((log: any) => {
@@ -75,6 +76,15 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
+  // Hide crosshair when cursor leaves the map container
+  useEffect(() => {
+    const el = mapContainer.current;
+    if (!el) return;
+    const handleLeave = () => setCursorPoint(null);
+    el.addEventListener('mouseleave', handleLeave);
+    return () => el.removeEventListener('mouseleave', handleLeave);
+  }, []);
+
   // Initialize map once with comprehensive error handling
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -110,6 +120,14 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
           if (!map.current) return;
 
           try {
+            // Hide native cursor inside map to rely on custom crosshair
+            const cursorStyle = document.createElement('style');
+            cursorStyle.textContent = `
+              .mapboxgl-map, .mapboxgl-canvas, .mapboxgl-canvas-container { cursor: none !important; }
+            `;
+            document.head.appendChild(cursorStyle);
+            stylesRef.current.push(cursorStyle);
+
             // Enable globe projection for cinematic effect
             if (map.current.setProjection) {
               map.current.setProjection('globe');
@@ -203,12 +221,14 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
               level: 'success'
             });
 
-            // Update coordinates on map move
+            // Update coordinates and screen point on map move
             map.current.on('mousemove', (e) => {
               setCurrentCoords({
                 lat: parseFloat(e.lngLat.lat.toFixed(4)),
                 lng: parseFloat(e.lngLat.lng.toFixed(4))
               });
+              // e.point is relative to map container
+              setCursorPoint({ x: e.point.x, y: e.point.y });
             });
           } catch (loadError) {
             console.error('[MapboxScene] Map load configuration failed:', loadError);
@@ -349,7 +369,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
         background: radial-gradient(circle, #00ff00, #00aa00);
         border: 2px solid #00ff00;
         box-shadow: 0 0 20px #00ff0080, inset 0 0 10px #00ff0040;
-        cursor: pointer;
+        cursor: none;
         animation: pulse 2s infinite;
         position: relative;
       `;
@@ -455,7 +475,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
       {/* Mapbox container */}
-      <div ref={mapContainer} className="w-full h-full" />
+      <div ref={mapContainer} className="w-full h-full cursor-none" />
 
       {/* Loading overlay */}
       {!mapLoaded && (
@@ -497,20 +517,49 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
             </div>
           </div>
 
-          {/* Coordinate display */}
-          <div className="absolute top-4 right-4">
-            <div className="bg-gray-900/90 border border-green-500/30 rounded p-2 backdrop-blur-sm">
-              <div className="text-green-500 text-xs font-mono mb-1">
-                COORDINATES
-              </div>
-              <div className="text-white text-xs font-mono">
-                LAT: {currentCoords.lat}°
-              </div>
-              <div className="text-white text-xs font-mono">
-                LNG: {currentCoords.lng}°
-              </div>
+          {/* Crosshair cursor overlay with coordinates */}
+          {cursorPoint && (
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Vertical line */}
+              <div
+                className="absolute bg-green-500/30"
+                style={{ left: `${cursorPoint.x}px`, top: 0, width: '1px', height: '100%' }}
+              />
+              {/* Horizontal line */}
+              <div
+                className="absolute bg-green-500/30"
+                style={{ top: `${cursorPoint.y}px`, left: 0, height: '1px', width: '100%' }}
+              />
+              {/* Cursor square */}
+              <div
+                className="absolute border border-green-500/70 bg-green-500/5 shadow-[0_0_10px_rgba(0,255,0,0.4)]"
+                style={{
+                  left: `${Math.max(0, Math.min(containerDimensions.width, cursorPoint.x)) - 6}px`,
+                  top: `${Math.max(0, Math.min(containerDimensions.height, cursorPoint.y)) - 6}px`,
+                  width: '12px',
+                  height: '12px'
+                }}
+              />
+              {/* Coordinates box (slightly offset, clamped to viewport) */}
+              {(() => {
+                const offset = 14;
+                const boxWidth = 170;
+                const boxHeight = 44;
+                const left = Math.min(cursorPoint.x + offset, containerDimensions.width - boxWidth - 6);
+                const top = Math.min(cursorPoint.y + offset, containerDimensions.height - boxHeight - 6);
+                return (
+                  <div
+                    className="absolute bg-gray-900/90 border border-green-500/30 rounded p-2 backdrop-blur-sm"
+                    style={{ left: `${Math.max(6, left)}px`, top: `${Math.max(6, top)}px`, width: `${boxWidth}px` }}
+                  >
+                    <div className="text-green-500 text-[10px] font-mono mb-1">COORDINATES</div>
+                    <div className="text-white text-[10px] font-mono">LAT: {currentCoords.lat}°</div>
+                    <div className="text-white text-[10px] font-mono">LNG: {currentCoords.lng}°</div>
+                  </div>
+                );
+              })()}
             </div>
-          </div>
+          )}
 
           {/* Tactical indicators */}
           <div className="absolute top-4 left-1/2 -translate-x-1/2">
