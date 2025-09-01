@@ -85,13 +85,13 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       try {
         console.log('[MapboxScene] Initializing map with API key:', import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.substring(0, 20) + '...');
 
-        // Initialize map centered on USA
+        // Initialize map with global view for smooth transition from boot
         mapInstance = new mapboxgl.Map({
           container: mapContainer.current!,
           style: import.meta.env.VITE_MAPBOX_STYLE || 'mapbox://styles/mapbox/satellite-v9',
-          center: [-98.5795, 39.8283], // Center of USA
-          zoom: 4,
-          pitch: 45,
+          center: [0, 20], // Start with global view like boot sequence
+          zoom: 1, // Start zoomed out for dramatic flyTo effect
+          pitch: 0,
           bearing: 0,
           antialias: true,
           attributionControl: false
@@ -110,6 +110,14 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
           if (!map.current) return;
 
           try {
+            // Enable globe projection for cinematic effect
+            if (map.current.setProjection) {
+              map.current.setProjection('globe');
+              console.log('[MapboxScene] ✅ Globe projection enabled');
+            } else {
+              console.log('[MapboxScene] ⚠️ Globe projection not available in this Mapbox version');
+            }
+            
             setMapLoaded(true);
             
             // Add custom dark overlay for tactical feel
@@ -158,9 +166,40 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
               }
             });
 
+            // Start dramatic flyTo USA animation after a brief delay
+            setTimeout(() => {
+              if (!map.current) return;
+              
+              console.log('[MapboxScene] 🚀 Starting flyTo USA transition');
+              addMapTelemetry({
+                source: 'MAP',
+                message: 'Engaging USA theater of operations...',
+                level: 'info'
+              });
+              
+              map.current.flyTo({
+                center: [-98.5795, 39.8283], // USA center
+                zoom: 4,
+                pitch: 45,
+                bearing: 0,
+                duration: 4500, // Match boot sequence timing
+                essential: true,
+                easing: (t) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t) // Smooth easing
+              });
+              
+              // Update telemetry when transition completes
+              setTimeout(() => {
+                addMapTelemetry({
+                  source: 'MAP',
+                  message: 'USA tactical display operational',
+                  level: 'success'
+                });
+              }, 4800);
+            }, 500); // Small delay for smooth boot transition
+            
             addMapTelemetry({
               source: 'MAP',
-              message: `Mapbox tactical display initialized`,
+              message: `Globe tactical display initialized`,
               level: 'success'
             });
 
