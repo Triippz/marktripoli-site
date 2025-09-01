@@ -55,7 +55,7 @@ function MissionControlInterface() {
 
 
   return (
-    <div className="min-h-screen w-screen text-white overflow-auto relative">
+    <div className="h-screen w-screen text-white overflow-hidden relative">
       {/* Tactical Grid Background */}
       <BackgroundGridOverlay />
       
@@ -71,8 +71,6 @@ function MissionControlInterface() {
       >
         <MapboxScene />
       </EnhancedErrorBoundary>
-
-      <SkipNavigation />
 
       {/* Status Indicators - Top Header with actions on right */}
       <div
@@ -101,7 +99,7 @@ function MissionControlInterface() {
 
 
       {/* Main Status Panel - Center Information */}
-      <MainStatusPanel showStatusPanel={true} />
+      <MainStatusPanel showStatusPanel={!selectedSite && !currentDossier} />
 
       {/* Terminal Overlay - Interactive Site Viewer */}
       <TerminalOverlay />
