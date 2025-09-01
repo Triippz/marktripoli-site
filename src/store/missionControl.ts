@@ -24,6 +24,7 @@ interface MissionControlState {
   soundEnabled: boolean;
   hudVisible: boolean;
   bootCompleted: boolean;
+  alertActive: boolean;
   
   // Actions
   selectSite: (site: SiteData | null) => void;
@@ -37,6 +38,7 @@ interface MissionControlState {
   toggleHUD: () => void;
   setBootCompleted: (completed: boolean) => void;
   setUserName: (name: string) => void;
+  triggerAlert: (ms?: number) => void;
 }
 
 export const useMissionControl = create<MissionControlState>((set, get) => ({
@@ -59,6 +61,7 @@ export const useMissionControl = create<MissionControlState>((set, get) => ({
   soundEnabled: JSON.parse(localStorage.getItem('mc-sound') || 'false'),
   hudVisible: true,
   bootCompleted: JSON.parse(localStorage.getItem('mc-boot-completed') || 'false'),
+  alertActive: false,
   
   // Actions
   selectSite: (site) => {
@@ -154,5 +157,16 @@ export const useMissionControl = create<MissionControlState>((set, get) => ({
   setUserName: (name: string) => {
     try { localStorage.setItem('mc-user', name); } catch {}
     set((state) => ({ userRank: { ...state.userRank, username: name } }));
+  },
+
+  triggerAlert: (ms = 6000) => {
+    const until = Date.now() + ms;
+    set({ alertActive: true });
+    // fire audio
+    missionAudio.playEffect('alert').catch(() => {});
+    setTimeout(() => {
+      // Only clear if time elapsed
+      if (Date.now() >= until) set({ alertActive: false });
+    }, ms);
   },
 }));

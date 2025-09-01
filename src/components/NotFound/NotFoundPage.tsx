@@ -18,7 +18,7 @@ const NotFoundPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-start justify-center p-4 py-8">
+    <div className="h-screen w-screen bg-black overflow-y-auto flex items-start justify-center p-4 py-8">
       <motion.div
         initial={{ opacity: 0, scale: 0.9, rotateX: -10 }}
         animate={{ opacity: 1, scale: 1, rotateX: 0 }}

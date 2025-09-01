@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMissionControl } from '../store/missionControl';
+import { createDefaultFS, resolvePath as fsResolve, isDir as fsIsDir, listDir as fsList, readFile as fsRead } from '../utils/fauxFS';
 
 type Resume = {
   basics?: {
@@ -41,6 +43,7 @@ type Profile = {
 
 export default function ExecutiveBrief() {
   const navigate = useNavigate();
+  const { unlockEasterEgg, triggerAlert } = useMissionControl() as any;
   const [resume, setResume] = useState<Resume | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +58,16 @@ export default function ExecutiveBrief() {
   const [mountains, setMountains] = useState<Array<{ id: string; left: number; size: number; dur: number; delay: number }>>([]);
   const [beamOn, setBeamOn] = useState<boolean>(false);
   const [helpOpen, setHelpOpen] = useState<boolean>(false);
+  const [termOpen, setTermOpen] = useState<boolean>(false);
+  const [termLines, setTermLines] = useState<string[]>(["MC-TERM v0.1 — type 'help'", ""]);
+  const [termInput, setTermInput] = useState<string>('');
+  const [awaitPass, setAwaitPass] = useState<boolean>(false);
+  const [admin, setAdmin] = useState<boolean>(false);
+  const [wrongPass, setWrongPass] = useState<number>(0);
+  const [alertMode, setAlertMode] = useState<boolean>(false);
+  const [puzzleStage, setPuzzleStage] = useState<number>(0);
+  const fsRoot = useMemo(() => createDefaultFS(), []);
+  const [cwd, setCwd] = useState<string>('/');
 
   useEffect(() => {
     const load = async () => {
@@ -79,7 +92,7 @@ export default function ExecutiveBrief() {
     try { console.log('%c[Hint]', 'color:#45ffb0', 'Press ? on /briefing for hidden controls.'); } catch {}
   }, []);
 
-  // Easter egg listeners: Konami (Matrix), U (UFO fleet), D (paws), G (glitch), P (neon), H (hiking), V (scanlines), B (beam)
+  // Easter egg listeners: Konami (Matrix), U (UFO fleet), D (paws), G (glitch), P (neon), H (hiking), V (scanlines), B (beam), ` or Ctrl+Alt+T (terminal)
   useEffect(() => {
     const seq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
     let buffer: string[] = [];
@@ -152,6 +165,10 @@ export default function ExecutiveBrief() {
       if (key === 'Escape' && helpOpen) {
         setHelpOpen(false);
       }
+      // Secret terminal
+      if (key === '`' || (e.ctrlKey && e.altKey && key.toLowerCase() === 't')) {
+        setTermOpen(v => !v);
+      }
       // Konami buffer
       buffer.push(key);
       if (buffer.length > seq.length) buffer.shift();
@@ -163,6 +180,163 @@ export default function ExecutiveBrief() {
     window.addEventListener('keydown', onKey);
     return () => { window.removeEventListener('keydown', onKey); };
   }, [helpOpen]);
+
+  // Terminal command handling
+  const promptUser = () => (admin ? 'root@mc' : 'guest@mc') + ':' + cwd + '$';
+  const appendTerm = (line: string = '') => setTermLines(prev => [...prev, line]);
+  const triggerEgg = (name: string): boolean => {
+    switch (name) {
+      case 'matrix': setShowMatrix(v => !v); return true;
+      case 'ufo': {
+        const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const top = 40 + Math.floor(Math.random() * 220);
+        const dur = 6 + Math.random() * 5; const width = 100; const height = 50;
+        setUfos(prev => [...prev, { id, top, dur, width, height }]);
+        setTimeout(() => setUfos(prev => prev.filter(u => u.id !== id)), Math.ceil(dur * 1000) + 300);
+        return true; }
+      case 'paws': {
+        const now = Date.now(); const count = 12;
+        const batch = Array.from({ length: count }).map((_, i) => ({ id: `${now}-${i}`, left: Math.floor(Math.random()*100), size: 14+Math.floor(Math.random()*14), dur: 5+Math.random()*6, delay: Math.random()*1.2 }));
+        setPawPrints(prev => [...prev, ...batch]);
+        setTimeout(() => setPawPrints(prev => prev.filter(p => !batch.find(b => b.id === p.id))), 9000);
+        return true; }
+      case 'glitch': setGlitchTitle(true); setTimeout(() => setGlitchTitle(false), 3000); return true;
+      case 'neon': setNeonPulse(true); setTimeout(() => setNeonPulse(false), 2200); return true;
+      case 'scanlines': setScanlines(v => !v); return true;
+      case 'beam': setBeamOn(true); setTimeout(() => setBeamOn(false), 3500); return true;
+      case 'hiking': {
+        const now = Date.now(); const count = 10;
+        const batch = Array.from({ length: count }).map((_, i) => ({ id: `${now}-${i}`, left: Math.floor(Math.random()*100), size: 18+Math.floor(Math.random()*20), dur: 7+Math.random()*6, delay: Math.random()*1.5 }));
+        setMountains(prev => [...prev, ...batch]);
+        setTimeout(() => setMountains(prev => prev.filter(m => !batch.find(b => b.id === m.id))), 11000);
+        return true; }
+      default: return false;
+    }
+  };
+
+  const runTermCommand = (raw: string) => {
+    const input = raw.trim();
+    // Puzzle handling
+    if (puzzleStage === 1) {
+      if (input.toLowerCase().includes('follow') && input.toLowerCase().includes('rabbit')) {
+        appendTerm('RIDDLE SOLVED. The matrix acknowledges your curiosity.');
+        setPuzzleStage(0);
+        try { unlockEasterEgg('code_breaker'); } catch {}
+      } else {
+        appendTerm('Hint: what did Morpheus say to Neo?');
+      }
+      return;
+    }
+    if (awaitPass) {
+      if (input === 'legion' || input === 'LEGION') {
+        appendTerm('ACCESS GRANTED. Welcome, operator.');
+        setAdmin(true); setAwaitPass(false); setWrongPass(0);
+        try { unlockEasterEgg('hidden_commands'); } catch {}
+      } else {
+        appendTerm('ACCESS DENIED.');
+        const next = wrongPass + 1; setWrongPass(next); setAwaitPass(false);
+        if (next >= 3) { setAlertMode(true); try { triggerAlert(6000); } catch {}; setTimeout(() => setAlertMode(false), 4000); setWrongPass(0); }
+      }
+      return;
+    }
+    if (!input) { appendTerm(); return; }
+    const [cmd, ...args] = input.split(/\s+/);
+    switch (cmd.toLowerCase()) {
+      case 'help':
+        appendTerm('Commands: help, clear, login, eggs, trigger <name>, scan, unlock-all, exit');
+        appendTerm('Linux-ish: pwd, ls, whoami, uname -a, date, echo <txt>, cat <file>, man <cmd>, sudo su');
+        appendTerm('Map link: companies, goto hq <company>, hq <company>');
+        appendTerm("Eggs: matrix, ufo, paws, glitch, neon, scanlines, beam, hiking");
+        break;
+      case 'clear':
+      case 'cls':
+        setTermLines(["MC-TERM v0.1 — type 'help'", ""]);
+        break;
+      case 'login':
+        setAwaitPass(true); appendTerm('Password:');
+        break;
+      case 'eggs':
+        appendTerm('Available (screen): matrix, ufo, paws, glitch, neon, scanlines, beam, hiking.');
+        appendTerm('Map (idle/geofence): ping, streak, aurora, ring, radar, sand, stars, neonSweep.');
+        break;
+      case 'puzzle':
+        appendTerm('RIDDLE: The signal hides in green rain. What must you do?');
+        setPuzzleStage(1);
+        break;
+      case 'trigger': {
+        const name = (args[0] || '').toLowerCase();
+        if (!name) { appendTerm('Usage: trigger <name>'); break; }
+        const ok = triggerEgg(name);
+        appendTerm(ok ? `Triggered: ${name}` : `Unknown egg: ${name}`);
+        break; }
+      case 'scan':
+        ['matrix','ufo','paws','glitch','neon','scanlines','beam','hiking'].forEach((n, i) => setTimeout(() => triggerEgg(n), i * 250));
+        appendTerm('Scanning…');
+        break;
+      case 'unlock-all':
+        if (!admin) { appendTerm('Insufficient clearance. Use login.'); break; }
+        ['matrix','ufo','paws','glitch','neon','scanlines','beam','hiking'].forEach((n, i) => setTimeout(() => triggerEgg(n), i * 180));
+        appendTerm('All systems engaged.');
+        try { unlockEasterEgg('easter_hunter'); } catch {}
+        break;
+      case 'companies': {
+        const names = Array.from(new Set((resume?.work || []).map(w => w.name).filter(Boolean)));
+        appendTerm(names.join(', ') || '(none)');
+        break; }
+      case 'hq':
+      case 'goto': {
+        const isGotoHq = cmd.toLowerCase() === 'goto' && (args[0] || '').toLowerCase() === 'hq';
+        const query = cmd.toLowerCase() === 'hq' ? args.join(' ') : (isGotoHq ? args.slice(1).join(' ') : '');
+        if (!query) { appendTerm('Usage: hq <company> | goto hq <company>'); break; }
+        // Navigate to map with query param
+        const params = new URLSearchParams(window.location.search);
+        params.set('hq', query);
+        window.history.replaceState({}, '', '/');
+        window.location.href = '/?'+params.toString();
+        setTermOpen(false);
+        appendTerm(`Opening map for HQ: ${query}`);
+        break; }
+      case 'exit':
+      case 'close':
+        setTermOpen(false);
+        appendTerm('Session closed.');
+        break;
+      default:
+        // Linux-ish
+        if (cmd === 'pwd') { appendTerm(cwd); break; }
+        if (cmd === 'cd') {
+          const target = (args[0] || '/');
+          const next = fsResolve(cwd, target);
+          if (fsIsDir(fsRoot, next)) { setCwd(next); }
+          else { appendTerm(`cd: no such file or directory: ${target}`); }
+          break;
+        }
+        if (cmd === 'ls') {
+          const target = fsResolve(cwd, args[0] || '.');
+          const list = fsList(fsRoot, target);
+          if (list) appendTerm(list.join('  ')); else appendTerm(`ls: cannot access '${args[0] || '.'}': Not a directory`);
+          break;
+        }
+        if (cmd === 'whoami') { appendTerm(admin ? 'root' : 'guest'); break; }
+        if (cmd === 'uname') { appendTerm(args[0] === '-a' ? 'Linux mc 6.2.0-mc #1 SMP x86_64 GNU/Linux' : 'Linux'); break; }
+        if (cmd === 'date') { appendTerm(new Date().toString()); break; }
+        if (cmd === 'echo') { appendTerm(args.join(' ')); break; }
+        if (cmd === 'cat') {
+          const fileArg = args[0];
+          if (!fileArg) { appendTerm('cat: missing file operand'); break; }
+          let path = fsResolve(cwd, fileArg);
+          // convenience: allow 'cat easter-eggs.md'
+          if (!fsRead(fsRoot, path) && !fileArg.includes('/')) path = fsResolve('/docs', fileArg);
+          if (path.endsWith('/secrets') && !admin) { appendTerm('cat: secrets: Permission denied'); break; }
+          const content = fsRead(fsRoot, path);
+          appendTerm(content != null ? content : `cat: ${fileArg}: No such file`);
+          break;
+        }
+        if (cmd === 'man') { appendTerm('No manual entry. This is not a real shell.'); break; }
+        if (cmd === 'sudo') { if ((args[0] || '').toLowerCase() === 'su') { setAlertMode(true); try { triggerAlert(6000); } catch {}; setTimeout(() => setAlertMode(false), 4000); appendTerm('sudo: Authentication failure'); } else { appendTerm('sudo: permission denied'); } break; }
+        appendTerm(`Unknown command: ${cmd}`);
+    }
+  };
 
   const name = resume?.basics?.name || 'MARK TRIPOLI';
   const title = profile?.title || resume?.basics?.label || 'ENGINEERING MANAGER & TECHNICAL LEAD';
@@ -334,6 +508,43 @@ export default function ExecutiveBrief() {
         {mountains.map(m => (
           <div key={m.id} className="mountain" style={{ left: `${m.left}vw`, ['--size' as any]: `${m.size}px`, ['--dur' as any]: `${m.dur}s`, ['--delay' as any]: `${m.delay}s` }}>🏔️</div>
         ))}
+        {alertMode && (
+          <>
+            <div className="alert-overlay" />
+            <div className="alert-banner">ALERT MODE — Unauthorized access detected</div>
+          </>
+        )}
+        {termOpen && (
+          <div className="terminal-overlay" role="dialog" aria-modal="true" aria-label="Mission Terminal">
+            <div className="terminal-window">
+              <div className="terminal-header">MISSION TERMINAL — Press Esc to close</div>
+              <div className="terminal-body">
+                {termLines.map((l, i) => (<div key={i} className="terminal-line">{l}</div>))}
+              </div>
+              <div className="terminal-input">
+                <span className="terminal-prompt">{promptUser()}</span>
+                <input
+                  className="terminal-field"
+                  autoFocus
+                  value={termInput}
+                  onChange={e => setTermInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      const val = termInput;
+                      setTermLines(prev => [...prev, `${promptUser()} ${val}`]);
+                      setTermInput('');
+                      runTermCommand(val);
+                    } else if (e.key === 'Escape') {
+                      setTermOpen(false);
+                    }
+                  }}
+                  placeholder={awaitPass ? 'Password' : 'type help'}
+                />
+              </div>
+              <div className="terminal-hint mt-2">Hints: try 'login', 'eggs', 'trigger ufo', 'scan'.</div>
+            </div>
+          </div>
+        )}
         {helpOpen && (
           <div className="fixed inset-0 bg-black/70 flex items-center justify-center" style={{ zIndex: 70 }} role="dialog" aria-modal="true" aria-label="Hidden Controls">
             <div className="mission-panel p-6 md:p-8 max-w-lg w-[90%]">
@@ -348,6 +559,8 @@ export default function ExecutiveBrief() {
                 <div><span className="text-green-400">V</span>: CRT scanlines</div>
                 <div><span className="text-green-400">B</span>: UFO beam spotlight</div>
                 <div><span className="text-green-400">?</span>: Toggle this help</div>
+                <div><span className="text-green-400">`</span> or <span className="text-green-400">Ctrl+Alt+T</span>: Secret terminal</div>
+                <div className="pt-2 text-gray-400">Map: idle for random events (UFO blips, satellite streaks, anomaly pings, aurora).</div>
               </div>
               <div className="text-[11px] font-mono text-gray-400 mt-3">See docs/EASTER_EGGS.md for details.</div>
               <div className="mt-4 flex justify-end">

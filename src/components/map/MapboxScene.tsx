@@ -8,6 +8,8 @@ import { resumeDataService } from '../../services/resumeDataService';
 import sitesData from '../../data/sites.json';
 import FlightPathAnimations from './FlightPathAnimations';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { registerMapEasterEggs, getGeofences, goToGeofence } from '../../utils/easterEggs/mapEasterEggs';
+import { createDefaultFS, resolvePath as fsResolve, isDir as fsIsDir, listDir as fsList, readFile as fsRead } from '../../utils/fauxFS';
 
 // Set Mapbox access token from environment variables or fallback to demo token
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -21,7 +23,8 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const stylesRef = useRef<HTMLStyleElement[]>([]);
-  const { selectSite, selectedSite, addTelemetry } = useMissionControl();
+  const eggsRef = useRef<{ dispose: () => void } | null>(null);
+  const { selectSite, selectedSite, addTelemetry, unlockEasterEgg, triggerAlert } = useMissionControl() as any;
   
   // Legacy sites data (keeping for backward compatibility)
   const [sites, setSites] = useState<SiteData[]>(propSites || sitesData as SiteData[]);
@@ -35,6 +38,16 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   const [currentCoords, setCurrentCoords] = useState({ lat: 42.3601, lng: -71.0589 }); // Boston
   const [containerDimensions, setContainerDimensions] = useState({ width: 800, height: 600 });
   const [cursorPoint, setCursorPoint] = useState<{ x: number; y: number } | null>(null);
+  const [secretOpen, setSecretOpen] = useState(false);
+  const [secretLines, setSecretLines] = useState<string[]>(["MAP-TERM v0.1 — type 'help'", ""]);
+  const [secretInput, setSecretInput] = useState('');
+  const [awaitPass, setAwaitPass] = useState(false);
+  const [admin, setAdmin] = useState(false);
+  const [wrongPass, setWrongPass] = useState(0);
+  const [alertMode, setAlertMode] = useState(false);
+  const [puzzleStage, setPuzzleStage] = useState(0);
+  const fsRoot = useState(createDefaultFS())[0];
+  const [cwd, setCwd] = useState<string>('/');
 
   // Memoize telemetry function to prevent infinite loops
   const addMapTelemetry = useCallback((log: any) => {
@@ -104,6 +117,126 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     return () => el.removeEventListener('mouseleave', handleLeave);
   }, []);
 
+  // Secret terminal hotkeys (map context)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === '`' || (e.ctrlKey && e.altKey && e.key.toLowerCase() === 't')) {
+        e.preventDefault(); setSecretOpen(v => !v);
+      }
+      if (e.key === 'Escape' && secretOpen) setSecretOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [secretOpen]);
+
+  const promptUser = () => (admin ? 'root@map' : 'guest@map') + ':' + cwd + '$';
+  const addLine = (s: string = '') => setSecretLines(prev => [...prev, s]);
+  const saveAch = (k: string) => {
+    try { const key = 'mcAchievements'; const curr = JSON.parse(localStorage.getItem(key) || '{}'); curr[k] = { unlockedAt: Date.now() }; localStorage.setItem(key, JSON.stringify(curr)); } catch {}
+  };
+  const listRegions = () => getGeofences().map(g => g.key).join(', ');
+  const listCompanies = () => (careerData?.markers || [])
+    .map(m => m.name)
+    .filter((v, i, a) => !!v && a.indexOf(v) === i)
+    .join(', ');
+  const goToHQ = (name: string) => {
+    if (!map.current) return false;
+    const target = (careerData?.markers || []).find(m => (m.name || '').toLowerCase().includes(name.toLowerCase()))
+    if (!target) return false;
+    const d = 0.3;
+    const bounds: [[number, number],[number, number]] = [[target.location.lng - d, target.location.lat - d],[target.location.lng + d, target.location.lat + d]];
+    try {
+      (map.current as any).fitBounds(bounds as any, { padding: { top: 50, bottom: 50, left: 50, right: 50 }, maxZoom: 10, duration: 1200, essential: true });
+    } catch {
+      map.current.flyTo({ center: [target.location.lng, target.location.lat], zoom: 10, duration: 1200, essential: true });
+    }
+    return true;
+  };
+  const runCmd = (raw: string) => {
+    const input = raw.trim();
+    if (puzzleStage === 1) { if (input.toLowerCase().includes('watch') && input.toLowerCase().includes('skies')) { addLine('Probe complete. Anomalies acknowledged.'); setPuzzleStage(0); try { unlockEasterEgg('hidden_commands'); } catch {} } else { addLine('Hint: a classic UFO trope.'); } return; }
+    if (awaitPass) {
+      if (input.toLowerCase() === 'legion') { addLine('ACCESS GRANTED.'); setAdmin(true); setAwaitPass(false); setWrongPass(0); saveAch('map_admin'); try { unlockEasterEgg('hidden_commands'); } catch {} }
+      else { addLine('ACCESS DENIED.'); const n = wrongPass + 1; setWrongPass(n); setAwaitPass(false); if (n >= 3) { setAlertMode(true); try { triggerAlert(6000); } catch {}; setTimeout(() => setAlertMode(false), 4000); setWrongPass(0); } }
+      return;
+    }
+    if (!input) { addLine(); return; }
+    const [cmd, ...args] = input.split(/\s+/);
+    switch (cmd.toLowerCase()) {
+      case 'help':
+        addLine('Commands: help, clear, login, regions, companies, goto <key>, goto hq <company>, hq <company>, zoom <n>, center <lng> <lat>, scan, close');
+        addLine('Linux-ish: pwd, ls, whoami, uname -a, date, echo <txt>, cat <file>, man <cmd>, sudo su');
+        break;
+      case 'clear':
+      case 'cls':
+        setSecretLines(["MAP-TERM v0.1 — type 'help'", ""]);
+        break;
+      case 'close': setSecretOpen(false); break;
+      case 'login': setAwaitPass(true); addLine('Password:'); break;
+      case 'regions': addLine(listRegions()); break;
+      case 'companies': addLine(listCompanies() || '(none)'); break;
+      case 'probe': addLine('PROBE: Complete the phrase to calibrate sensors. "_____ the _____"'); setPuzzleStage(1); break;
+      case 'goto': {
+        if (!args[0]) { addLine('Usage: goto <region-key> | goto hq <company>'); break; }
+        if (args[0].toLowerCase() === 'hq') {
+          const q = args.slice(1).join(' ');
+          if (!q) { addLine('Usage: goto hq <company>'); break; }
+          const ok = goToHQ(q);
+          addLine(ok ? `Navigating to ${q} HQ…` : `Unknown company: ${q}`);
+          if (ok) { saveAch(`visit_hq_${q.toLowerCase()}`); setSecretOpen(false); }
+        } else {
+          const key = (args[0] || '').toLowerCase();
+          const ok = !!(map.current && goToGeofence(map.current, key, 10));
+          addLine(ok ? `Navigating to ${key}…` : `Unknown region: ${key}`);
+          if (ok) { saveAch(`visit_${key}`); try { unlockEasterEgg('cartographer_hint'); } catch {}; setSecretOpen(false); }
+        }
+        break; }
+      case 'hq': {
+        const q = args.join(' ');
+        if (!q) { addLine('Usage: hq <company>'); break; }
+        const ok = goToHQ(q);
+        addLine(ok ? `Navigating to ${q} HQ…` : `Unknown company: ${q}`);
+        if (ok) { saveAch(`visit_hq_${q.toLowerCase()}`); setSecretOpen(false); }
+        break; }
+      case 'zoom': {
+        const n = parseFloat(args[0]); if (!map.current || isNaN(n)) { addLine('Usage: zoom <number>'); break; }
+        map.current.zoomTo(n, { duration: 500 }); addLine(`Zoom ${n}`); break; }
+      case 'center': {
+        const lng = parseFloat(args[0]); const lat = parseFloat(args[1]); if (!map.current || isNaN(lng) || isNaN(lat)) { addLine('Usage: center <lng> <lat>'); break; }
+        map.current.flyTo({ center: [lng, lat], essential: true, duration: 800 }); addLine(`Center ${lng}, ${lat}`); break; }
+      case 'scan': {
+        // Perform a quick satellite streak and ping
+        try { addMapTelemetry({ source: 'MAP-TERM', message: 'Scan initiated', level: 'info' }); } catch {}
+        // Random move and back
+        if (map.current) { const c = map.current.getCenter(); map.current.easeTo({ bearing: map.current.getBearing() + 20, duration: 600 }); setTimeout(() => map.current?.easeTo({ center: c, duration: 600 }), 700); }
+        addLine('Scanning…'); saveAch('map_scan'); try { unlockEasterEgg('map_scan'); } catch {}
+        break; }
+      default:
+        if (cmd === 'pwd') { addLine(cwd); break; }
+        if (cmd === 'cd') { const target = (args[0] || '/'); const next = fsResolve(cwd, target); if (fsIsDir(fsRoot, next)) setCwd(next); else addLine(`cd: no such file or directory: ${target}`); break; }
+        if (cmd === 'ls') { const target = fsResolve(cwd, args[0] || '.'); const list = fsList(fsRoot, target); if (list) addLine(list.join('  ')); else addLine(`ls: cannot access '${args[0] || '.'}': Not a directory`); break; }
+        if (cmd === 'whoami') { addLine(admin ? 'root' : 'guest'); break; }
+        if (cmd === 'uname') { addLine(args[0] === '-a' ? 'Linux mc 6.2.0-mc #1 SMP x86_64 GNU/Linux' : 'Linux'); break; }
+        if (cmd === 'date') { addLine(new Date().toString()); break; }
+        if (cmd === 'echo') { addLine(args.join(' ')); break; }
+        if (cmd === 'cat') {
+          const fileArg = args[0]; if (!fileArg) { addLine('cat: missing file operand'); break; }
+          let path = fsResolve(cwd, fileArg);
+          if (!fsRead(fsRoot, path) && !fileArg.includes('/')) path = fsResolve('/docs', fileArg);
+          if (path.endsWith('/secrets') && !admin) { addLine('cat: secrets: Permission denied'); break; }
+          // Specials
+          if (path.endsWith('/docs/regions.txt')) { addLine(getGeofences().map(g => g.key).join('\n')); break; }
+          if (path.endsWith('/docs/companies.txt')) { addLine(listCompanies() || '(none)'); break; }
+          const content = fsRead(fsRoot, path);
+          addLine(content != null ? content : `cat: ${fileArg}: No such file`);
+          break;
+        }
+        if (cmd === 'man') { addLine('No manual entry. This is not a real shell.'); break; }
+        if (cmd === 'sudo') { if ((args[0] || '').toLowerCase() === 'su') { setAlertMode(true); try { triggerAlert(6000); } catch {}; setTimeout(() => setAlertMode(false), 4000); addLine('sudo: Authentication failure'); } else { addLine('sudo: permission denied'); } break; }
+        addLine(`Unknown: ${cmd}`);
+    }
+  };
+
   // Initialize map once with comprehensive error handling
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -157,6 +290,29 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
             }
             
             setMapLoaded(true);
+            // Register map easter eggs (random idle triggers)
+            try {
+              eggsRef.current = registerMapEasterEggs(map.current, { container: mapContainer.current!, enableRandom: true });
+            } catch (eggErr) {
+              console.warn('[MapboxScene] Map easter eggs registration failed:', eggErr);
+            }
+
+            // Handle HQ query param navigation
+            try {
+              const search = new URLSearchParams(window.location.search);
+              const hq = search.get('hq');
+              if (hq) {
+                // Wait a tick for careerData to load if needed
+                setTimeout(() => {
+                  const ok = goToHQ(hq);
+                  if (ok) {
+                    search.delete('hq');
+                    const newUrl = window.location.pathname + (search.toString() ? ('?'+search.toString()) : '') + window.location.hash;
+                    window.history.replaceState({}, '', newUrl);
+                  }
+                }, 600);
+              }
+            } catch {}
             
             // Add custom dark overlay for tactical feel
             map.current.addSource('tactical-overlay', {
@@ -295,6 +451,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     return () => {
       try {
         console.log('[MapboxScene] Starting map cleanup...');
+        try { eggsRef.current?.dispose(); } catch {}
         
         // Clean up markers first
         markersRef.current.forEach(marker => {
@@ -672,6 +829,34 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       {/* Tactical HUD overlay */}
       {mapLoaded && (
         <>
+          {/* Secret Map Terminal */}
+          {secretOpen && (
+            <div className="terminal-overlay" role="dialog" aria-modal="true" aria-label="Map Terminal">
+              <div className="terminal-window">
+                <div className="terminal-header">MAP TERMINAL — ` to close</div>
+                <div className="terminal-body">
+                  {secretLines.map((l, i) => (<div key={i} className="terminal-line">{l}</div>))}
+                </div>
+                <div className="terminal-input">
+              <span className="terminal-prompt">{promptUser()}</span>
+              <input
+                className="terminal-field"
+                autoFocus
+                value={secretInput}
+                onChange={e => setSecretInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    const val = secretInput; setSecretLines(prev => [...prev, `${promptUser()} ${val}`]); setSecretInput(''); runCmd(val);
+                  } else if (e.key === 'Escape') { setSecretOpen(false); }
+                }}
+                placeholder={awaitPass ? 'Password' : 'type help'}
+              />
+                </div>
+                <div className="terminal-hint mt-2">Try: regions, goto area51, zoom 5, center -115.8 37.24, scan, login.</div>
+              </div>
+            </div>
+          )}
+          {alertMode && (<><div className="alert-overlay" /><div className="alert-banner">ALERT MODE — Unauthorized access detected</div></>)}
           {/* Map controls */}
           {/* Career Data Display */}
           <div className="absolute bottom-4 left-4">

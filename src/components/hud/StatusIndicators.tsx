@@ -12,7 +12,7 @@ interface StatusIndicatorsProps {
 export default function StatusIndicators({ soundEnabled, toggleSound, onContactClick, userLabel }: StatusIndicatorsProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const { setUserName, setBootCompleted, addTelemetry } = useMissionControl();
+  const { setUserName, setBootCompleted, addTelemetry, alertActive } = useMissionControl() as any;
   const [showSignOutToast, setShowSignOutToast] = useState(false);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function StatusIndicators({ soundEnabled, toggleSound, onContactC
   }, []);
 
   return (
-    <div className="tactical-panel relative px-4 md:px-8 py-3 md:py-4" style={{ overflow: 'visible' }}>
+    <div className={`tactical-panel relative px-4 md:px-8 py-3 md:py-4 ${alertActive ? 'panel-alert' : ''}`} style={{ overflow: 'visible' }}>
       {/* Animated scan line */}
       <div className="animate-scan-line absolute top-0 left-0 right-0 h-full opacity-30" />
       
@@ -35,11 +35,11 @@ export default function StatusIndicators({ soundEnabled, toggleSound, onContactC
           {/* STATUS indicator */}
           <div className="flex items-center" style={{gap: '0.75rem'}}>
             <span className="holo-text text-sm font-bold tracking-wider">STATUS:</span>
-            <div className="status-dot active" />
+            <div className={`status-dot ${alertActive ? 'error' : 'active'}`} />
           </div>
 
           {/* Separator */}
-          <div className="w-px h-6 bg-green-500/30" />
+          <div className={`w-px h-6 ${alertActive ? 'bg-red-500/40' : 'bg-green-500/30'}`} />
 
           {/* LINK indicator */}
           <div className="flex items-center" style={{gap: '0.75rem'}}>
@@ -127,7 +127,7 @@ export default function StatusIndicators({ soundEnabled, toggleSound, onContactC
       )}
 
       {/* Bottom border glow */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-60" />
+      <div className={`absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent ${alertActive ? 'via-red-500' : 'via-green-500'} to-transparent opacity-60`} />
     </div>
   );
 }

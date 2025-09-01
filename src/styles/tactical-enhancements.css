@@ -182,6 +182,51 @@
   animation: statusPulse 0.5s ease-in-out infinite;
 }
 
+/* Panel alert modifier */
+.tactical-panel.panel-alert {
+  border-color: rgba(255,77,109,0.6) !important;
+  box-shadow: 0 0 20px rgba(255,77,109,0.25);
+  background: linear-gradient(180deg, rgba(60,0,10,0.45), rgba(0,0,0,0)) !important;
+}
+body.alert-mode .tactical-panel {
+  border-color: rgba(255,77,109,0.4);
+}
+
+/* Global alert ribbon */
+.alert-ribbon {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 150;
+  pointer-events: none;
+}
+.alert-ribbon .bar {
+  background: linear-gradient(90deg, rgba(120,0,20,0.95), rgba(80,0,10,0.9));
+  border-bottom: 1px solid rgba(255,77,109,0.6);
+  box-shadow: 0 2px 16px rgba(255,77,109,0.25);
+  color: #ffccd5;
+  text-align: center;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  padding: 6px 0;
+}
+.alert-ribbon .scanner {
+  position: absolute;
+  top: 0;
+  left: -20%;
+  height: 100%;
+  width: 20%;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,77,109,0.25), rgba(255,255,255,0));
+  filter: blur(0.5px);
+  animation: alert-scan 1.8s linear infinite;
+}
+@keyframes alert-scan {
+  0% { left: -20%; }
+  100% { left: 120%; }
+}
+
 @keyframes statusPulse {
   0%, 100% { 
     transform: scale(1); 
@@ -832,4 +877,60 @@
   height: 42vh;
   background: radial-gradient(ellipse at top, rgba(72,255,192,0.45), rgba(72,255,192,0.06) 60%, rgba(72,255,192,0.0) 70%);
   filter: blur(0.6px) drop-shadow(0 0 8px rgba(72,255,192,0.2));
+}
+
+/* Secret terminal overlay */
+.terminal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.9);
+  color: #45ffb0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  pointer-events: auto;
+}
+.terminal-window {
+  max-width: 900px;
+  margin: 8vh auto;
+  border: 1px solid rgba(69,255,176,0.35);
+  border-radius: 6px;
+  padding: 16px;
+  background: rgba(0, 8, 4, 0.85);
+  box-shadow: 0 0 24px rgba(69,255,176,0.2);
+}
+.terminal-header { color: #a0ffd9; font-size: 12px; margin-bottom: 8px; opacity: 0.8; }
+.terminal-body { max-height: 55vh; overflow: auto; font-size: 12px; line-height: 1.35; }
+.terminal-line { white-space: pre-wrap; }
+.terminal-input { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.terminal-prompt { color: #a0ffd9; }
+.terminal-field { flex: 1; background: transparent; border: none; outline: none; color: #45ffb0; font: inherit; }
+.terminal-hint { color: #7affc9; opacity: 0.8; font-size: 11px; }
+
+/* Alert mode overlay */
+.alert-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  background: rgba(255, 40, 40, 0.08);
+  pointer-events: none;
+}
+.alert-banner {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 86;
+  color: #ff4d6d;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  border: 1px solid rgba(255,77,109,0.6);
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: rgba(60, 0, 10, 0.9);
+  box-shadow: 0 0 16px rgba(255,77,109,0.3);
+  animation: alert-pulse 800ms ease-in-out infinite;
+}
+@keyframes alert-pulse {
+  0%, 100% { filter: none; }
+  50% { filter: drop-shadow(0 0 10px rgba(255,77,109,0.6)); }
 }

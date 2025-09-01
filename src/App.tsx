@@ -30,7 +30,7 @@ import './styles/tactical-enhancements.css';
 
 
 function MissionControlInterface() {
-  const { telemetryLogs, userRank, soundEnabled, toggleSound, selectedSite, currentDossier } = useMissionControl();
+  const { telemetryLogs, userRank, soundEnabled, toggleSound, selectedSite, currentDossier, alertActive } = useMissionControl() as any;
   const [showContactForm, setShowContactForm] = useState(false);
   const [earthControlActive, setEarthControlActive] = useState(false);
 
@@ -53,9 +53,26 @@ function MissionControlInterface() {
     }
   }, [earthControlActive]);
 
+  // Apply global alert body class
+  useEffect(() => {
+    try {
+      if (alertActive) document.body.classList.add('alert-mode');
+      else document.body.classList.remove('alert-mode');
+    } catch {}
+  }, [alertActive]);
+
 
   return (
     <div className="h-screen w-screen text-white overflow-hidden relative">
+      {/* Global Alert Ribbon */}
+      {alertActive && (
+        <div className="alert-ribbon" aria-live="assertive" aria-atomic="true">
+          <div className="bar">
+            <span>ALERT MODE — Unauthorized access attempt detected</span>
+            <div className="scanner" />
+          </div>
+        </div>
+      )}
       {/* Tactical Grid Background */}
       <BackgroundGridOverlay />
       
