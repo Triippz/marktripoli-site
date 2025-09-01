@@ -13,7 +13,6 @@ import MapboxScene from './components/map/MapboxScene';
 
 // Layout Components
 import HUDTopLeftStack from './components/layout/HUDTopLeftStack';
-import TopRightButtonControls from './components/layout/TopRightButtonControls';
 import MainStatusPanel from './components/layout/MainStatusPanel';
 import TerminalOverlay from './components/layout/TerminalOverlay';
 import AchievementOverlay from './components/layout/AchievementOverlay';
@@ -64,7 +63,7 @@ function MissionControlInterface() {
 
       <SkipNavigation />
 
-      {/* Status Indicators - Top Header */}
+      {/* Status Indicators - Top Header with actions on right */}
       <div
         style={{
           position: 'fixed',
@@ -75,15 +74,12 @@ function MissionControlInterface() {
           pointerEvents: 'auto'
         }}
       >
-        <StatusIndicators />
+        <StatusIndicators 
+          soundEnabled={soundEnabled}
+          toggleSound={toggleSound}
+          onContactClick={() => setShowContactForm(true)}
+        />
       </div>
-
-      {/* Top Right Button Controls */}
-      <TopRightButtonControls
-        soundEnabled={soundEnabled}
-        toggleSound={toggleSound}
-        onContactClick={() => setShowContactForm(true)}
-      />
 
       {/* Contact Form */}
       <ContactFormOverlay 
