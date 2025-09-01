@@ -7,8 +7,7 @@
     "location": {
       "city": "Lancaster",
       "region": "PA",
-      "countryCode": "US",
-
+      "countryCode": "US"
     },
     "summary": "Engineering Lead and Manager with 9+ years scaling teams and delivering secure, distributed platforms—from early-stage startups to large tech firms. Architected and led development of IL5/IL6 compliant systems and developer platforms, achieving >50% build-time reductions, FedRAMP readiness, and high-user SLA compliance.",
     "profiles": [
@@ -49,8 +48,8 @@
         "region": "CA",
         "countryCode": "US",
         "geo": {
-          "lat": 33.9164,
-          "lon": -118.4041
+          "lat": 33.9258,
+          "lon": -118.3932
         }
       }
     },
@@ -74,8 +73,8 @@
         "region": "MA",
         "countryCode": "US",
         "geo": {
-          "lat": 42.3736,
-          "lon": -71.1097
+          "lat": 42.3701,
+          "lon": -71.0764
         }
       }
     },
@@ -110,7 +109,14 @@
       "highlights": [
         "Co-founded platform for veterans and active military to discuss taboo topics safely.",
         "Developed cross-platform mobile app (React Native, Expo) and backend (NestJS) deployed to AWS and app stores."
-      ]
+      ],
+      "x_logo": "/logos/ghillied-up.png",
+      "x_location": {
+        "city": "Lancaster",
+        "region": "PA",
+        "countryCode": "US",
+        "geo": { "lat": 40.0403, "lon": -76.3042 }
+      }
     },
     {
       "name": "Comcast",
@@ -129,8 +135,8 @@
         "region": "PA",
         "countryCode": "US",
         "geo": {
-          "lat": 39.9526,
-          "lon": -75.1652
+          "lat": 39.9547,
+          "lon": -75.1683
         }
       }
     },
@@ -148,8 +154,8 @@
         "region": "PA",
         "countryCode": "US",
         "geo": {
-          "lat": 39.9526,
-          "lon": -75.1652
+          "lat": 39.9560,
+          "lon": -75.1819
         }
       }
     },

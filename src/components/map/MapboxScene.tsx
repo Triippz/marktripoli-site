@@ -117,7 +117,8 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
         // Initialize map with global view for smooth transition from boot
         mapInstance = new mapboxgl.Map({
           container: mapContainer.current!,
-          style: import.meta.env.VITE_MAPBOX_STYLE || 'mapbox://styles/mapbox/satellite-v9',
+          // Use dark style for higher contrast (labels included)
+          style: import.meta.env.VITE_MAPBOX_STYLE || 'mapbox://styles/mapbox/dark-v11',
           center: [0, 20], // Start with global view like boot sequence
           zoom: 1, // Start zoomed out for dramatic flyTo effect
           pitch: 0,
@@ -176,15 +177,20 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
               }
             });
 
+            // Insert tactical overlay below label (symbol) layers so city names stay visible
+            const style = map.current.getStyle();
+            const firstSymbolLayer = style?.layers?.find(l => l.type === 'symbol');
+            const beforeId = firstSymbolLayer?.id;
+
             map.current.addLayer({
               id: 'tactical-overlay',
               type: 'fill',
               source: 'tactical-overlay',
               paint: {
                 'fill-color': '#000000',
-                'fill-opacity': 0.7
+                'fill-opacity': 0.3
               }
-            });
+            }, beforeId);
 
             // Add tactical grid
             map.current.addSource('tactical-grid', {
@@ -217,7 +223,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
               map.current.flyTo({
                 center: [-98.5795, 39.8283], // USA center
                 zoom: 4,
-                pitch: 45,
+                pitch: 0, // Overhead view
                 bearing: 0,
                 duration: 4500, // Match boot sequence timing
                 essential: true,
@@ -371,16 +377,15 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     
     const categoryStyle = resumeDataService.getCategoryStyle(marker.type);
     
-    // Enhanced marker with logo support (centered by Mapbox anchor, no transform overrides)
+    // Simplified marker (no animation) to avoid transform side-effects
     markerElement.innerHTML = `
       <div class="marker-container">
         ${marker.logo ? 
           `<div class="marker-logo">
              <img src="${marker.logo}" alt="${marker.name}" />
            </div>` : 
-          `<div class="marker-fallback">${categoryStyle.icon}</div>`
+          `<div class="marker-fallback"></div>`
         }
-        <div class="marker-pulse"></div>
       </div>
     `;
     
@@ -424,42 +429,12 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       }
       
       .career-marker .marker-fallback {
-        width: 24px;
-        height: 24px;
+        width: 14px;
+        height: 14px;
         border-radius: 50%;
         background: ${categoryStyle.color};
         border: 2px solid ${categoryStyle.color};
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        z-index: 2;
-        position: relative;
-      }
-      
-      .career-marker .marker-pulse {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: ${categoryStyle.glowColor};
-        animation: marker-pulse 2s infinite;
-        z-index: 1;
-        /* Use consistent transform for pulse animation */
-        transform: translate(-50%, -50%);
-      }
-      
-      @keyframes marker-pulse {
-        0%, 100% { 
-          transform: translate(-50%, -50%) scale(0.8); 
-          opacity: 0.8;
-        }
-        50% { 
-          transform: translate(-50%, -50%) scale(1.2); 
-          opacity: 0.3;
-        }
+        box-shadow: 0 0 8px ${categoryStyle.glowColor};
       }
     `;
     document.head.appendChild(style);
@@ -518,7 +493,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
         map.current?.flyTo({
           center: [careerMarker.location.lng, careerMarker.location.lat],
           zoom: 8,
-          pitch: 60,
+          pitch: 10, // More overhead when engaging
           bearing: 0,
           duration: 2000
         });
@@ -663,7 +638,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     map.current.flyTo({
       center: [-71.0589, 42.3601],
       zoom: 4,
-      pitch: 45,
+      pitch: 0, // Overhead on reset
       bearing: 0,
       duration: 2000
     });
