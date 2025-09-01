@@ -44,6 +44,11 @@ export const useMissionControlV2 = create<MissionControlStore>()(
   )
 );
 
+// Make store globally accessible for error boundaries and other utilities
+if (typeof window !== 'undefined') {
+  (window as any).useMissionControlV2 = useMissionControlV2;
+}
+
 // Individual slice hooks for better performance
 export const useMapStore = () => useMissionControlV2(state => ({
   selectedSite: state.selectedSite,

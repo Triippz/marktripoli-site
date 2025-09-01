@@ -10,6 +10,8 @@ import { missionAudio } from './utils/audioSystem';
 import { SkipNavigation } from './components/SkipNavigation';
 import BootSequence from './components/boot/BootSequence';
 import MapboxScene from './components/map/MapboxScene';
+import { EnhancedErrorBoundary } from './components/ErrorBoundary/EnhancedErrorBoundary';
+import NotFoundPage from './components/NotFound/NotFoundPage';
 
 // Layout Components
 import MainStatusPanel from './components/layout/MainStatusPanel';
@@ -28,7 +30,7 @@ import './styles/tactical-enhancements.css';
 
 
 function MissionControlInterface() {
-  const { telemetryLogs, userRank, soundEnabled, toggleSound } = useMissionControl();
+  const { telemetryLogs, userRank, soundEnabled, toggleSound, selectedSite, currentDossier } = useMissionControl();
   const [showContactForm, setShowContactForm] = useState(false);
   const [earthControlActive, setEarthControlActive] = useState(false);
 
@@ -53,12 +55,22 @@ function MissionControlInterface() {
 
 
   return (
-    <div className="h-screen w-screen text-white overflow-hidden relative">
+    <div className="min-h-screen w-screen text-white overflow-auto relative">
       {/* Tactical Grid Background */}
       <BackgroundGridOverlay />
       
       {/* Interactive Map */}
-      <MapboxScene />
+      <EnhancedErrorBoundary
+        enableTelemetry={true}
+        context="MAPBOX_SCENE"
+        maxRetries={2}
+        retryDelay={3000}
+        onError={(error, errorInfo) => {
+          console.error('[App] MapboxScene error boundary triggered:', error);
+        }}
+      >
+        <MapboxScene />
+      </EnhancedErrorBoundary>
 
       <SkipNavigation />
 
@@ -133,11 +145,17 @@ function GlobalKeyboardHandler() {
 }
 
 function App() {
-  const { addTelemetry, soundEnabled } = useMissionControl();
+  const { addTelemetry, soundEnabled, bootCompleted, setBootCompleted } = useMissionControl() as any;
 
-  // Use local state for boot status to avoid cross-store dependencies
-  const [bootCompleted, setBootCompleted] = useState(false);
-  const [booting, setBooting] = useState(!bootCompleted);
+  // Ensure remembered users skip boot sequence
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const remembered = localStorage.getItem('mc-remember') === 'true';
+    const user = localStorage.getItem('mc-user');
+    if (remembered && user) {
+      setBootCompleted(true);
+    }
+  }, [setBootCompleted]);
 
   useEffect(() => {
     // Initialize audio system
@@ -161,11 +179,9 @@ function App() {
   }, [addTelemetry, soundEnabled]);
 
 
-  if (booting) {
+  if (!bootCompleted) {
     return <BootSequence onComplete={() => {
-      setBooting(false);
       setBootCompleted(true);
-      localStorage.setItem('mc-boot-completed', 'true');
     }} />;
   }
 
@@ -173,14 +189,25 @@ function App() {
     <div>
       <Router>
         <GlobalKeyboardHandler />
-        <Routes>
-          <Route path="/" element={<MissionControlInterface />} />
-          <Route path="/briefing" element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <div>Executive Briefing Placeholder</div>
-            </Suspense>
-          } />
-        </Routes>
+        <EnhancedErrorBoundary
+          enableTelemetry={true}
+          context="MISSION_CONTROL_APP"
+          maxRetries={3}
+          retryDelay={2000}
+          onError={(error, errorInfo) => {
+            console.error('[App] Mission Control error boundary triggered:', error);
+          }}
+        >
+          <Routes>
+            <Route path="/" element={<MissionControlInterface />} />
+            <Route path="/briefing" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <div>Executive Briefing Placeholder</div>
+              </Suspense>
+            } />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </EnhancedErrorBoundary>
       </Router>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useMissionControl } from '../../store/missionControl';
 import { motion } from 'framer-motion';
 import MapboxGlobe from '../MapboxGlobe';
 
@@ -19,6 +20,23 @@ const bootMessages = [
 export default function BootSequence({ onComplete }: BootSequenceProps) {
   const [currentMessage, setCurrentMessage] = useState(0);
   const [displayText, setDisplayText] = useState('');
+  const [authComplete, setAuthComplete] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [remember, setRemember] = useState<boolean>(() => localStorage.getItem('mc-remember') === 'true');
+  const { setUserName, addTelemetry } = useMissionControl();
+  
+  useEffect(() => {
+    const stored = localStorage.getItem('mc-user');
+    if (stored) setUsername(stored);
+    // Auto-skip auth if user opted to be remembered
+    if (stored && localStorage.getItem('mc-remember') === 'true') {
+      setUserName(stored);
+      addTelemetry({ source: 'AUTH', message: `Operator auto-authenticated: ${stored}` , level: 'success' });
+      setAuthComplete(true);
+    }
+  }, []);
 
   // Compute continuous progress based on typed characters across all messages
   const totalChars = useMemo(() => bootMessages.reduce((sum, m) => sum + m.length, 0), []);
@@ -34,6 +52,7 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
   }, [currentMessage, displayText.length, completedCharsBefore, totalChars]);
 
   useEffect(() => {
+    if (!authComplete) return;
     if (currentMessage >= bootMessages.length) {
       setTimeout(onComplete, 1000);
       return;
@@ -55,7 +74,46 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
     }, 50);
 
     return () => clearInterval(typeInterval);
-  }, [currentMessage, onComplete]);
+  }, [currentMessage, onComplete, authComplete]);
+
+  const handleAuth = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const u = username.trim();
+    if (!u) {
+      setAuthMessage('Enter a valid callsign');
+      return;
+    }
+
+    // Fun easter eggs (password is aesthetic only)
+    const uname = u.toLowerCase();
+    if (uname === 'admin') {
+      setAuthMessage('ACCESS DENIED: Root privileges restricted by Mission Control');
+      addTelemetry({ source: 'AUTH', message: 'Unauthorized root attempt detected', level: 'warning' });
+      return; // Prevent login for admin username
+    }
+    // Determine message and delay so users can read it
+    let proceedDelay = 400;
+    if (uname === 'guest') {
+      setAuthMessage('Welcome, Guest Operator. Limited-access mode engaged.');
+      proceedDelay = 2200;
+    } else if (uname === 'mark') {
+      setAuthMessage('Welcome back, Papi. We missed you.');
+      proceedDelay = 2200;
+    } else if (uname === 'neo') {
+      setAuthMessage('Welcome, Neo. Bending spoons protocol enabled.');
+      proceedDelay = 2200;
+    } else if (uname === 'deez') {
+        setAuthMessage('DEEZ NUTZ');
+        proceedDelay = 2200;
+    } else {
+      setAuthMessage(null);
+    }
+
+    setUserName(u);
+    try { localStorage.setItem('mc-remember', remember ? 'true' : 'false'); } catch {}
+    addTelemetry({ source: 'AUTH', message: `Operator authenticated: ${u}`, level: 'success' });
+    setTimeout(() => setAuthComplete(true), proceedDelay);
+  };
 
   return (
     <>
@@ -81,6 +139,60 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
+          {/* Authentication step */}
+          {!authComplete && (
+            <div className="max-w-md mx-auto mb-8">
+              <div className="text-center mb-8">
+                <div className="holo-text font-mono text-2xl mb-2">MISSION CONTROL ACCESS</div>
+                <div className="text-gray-400 font-mono text-xs">Identify yourself to proceed</div>
+              </div>
+              <form onSubmit={handleAuth} className="tactical-glass p-4 border border-green-500/20 rounded-md">
+                <label className="block text-green-400 font-mono text-xs mb-1">USERNAME</label>
+                <input 
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  className="w-full bg-black/40 border border-green-500/30 rounded px-3 py-2 font-mono text-sm text-green-100 focus:outline-none focus:border-green-400 mb-3"
+                  placeholder="Enter callsign"
+                  autoFocus
+                />
+                <label className="block text-green-400 font-mono text-xs mb-1">PASSWORD</label>
+                <input 
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full bg-black/40 border border-green-500/30 rounded px-3 py-2 font-mono text-sm text-green-100 focus:outline-none focus:border-green-400 mb-4"
+                  placeholder="Enter cipher"
+                />
+                <label className="flex items-center gap-2 text-green-300 font-mono text-xs mb-4 select-none cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(e) => setRemember(e.target.checked)}
+                    className="appearance-none w-4 h-4 border border-green-500/40 rounded-sm bg-black/40 checked:bg-green-500/70 checked:border-green-400 transition-colors"
+                    aria-label="Remember me"
+                  />
+                  Remember me
+                </label>
+                {authMessage && (
+                  <div className="text-yellow-400 font-mono text-xs mb-3">{authMessage}</div>
+                )}
+                <div className="flex gap-2 justify-end">
+                  <button 
+                    type="button"
+                    onClick={() => { setUsername('guest'); setPassword('guest'); }}
+                    className="tactical-button text-xs px-3 py-2"
+                  >
+                    Use Guest
+                  </button>
+                  <button type="submit" className="tactical-button text-xs px-3 py-2">Engage</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Boot content */}
+          {authComplete && (
+          <>
           <div className="text-center mb-16 px-4 md:px-6 pt-4 md:pt-6">
             <motion.div 
               className="holo-text font-mono text-2xl md:text-4xl mb-6"
@@ -134,6 +246,8 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
               </div>
             </div>
           </div>
+          </>
+          )}
         </motion.div>
       </motion.div>
     </>

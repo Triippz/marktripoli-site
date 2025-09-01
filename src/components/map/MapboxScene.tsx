@@ -371,16 +371,18 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     
     const categoryStyle = resumeDataService.getCategoryStyle(marker.type);
     
-    // Enhanced marker with logo support
+    // Enhanced marker with logo support and proper centering to prevent drift
     markerElement.innerHTML = `
-      <div class="marker-container">
-        ${marker.logo ? 
-          `<div class="marker-logo">
-             <img src="${marker.logo}" alt="${marker.name}" />
-           </div>` : 
-          `<div class="marker-fallback">${categoryStyle.icon}</div>`
-        }
-        <div class="marker-pulse"></div>
+      <div class="marker-centerer">
+        <div class="marker-container">
+          ${marker.logo ? 
+            `<div class="marker-logo">
+               <img src="${marker.logo}" alt="${marker.name}" />
+             </div>` : 
+            `<div class="marker-fallback">${categoryStyle.icon}</div>`
+          }
+          <div class="marker-pulse"></div>
+        </div>
       </div>
     `;
     
@@ -391,9 +393,23 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       position: relative;
     `;
 
-    // Add category-specific styling
+    // Add category-specific styling with anti-drift centering
     const style = document.createElement('style');
     style.textContent = `
+      .career-marker {
+        /* Prevent position drift by removing any transforms */
+        transform: none !important;
+      }
+      
+      .career-marker .marker-centerer {
+        /* Critical: This div handles the centering to prevent drift */
+        position: relative;
+        width: 32px;
+        height: 32px;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+      
       .career-marker .marker-container {
         position: relative;
         width: 32px;
@@ -401,6 +417,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
         display: flex;
         align-items: center;
         justify-content: center;
+        pointer-events: auto;
       }
       
       .career-marker .marker-logo {
@@ -441,13 +458,14 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
         position: absolute;
         top: 50%;
         left: 50%;
-        transform: translate(-50%, -50%);
         width: 32px;
         height: 32px;
         border-radius: 50%;
         background: ${categoryStyle.glowColor};
         animation: marker-pulse 2s infinite;
         z-index: 1;
+        /* Use consistent transform for pulse animation */
+        transform: translate(-50%, -50%);
       }
       
       @keyframes marker-pulse {
@@ -484,11 +502,20 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     careerData.markers.forEach((careerMarker) => {
       const markerElement = createCareerMarkerElement(careerMarker);
       
-      const coordinates = [careerMarker.location.lng, careerMarker.location.lat];
-      console.log(`[MapboxScene] Adding marker for ${careerMarker.name} at:`, coordinates);
+      const coordinates: [number, number] = [careerMarker.location.lng, careerMarker.location.lat];
+      console.log(`[MapboxScene] 📍 Adding ${careerMarker.type} marker:`, {
+        company: careerMarker.name,
+        position: careerMarker.position,
+        coordinates: coordinates,
+        location: `${careerMarker.location.city}, ${careerMarker.location.region}`,
+        codename: careerMarker.codename
+      });
       
-      // Create mapbox marker
-      const mapboxMarker = new mapboxgl.Marker(markerElement)
+      // Create mapbox marker with center anchor to prevent position drift
+      const mapboxMarker = new mapboxgl.Marker({
+        element: markerElement,
+        anchor: 'center' // Critical: centers marker on exact coordinates
+      })
         .setLngLat(coordinates)
         .addTo(map.current!);
       
@@ -625,7 +652,12 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
           bounds.extend([marker.location.lng, marker.location.lat]);
         });
         
-        console.log('[MapboxScene] Fitting map to career marker bounds:', bounds);
+        console.log('[MapboxScene] 🗺️ Fitting map bounds to show all career markers:', {
+          bounds: bounds,
+          markerCount: careerData.markers.length,
+          padding: { top: 50, bottom: 50, left: 50, right: 50 },
+          maxZoom: 6
+        });
         
         map.current.fitBounds(bounds, {
           padding: { top: 50, bottom: 50, left: 50, right: 50 },

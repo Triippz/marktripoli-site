@@ -61,6 +61,29 @@ class ResumeDataService {
     }
   }
 
+  // Validate coordinate bounds to prevent invalid marker positions
+  private validateCoordinates(lat: number, lon: number, locationName: string): boolean {
+    // Valid latitude range: -90 to 90
+    if (lat < -90 || lat > 90) {
+      console.error(`[ResumeDataService] Invalid latitude for ${locationName}: ${lat}. Must be between -90 and 90.`);
+      return false;
+    }
+    
+    // Valid longitude range: -180 to 180
+    if (lon < -180 || lon > 180) {
+      console.error(`[ResumeDataService] Invalid longitude for ${locationName}: ${lon}. Must be between -180 and 180.`);
+      return false;
+    }
+
+    // Check for obviously invalid coordinates (0, 0) which often indicates missing data
+    if (lat === 0 && lon === 0) {
+      console.warn(`[ResumeDataService] Suspicious coordinates (0, 0) for ${locationName}. This may indicate missing location data.`);
+    }
+
+    console.log(`[ResumeDataService] ✅ Valid coordinates for ${locationName}: lat=${lat}, lon=${lon}`);
+    return true;
+  }
+
   private generateMarkerId(name: string, type: string): string {
     return `${type}-${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
   }
@@ -86,16 +109,23 @@ class ResumeDataService {
       return null;
     }
 
+    // Validate coordinates before processing
+    const { lat, lon } = entry.x_location.geo;
+    if (!this.validateCoordinates(lat, lon, entry.name)) {
+      console.error(`[ResumeDataService] Skipping ${entry.name} - invalid coordinates`);
+      return null;
+    }
+
     const category = this.determineCareerCategory(entry);
     const currentDate = new Date();
     const isCurrent = !entry.endDate || new Date(entry.endDate) > currentDate;
 
     const coordinates = {
-      lat: entry.x_location.geo.lat,
-      lng: entry.x_location.geo.lon
+      lat: lat,
+      lng: lon
     };
 
-    console.log(`[ResumeDataService] ${entry.name} coordinates:`, coordinates);
+    console.log(`[ResumeDataService] ✅ ${entry.name} processed with coordinates:`, coordinates);
 
     return {
       id: this.generateMarkerId(entry.name, 'work'),
@@ -127,6 +157,13 @@ class ResumeDataService {
       return null;
     }
 
+    // Validate coordinates before processing
+    const { lat, lon } = entry.x_location.geo;
+    if (!this.validateCoordinates(lat, lon, entry.institution)) {
+      console.error(`[ResumeDataService] Skipping ${entry.institution} - invalid coordinates`);
+      return null;
+    }
+
     return {
       id: this.generateMarkerId(entry.institution, 'education'),
       type: 'education',
@@ -134,8 +171,8 @@ class ResumeDataService {
       name: entry.institution,
       position: `${entry.studyType} in ${entry.area}`,
       location: {
-        lat: entry.x_location.geo.lat,
-        lng: entry.x_location.geo.lon,
+        lat: lat,
+        lng: lon,
         city: entry.x_location.city,
         region: entry.x_location.region,
         countryCode: entry.x_location.countryCode

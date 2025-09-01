@@ -36,6 +36,7 @@ interface MissionControlState {
   toggleSound: () => void;
   toggleHUD: () => void;
   setBootCompleted: (completed: boolean) => void;
+  setUserName: (name: string) => void;
 }
 
 export const useMissionControl = create<MissionControlState>((set, get) => ({
@@ -54,7 +55,7 @@ export const useMissionControl = create<MissionControlState>((set, get) => ({
   telemetryLogs: [],
   visitedSites: JSON.parse(localStorage.getItem('mc-visited') || '[]'),
   unlockedEasterEggs: JSON.parse(localStorage.getItem('mc-easter-eggs') || '[]'),
-  userRank: { level: 1, title: 'Analyst', badge: '★', username: 'coffee_addict_3000' },
+  userRank: { level: 1, title: 'Analyst', badge: '★', username: localStorage.getItem('mc-user') || 'coffee_addict_3000' },
   soundEnabled: JSON.parse(localStorage.getItem('mc-sound') || 'false'),
   hudVisible: true,
   bootCompleted: JSON.parse(localStorage.getItem('mc-boot-completed') || 'false'),
@@ -148,5 +149,10 @@ export const useMissionControl = create<MissionControlState>((set, get) => ({
   setBootCompleted: (completed) => {
     localStorage.setItem('mc-boot-completed', JSON.stringify(completed));
     set({ bootCompleted: completed });
+  },
+  
+  setUserName: (name: string) => {
+    try { localStorage.setItem('mc-user', name); } catch {}
+    set((state) => ({ userRank: { ...state.userRank, username: name } }));
   },
 }));
