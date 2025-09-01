@@ -46,6 +46,15 @@ export default function ExecutiveBrief() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [repoMeta, setRepoMeta] = useState<Record<string, { stars: number; forks: number; fetchedAt: number }>>({});
+  const [showMatrix, setShowMatrix] = useState<boolean>(false);
+  const [ufos, setUfos] = useState<Array<{ id: string; top: number; dur: number; width: number; height: number }>>([]);
+  const [pawPrints, setPawPrints] = useState<Array<{ id: string; left: number; size: number; dur: number; delay: number }>>([]);
+  const [glitchTitle, setGlitchTitle] = useState<boolean>(false);
+  const [neonPulse, setNeonPulse] = useState<boolean>(false);
+  const [scanlines, setScanlines] = useState<boolean>(false);
+  const [mountains, setMountains] = useState<Array<{ id: string; left: number; size: number; dur: number; delay: number }>>([]);
+  const [beamOn, setBeamOn] = useState<boolean>(false);
+  const [helpOpen, setHelpOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const load = async () => {
@@ -64,6 +73,96 @@ export default function ExecutiveBrief() {
     };
     load();
   }, []);
+
+  // Console hint for discoverability
+  useEffect(() => {
+    try { console.log('%c[Hint]', 'color:#45ffb0', 'Press ? on /briefing for hidden controls.'); } catch {}
+  }, []);
+
+  // Easter egg listeners: Konami (Matrix), U (UFO fleet), D (paws), G (glitch), P (neon), H (hiking), V (scanlines), B (beam)
+  useEffect(() => {
+    const seq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+    let buffer: string[] = [];
+    const onKey = (e: KeyboardEvent) => {
+      const key = e.key;
+      // UFO fleet on 'u'
+      if (key.toLowerCase() === 'u') {
+        const count = 3 + Math.floor(Math.random() * 3); // 3-5
+        const newOnes = Array.from({ length: count }).map(() => {
+          const top = 40 + Math.floor(Math.random() * 220); // px from top
+          const dur = 6 + Math.random() * 5; // 6s - 11s
+          const width = 80 + Math.floor(Math.random() * 80);
+          const height = Math.round(width * 0.5);
+          return { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, top, dur, width, height };
+        });
+        newOnes.forEach(({ id, dur }) => setTimeout(() => setUfos(prev => prev.filter(u => u.id !== id)), Math.ceil(dur * 1000) + 300));
+        setUfos(prev => [...prev, ...newOnes]);
+      }
+      // Paw prints on 'd'
+      if (key.toLowerCase() === 'd') {
+        const count = 16 + Math.floor(Math.random() * 16);
+        const newPaws = Array.from({ length: count }).map(() => {
+          const left = Math.floor(Math.random() * 100); // vw
+          const size = 14 + Math.floor(Math.random() * 14); // px
+          const dur = 5 + Math.random() * 6; // 5-11s
+          const delay = Math.random() * 1.5; // 0-1.5s
+          return { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, left, size, dur, delay };
+        });
+        const maxDur = Math.max(...newPaws.map(p => p.dur + p.delay));
+        setTimeout(() => setPawPrints(prev => prev.filter(p => !newPaws.find(n => n.id === p.id))), Math.ceil(maxDur * 1000) + 300);
+        setPawPrints(prev => [...prev, ...newPaws]);
+      }
+      // Glitch title on 'g'
+      if (key.toLowerCase() === 'g') {
+        setGlitchTitle(true);
+        setTimeout(() => setGlitchTitle(false), 3000);
+      }
+      // Neon pulse on 'p'
+      if (key.toLowerCase() === 'p') {
+        setNeonPulse(true);
+        setTimeout(() => setNeonPulse(false), 2200);
+      }
+      // Hiking mode on 'h'
+      if (key.toLowerCase() === 'h') {
+        const count = 12 + Math.floor(Math.random() * 12);
+        const newMountains = Array.from({ length: count }).map(() => {
+          const left = Math.floor(Math.random() * 100);
+          const size = 18 + Math.floor(Math.random() * 20);
+          const dur = 7 + Math.random() * 6;
+          const delay = Math.random() * 1.5;
+          return { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, left, size, dur, delay };
+        });
+        const maxDur = Math.max(...newMountains.map(m => m.dur + m.delay));
+        setTimeout(() => setMountains(prev => prev.filter(m => !newMountains.find(n => n.id === m.id))), Math.ceil(maxDur * 1000) + 300);
+        setMountains(prev => [...prev, ...newMountains]);
+      }
+      // Video game scanlines on 'v'
+      if (key.toLowerCase() === 'v') {
+        setScanlines(v => !v);
+      }
+      // UFO beam on 'b'
+      if (key.toLowerCase() === 'b') {
+        setBeamOn(true);
+        setTimeout(() => setBeamOn(false), 3500);
+      }
+      // Secret help overlay on '?' (or Shift+/)
+      if (key === '?' || (key === '/' && e.shiftKey)) {
+        setHelpOpen(v => !v);
+      }
+      if (key === 'Escape' && helpOpen) {
+        setHelpOpen(false);
+      }
+      // Konami buffer
+      buffer.push(key);
+      if (buffer.length > seq.length) buffer.shift();
+      if (seq.every((k, i) => buffer[i]?.toLowerCase() === k.toLowerCase())) {
+        setShowMatrix(v => !v);
+        buffer = [];
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => { window.removeEventListener('keydown', onKey); };
+  }, [helpOpen]);
 
   const name = resume?.basics?.name || 'MARK TRIPOLI';
   const title = profile?.title || resume?.basics?.label || 'ENGINEERING MANAGER & TECHNICAL LEAD';
@@ -202,7 +301,61 @@ export default function ExecutiveBrief() {
   return (
     <div className="relative w-full h-screen overflow-y-auto text-white">
       {/* Screen-only Briefing UI */}
-      <div className="screen-only">
+      <div className={`screen-only ${neonPulse ? 'neon-pulse' : ''}`}>
+        {/* Easter egg overlays */}
+        {showMatrix && (<MatrixRainOverlay />)}
+        {scanlines && (<div className="scanlines-overlay" />)}
+        {beamOn && (
+          <div className="ufo-beam-container">
+            <svg viewBox="0 0 200 100" width="140" height="70" xmlns="http://www.w3.org/2000/svg">
+              <ellipse className="ufo-body" cx="100" cy="60" rx="80" ry="18" />
+              <ellipse className="ufo-dome" cx="100" cy="45" rx="30" ry="18" />
+              <ellipse className="ufo-light" cx="60" cy="60" rx="8" ry="5" />
+              <ellipse className="ufo-light" cx="100" cy="60" rx="8" ry="5" />
+              <ellipse className="ufo-light" cx="140" cy="60" rx="8" ry="5" />
+            </svg>
+            <div className="ufo-beam-light" />
+          </div>
+        )}
+        {ufos.map(u => (
+          <div key={u.id} className="ufo-flyby" style={{ ['--top' as any]: `${u.top}px`, ['--dur' as any]: `${u.dur}s`, width: `${u.width}px`, height: `${u.height}px` }}>
+            <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+              <ellipse className="ufo-body" cx="100" cy="60" rx="80" ry="18" />
+              <ellipse className="ufo-dome" cx="100" cy="45" rx="30" ry="18" />
+              <ellipse className="ufo-light" cx="60" cy="60" rx="8" ry="5" />
+              <ellipse className="ufo-light" cx="100" cy="60" rx="8" ry="5" />
+              <ellipse className="ufo-light" cx="140" cy="60" rx="8" ry="5" />
+            </svg>
+          </div>
+        ))}
+        {pawPrints.map(p => (
+          <div key={p.id} className="paw-print" style={{ left: `${p.left}vw`, ['--size' as any]: `${p.size}px`, ['--dur' as any]: `${p.dur}s`, ['--delay' as any]: `${p.delay}s` }}>🐾</div>
+        ))}
+        {mountains.map(m => (
+          <div key={m.id} className="mountain" style={{ left: `${m.left}vw`, ['--size' as any]: `${m.size}px`, ['--dur' as any]: `${m.dur}s`, ['--delay' as any]: `${m.delay}s` }}>🏔️</div>
+        ))}
+        {helpOpen && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center" style={{ zIndex: 70 }} role="dialog" aria-modal="true" aria-label="Hidden Controls">
+            <div className="mission-panel p-6 md:p-8 max-w-lg w-[90%]">
+              <div className="holo-text font-mono text-lg mb-3">Hidden Controls</div>
+              <div className="text-sm font-mono text-gray-300 space-y-1">
+                <div><span className="text-green-400">Konami</span>: Toggle Matrix rain</div>
+                <div><span className="text-green-400">U</span>: UFO fleet flyby</div>
+                <div><span className="text-green-400">D</span>: Paw print burst</div>
+                <div><span className="text-green-400">G</span>: Glitch header</div>
+                <div><span className="text-green-400">P</span>: Neon panel pulse</div>
+                <div><span className="text-green-400">H</span>: Hiking mode (mountains)</div>
+                <div><span className="text-green-400">V</span>: CRT scanlines</div>
+                <div><span className="text-green-400">B</span>: UFO beam spotlight</div>
+                <div><span className="text-green-400">?</span>: Toggle this help</div>
+              </div>
+              <div className="text-[11px] font-mono text-gray-400 mt-3">See docs/EASTER_EGGS.md for details.</div>
+              <div className="mt-4 flex justify-end">
+                <button className="tactical-button text-xs px-3 py-2" onClick={() => setHelpOpen(false)}>Close (Esc)</button>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="fixed top-4 left-4 z-50 flex gap-2">
           <button className="tactical-button text-xs px-3 py-2" onClick={() => navigate(-1)}>← Back</button>
         </div>
@@ -212,7 +365,8 @@ export default function ExecutiveBrief() {
           <div className="mission-panel p-6 md:p-8 mb-6">
             <div className="flex items-start justify-between">
               <div>
-                <div className="holo-text font-mono text-3xl md:text-4xl mb-1">{name}</div>
+                <div className={`holo-text font-mono text-3xl md:text-4xl mb-1 ${glitchTitle ? 'glitch' : ''}`}>{name}</div>
+                {/* HINT: Try pressing U, D, G, P, H, V, or B. Or a classic 10-key code. */}
                 <div className="text-green-500 font-mono text-sm md:text-base">{title}</div>
               </div>
               <div className="flex flex-col items-end gap-1">
@@ -540,6 +694,54 @@ function Timeline({ work }: { work: NonNullable<Resume['work']> }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function MatrixRainOverlay() {
+  const canvasRef = useState<HTMLCanvasElement | null>(null)[0] as any;
+  const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    if (!canvasEl) return;
+    const canvas = canvasEl;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    let raf: number;
+    const fontSize = 14;
+    const chars = 'アイウエオカキクケコｱｲｳｴｵｶｷｸｹｺ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const charset = chars.split('');
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = new Array(columns).fill(0).map(() => Math.floor(Math.random() * canvas.height / fontSize));
+    const draw = () => {
+      if (!ctx) return;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#45ffb0';
+      ctx.font = `${fontSize}px monospace`;
+      for (let i = 0; i < drops.length; i++) {
+        const text = charset[Math.floor(Math.random() * charset.length)];
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+        ctx.fillText(text, x, y);
+        if (y > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+  }, [canvasEl]);
+  return (
+    <div className="easter-egg-overlay">
+      <canvas ref={setCanvasEl} width={0} height={0} />
     </div>
   );
 }

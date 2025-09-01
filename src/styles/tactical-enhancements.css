@@ -707,3 +707,129 @@
   .print-only { display: block !important; }
   .screen-only { display: none !important; }
 }
+
+/* Easter egg overlays */
+.easter-egg-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+}
+
+/* UFO flyby */
+@keyframes ufo-flyby {
+  0% { transform: translate(-20%, 0) rotate(0.5deg); opacity: 0; }
+  5% { opacity: 1; }
+  50% { transform: translate(50vw, -10px) rotate(-0.5deg); }
+  100% { transform: translate(120vw, 0) rotate(0.5deg); opacity: 0; }
+}
+.ufo-flyby {
+  position: fixed;
+  top: var(--top, 80px);
+  left: -200px;
+  width: 120px;
+  height: 60px;
+  animation: ufo-flyby var(--dur, 8s) linear 1;
+  filter: drop-shadow(0 0 6px rgba(72, 255, 192, 0.6));
+  z-index: 65;
+  pointer-events: none;
+}
+.ufo-body { fill: rgba(72, 255, 192, 0.8); }
+.ufo-dome { fill: rgba(180, 255, 230, 0.9); }
+.ufo-light { fill: rgba(72, 255, 192, 0.5); }
+
+/* Paw print burst */
+@keyframes paw-fall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(110vh) rotate(20deg); opacity: 0; }
+}
+.paw-print {
+  position: fixed;
+  top: -40px;
+  left: 0;
+  font-size: var(--size, 20px);
+  transform: translateY(-10vh);
+  animation: paw-fall var(--dur, 6s) linear var(--delay, 0s) forwards;
+  z-index: 55;
+  pointer-events: none;
+}
+
+/* Glitch text effect */
+@keyframes glitch {
+  0% { text-shadow: 1px 0 rgba(69,255,176,0.5), -1px 0 rgba(0,255,255,0.4); transform: skew(0deg); }
+  20% { text-shadow: 2px 0 rgba(69,255,176,0.5), -2px 0 rgba(0,255,255,0.4); }
+  40% { text-shadow: -2px 0 rgba(69,255,176,0.5), 2px 0 rgba(0,255,255,0.4); transform: skew(0.5deg); }
+  60% { text-shadow: 3px 0 rgba(69,255,176,0.5), -3px 0 rgba(0,255,255,0.4); transform: skew(-0.5deg); }
+  80% { text-shadow: -1px 0 rgba(69,255,176,0.5), 1px 0 rgba(0,255,255,0.4); }
+  100% { text-shadow: 1px 0 rgba(69,255,176,0.5), -1px 0 rgba(0,255,255,0.4); transform: skew(0deg); }
+}
+.glitch { animation: glitch 0.9s steps(2,end) infinite; }
+
+/* Neon pulse frame */
+@keyframes neon-pulse {
+  0%, 100% { box-shadow: 0 0 0px rgba(69,255,176,0.0), 0 0 0px rgba(0,255,255,0.0); }
+  50% { box-shadow: 0 0 12px rgba(69,255,176,0.35), 0 0 24px rgba(0,255,255,0.15); }
+}
+.neon-pulse .mission-panel,
+.neon-pulse .tactical-glass {
+  animation: neon-pulse 1.8s ease-in-out 2;
+}
+
+/* Hiking mode mountains */
+@keyframes mountain-fall {
+  0% { transform: translateY(-20vh) translateX(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.9; }
+  100% { transform: translateY(120vh) translateX(20px) rotate(2deg); opacity: 0; }
+}
+.mountain {
+  position: fixed;
+  top: -40px;
+  left: 0;
+  font-size: var(--size, 22px);
+  transform: translateY(-20vh);
+  animation: mountain-fall var(--dur, 8s) linear var(--delay, 0s) forwards;
+  z-index: 54;
+  pointer-events: none;
+}
+
+/* Video game scanlines + flicker */
+.scanlines-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 58;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.15) 0px,
+    rgba(0,0,0,0.15) 2px,
+    rgba(0,0,0,0.06) 2px,
+    rgba(0,0,0,0.06) 4px
+  );
+  animation: crt-flicker 2.2s infinite;
+}
+@keyframes crt-flicker {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+  60% { opacity: 0.95; }
+}
+
+/* UFO beam effect */
+.ufo-beam-container {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 66;
+  pointer-events: none;
+}
+.ufo-beam-light {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 42vh;
+  background: radial-gradient(ellipse at top, rgba(72,255,192,0.45), rgba(72,255,192,0.06) 60%, rgba(72,255,192,0.0) 70%);
+  filter: blur(0.6px) drop-shadow(0 0 8px rgba(72,255,192,0.2));
+}
