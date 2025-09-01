@@ -16,7 +16,7 @@ import HUDTopLeftStack from './components/layout/HUDTopLeftStack';
 import MainStatusPanel from './components/layout/MainStatusPanel';
 import TerminalOverlay from './components/layout/TerminalOverlay';
 import AchievementOverlay from './components/layout/AchievementOverlay';
-import ContactFormOverlay from './components/layout/ContactFormOverlay';
+import SocialLinksOverlay from './components/layout/ContactFormOverlay';
 import BackgroundGridOverlay from './components/BackgroundGridOverlay';
 
 // HUD Components
@@ -78,11 +78,12 @@ function MissionControlInterface() {
           soundEnabled={soundEnabled}
           toggleSound={toggleSound}
           onContactClick={() => setShowContactForm(true)}
+          userLabel={userRank.username || `${userRank.badge} ${userRank.title}`}
         />
       </div>
 
-      {/* Contact Form */}
-      <ContactFormOverlay 
+      {/* Social Links */}
+      <SocialLinksOverlay 
         isOpen={showContactForm}
         onClose={() => setShowContactForm(false)}
       />
