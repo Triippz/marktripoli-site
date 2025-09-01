@@ -10,6 +10,7 @@ import { missionAudio } from './utils/audioSystem';
 import BootSequence from './components/boot/BootSequence';
 import MapboxScene from './components/map/MapboxScene';
 import { EnhancedErrorBoundary } from './components/ErrorBoundary/EnhancedErrorBoundary';
+import ExecutiveBrief from './pages/ExecutiveBrief';
 import NotFoundPage from './components/NotFound/NotFoundPage';
 
 // Layout Components
@@ -197,11 +198,8 @@ function App() {
         >
           <Routes>
             <Route path="/" element={<MissionControlInterface />} />
-            <Route path="/briefing" element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <div>Executive Briefing Placeholder</div>
-              </Suspense>
-            } />
+            <Route path="/brief" element={<ExecutiveBrief />} />
+            <Route path="/briefing" element={<ExecutiveBrief />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </EnhancedErrorBoundary>

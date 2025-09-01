@@ -9,6 +9,16 @@
       "region": "PA",
       "countryCode": "US"
     },
+    "x_strengths": [
+      "Technical strategy & vision",
+      "Org design & performance",
+      "Platform & developer experience",
+      "Reliability & SLOs",
+      "Secure SDLC & compliance",
+      "Program delivery & OKRs",
+      "Scalability & performance",
+      "Executive communication"
+    ],
     "summary": "Engineering Lead and Manager with 9+ years scaling teams and delivering secure, distributed platforms—from early-stage startups to large tech firms. Architected and led development of IL5/IL6 compliant systems and developer platforms, achieving >50% build-time reductions, FedRAMP readiness, and high-user SLA compliance.",
     "profiles": [
       {
@@ -33,7 +43,7 @@
       "position": "Engineering Manager",
       "location": "Remote",
       "startDate": "2024-09",
-      "summary": "Led engineering org and technical vision for Legion as a modular integration layer, enabling interoperability across defense/commercial systems and unlocking classified deployments.",
+      "summary": "Lead engineering and technical direction for Legion—the modular data integration layer connecting sensors, third-party C2s, and analytics across defense and commercial environments. Architected integrations, pipelines, and a FedRAMP/IL5–IL6-aligned SDLC that enabled classified deployments and unlocked interoperability with partner systems. Partner closely with field and BD to translate mission needs into product vision and roadmap, shipping self-serve integrations that drive revenue and accelerate adoption. Built the engineering organization from seed stage by creating hiring pipelines, designing onboarding frameworks, and mentoring engineers, while instilling a culture of high performance, technical rigor, and mission focus.",
       "highlights": [
         "Created and communicated a unifying technical vision for Legion; credited with >$15M in new contracts, including a $9.3M award.",
         "Scaled engineering org from 4 → 15 across software, solutions, and security engineering.",
@@ -87,7 +97,7 @@
       "location": "Remote",
       "startDate": "2022-06",
       "endDate": "2024-09",
-      "summary": "Drove the technical vision for HubSpot’s Developer Platform, scaling reliability and developer experience.",
+      "summary": "Led the technical vision for HubSpot’s Developer Platform, partnering with PMs and UX to shape roadmap and developer experience for both internal teams and external app developers. Architected a distributed build and deploy orchestration system and incremental caching layer that cut build times 50–80%, directly accelerating product iteration. Introduced platform primitives—including schema validation at scale and safer rollout mechanisms—adopted across product groups, unlocking more reliable integrations and stickier customers. Guided a team of 3–6 engineers while enabling a stronger app ecosystem and custom-code pipelines that deepened developer adoption.",
       "highlights": [
         "Defined and drove Developer Platform technical vision aligned with company strategy.",
         "Built distributed build & deploy orchestration platform (Java, Vitess, Kafka, SQS, ZooKeeper), reducing build times 50–80%.",
@@ -116,7 +126,7 @@
       "location": "Remote",
       "startDate": "2022-02",
       "endDate": "2022-06",
-      "summary": "Delivered observability infrastructure for HubSpot’s Private Applications.",
+      "summary": "Delivered the observability and logging backbone for Private Applications, designing a high-throughput, low-latency pipeline that processed 3–6M daily requests at a 99.99% SLA. Partnered with platform and product teams to onboard services and establish actionable SLOs.",
       "highlights": [
         "Built a custom logging system (Java, Kafka, Vitess, HBase) handling 3–6M daily requests at 99.99% SLA."
       ],
@@ -141,7 +151,7 @@
       "location": "Remote",
       "startDate": "2022-02",
       "endDate": "2023-06",
-      "summary": "Built a veteran-focused anonymous discussion platform.",
+      "summary": "Co-founded and built a privacy-first, anonymous discussion platform for veterans and active-duty service members. Shipped cross-platform mobile apps (iOS/Android) and a secure backend on AWS, implementing safety features and moderation to foster candid, supportive conversations.",
       "highlights": [
         "Co-founded platform for veterans and active military to discuss taboo topics safely.",
         "Developed cross-platform mobile app (React Native, Expo) and backend (NestJS) deployed to AWS and app stores."
@@ -164,7 +174,7 @@
       "location": "Philadelphia, PA",
       "startDate": "2020-01",
       "endDate": "2022-02",
-      "summary": "Developed tools to modernize Comcast Test Labs operations.",
+      "summary": "Modernized Comcast Test Labs operations by building internal platforms that unified asset tracking and streamlined audits across data centers. Led development of a React Native audit app and supporting services that reduced inventory verification from ~1 month to 1–2 days and improved data quality.",
       "highlights": [
         "Built asset management platform for Test Labs improving datacenter tracking.",
         "Led React Native audit app development, reducing inventory audit time from 1 month to 1–2 days."
@@ -190,7 +200,7 @@
       "location": "Philadelphia, PA",
       "startDate": "2016-09",
       "endDate": "2020-12",
-      "summary": "Built and supported mission-critical applications for Amtrak operations.",
+      "summary": "Built and supported mission-critical applications that keep Amtrak operations running safely and on time. Worked across legacy HP NonStop and modern stacks to deliver features, harden reliability, and support 24/7 operations in a regulated environment.",
       "highlights": [],
       "x_languages": ["C/C++", "Java", "TypeScript", "Python"],
       "x_frameworks": ["Spring Boot"],
@@ -213,7 +223,7 @@
       "location": "California, US",
       "startDate": "2009-06",
       "endDate": "2014-04",
-      "summary": "CBRN Defense specialist; military service.",
+      "summary": "CBRN Defense Specialist responsible for force readiness, training, and incident response; promoted to Corporal (E-4). Led small teams, maintained equipment and protocols, and coordinated with base and joint units to ensure compliance and safety.",
       "highlights": [],
       "x_logo": "/logos/usmc.svg",
       "x_location": {
@@ -306,6 +316,13 @@
         "Leadership",
         "Hiring",
         "Mentorship",
+        "Org design",
+        "Performance management",
+        "Career ladders",
+        "Headcount planning",
+        "Hiring pipelines",
+        "Change management",
+        "Conflict resolution",
         "Technical Strategy",
         "Roadmap Alignment",
         "Product Management"
@@ -368,6 +385,106 @@
         "NIST 800-53",
         "NIST 800-171",
         "NIST 800-207"
+      ]
+    },
+    {
+      "name": "Technical Leadership",
+      "keywords": [
+        "Technical vision",
+        "Architectural decisions",
+        "RFCs/ADRs",
+        "Trade-off analysis",
+        "Platform thinking",
+        "Cross-team alignment",
+        "Technical due diligence"
+      ]
+    },
+    {
+      "name": "Platform & Developer Experience",
+      "keywords": [
+        "Paved paths",
+        "CI/CD strategy",
+        "Build systems",
+        "API governance",
+        "SDKs & versioning",
+        "Deprecation policy",
+        "Inner-source"
+      ]
+    },
+    {
+      "name": "Reliability & Operations",
+      "keywords": [
+        "SLI/SLO/SLA",
+        "Error budgets",
+        "Incident response",
+        "Postmortems",
+        "Capacity planning",
+        "Chaos engineering",
+        "Resilience patterns"
+      ]
+    },
+    {
+      "name": "Security Leadership",
+      "keywords": [
+        "Secure SDLC",
+        "Threat modeling",
+        "Supply-chain security/SBOM",
+        "Secrets management",
+        "Vulnerability management",
+        "Audit readiness"
+      ]
+    },
+    {
+      "name": "Program & Delivery",
+      "keywords": [
+        "Quarterly planning",
+        "OKRs/KPIs",
+        "Risk management",
+        "Release management",
+        "Dependency management",
+        "Stakeholder communication"
+      ]
+    },
+    {
+      "name": "Data & Observability",
+      "keywords": [
+        "Tracing",
+        "Structured logging",
+        "Telemetry",
+        "Dashboards",
+        "Anomaly detection",
+        "Usage analytics"
+      ]
+    },
+    {
+      "name": "Scalability & Performance",
+      "keywords": [
+        "Performance engineering",
+        "Load testing",
+        "Caching",
+        "Backpressure/queuing",
+        "Partitioning/sharding",
+        "Latency budgets"
+      ]
+    },
+    {
+      "name": "Cloud & Cost",
+      "keywords": [
+        "Capacity modeling",
+        "FinOps",
+        "Multi-region",
+        "DR/BCP",
+        "Cost optimization"
+      ]
+    },
+    {
+      "name": "Communication & Influence",
+      "keywords": [
+        "Executive communication",
+        "Strategy docs",
+        "PR/FAQ",
+        "Facilitation",
+        "Customer escalations"
       ]
     }
   ],

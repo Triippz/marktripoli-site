@@ -1,0 +1,22 @@
+{
+  "title": "Engineering Manager & Technical Lead",
+  "tagline": "Platform engineering, C2 systems, high-scale infra",
+  "location": "Lancaster, PA, USA",
+  "contact": {
+    "email": "me@marktripoli.com",
+    "website": "https://www.marktripoli.com",
+    "linkedin": "https://www.linkedin.com/in/mark-tripoli",
+    "github": "https://github.com/Triippz"
+  },
+  "strengths": [
+    "Technical strategy & vision",
+    "Org design & performance",
+    "Platform & developer experience",
+    "Reliability & SLOs",
+    "Secure SDLC & compliance",
+    "Program delivery & OKRs",
+    "Scalability & performance",
+    "Executive communication"
+  ],
+  "interests": ["Aviation", "DefenseTech", "Open Source", "UX for Engineers"]
+}
