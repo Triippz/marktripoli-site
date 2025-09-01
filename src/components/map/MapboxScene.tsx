@@ -10,6 +10,7 @@ import FlightPathAnimations from './FlightPathAnimations';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { registerMapEasterEggs, getGeofences, goToGeofence } from '../../utils/easterEggs/mapEasterEggs';
 import { createDefaultFS, resolvePath as fsResolve, isDir as fsIsDir, listDir as fsList, readFile as fsRead } from '../../utils/fauxFS';
+import { missionAudio } from '../../utils/audioSystem';
 
 // Set Mapbox access token from environment variables or fallback to demo token
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -38,6 +39,41 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   const [currentCoords, setCurrentCoords] = useState({ lat: 42.3601, lng: -71.0589 }); // Boston
   const [containerDimensions, setContainerDimensions] = useState({ width: 800, height: 600 });
   const [cursorPoint, setCursorPoint] = useState<{ x: number; y: number } | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [mothershipVisible, setMothershipVisible] = useState(false);
+  const [uxvActive, setUxvActive] = useState(false);
+  const [uxvPos, setUxvPos] = useState<{ lng: number; lat: number } | null>(null);
+  const [uxvTarget, setUxvTarget] = useState<{ lng: number; lat: number } | null>(null);
+  const [uxvSpeed, setUxvSpeed] = useState<number>(200);
+  const [uxvExplosions, setUxvExplosions] = useState<Array<{ id: string; lng: number; lat: number; start: number }>>([]);
+  const [uxvPanelOpen, setUxvPanelOpen] = useState(false);
+  const [uxvFollow, setUxvFollow] = useState(false);
+  const [uxvContextMenu, setUxvContextMenu] = useState<{ open: boolean; x: number; y: number; lng: number; lat: number } | null>(null);
+  const [uxvBase, setUxvBase] = useState<{ lng: number; lat: number } | null>(null);
+  const [uxvTrail, setUxvTrail] = useState<Array<{ lng: number; lat: number }>>([]);
+  const [uxvProjectiles, setUxvProjectiles] = useState<Array<{ id: string; sx: number; sy: number; ex: number; ey: number; start: number; dur: number }>>([]);
+  const [uxvPreview, setUxvPreview] = useState<{ lng: number; lat: number } | null>(null);
+  const [uxvPanelPos, setUxvPanelPos] = useState<{ left: number; top: number } | null>(null);
+  const uxvPanelRef = useRef<HTMLDivElement | null>(null);
+  const draggingRef = useRef(false);
+  const dragOffsetRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
+  // Trail controls
+  const [uxvTrailMax, setUxvTrailMax] = useState<number>(() => {
+    try { const v = parseInt(localStorage.getItem('uxvTrailMax') || '50'); return isNaN(v) ? 50 : Math.min(200, Math.max(10, v)); } catch { return 50; }
+  });
+
+  // Load persisted panel position
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('uxvPanelPos');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed?.left === 'number' && typeof parsed?.top === 'number') {
+          setUxvPanelPos(parsed);
+        }
+      }
+    } catch {}
+  }, []);
   const [secretOpen, setSecretOpen] = useState(false);
   const [secretLines, setSecretLines] = useState<string[]>(["MAP-TERM v0.1 — type 'help'", ""]);
   const [secretInput, setSecretInput] = useState('');
@@ -132,6 +168,24 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     return () => window.removeEventListener('keydown', onKey);
   }, [secretOpen]);
 
+  // Map interactions for UXV
+  useEffect(() => {
+    const m = map.current; if (!m) return;
+    const onClick = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+      if (!uxvActive) return;
+      const { lng, lat } = e.lngLat;
+      setUxvTarget({ lng, lat });
+    };
+    const onCtx = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
+      if (!uxvActive) return;
+      const { lng, lat } = e.lngLat; const { x, y } = e.point as { x: number; y: number };
+      setUxvContextMenu({ open: true, x, y, lng, lat });
+    };
+    m.on('click', onClick);
+    m.on('contextmenu', onCtx);
+    return () => { try { m.off('click', onClick); m.off('contextmenu', onCtx); } catch {} };
+  }, [uxvActive]);
+
   const promptUser = () => (admin ? 'root@map' : 'guest@map') + ':' + cwd + '$';
   const addLine = (s: string = '') => setSecretLines(prev => [...prev, s]);
   const saveAch = (k: string) => {
@@ -186,7 +240,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
           if (!q) { addLine('Usage: goto hq <company>'); break; }
           const ok = goToHQ(q);
           addLine(ok ? `Navigating to ${q} HQ…` : `Unknown company: ${q}`);
-          if (ok) { saveAch(`visit_hq_${q.toLowerCase()}`); setSecretOpen(false); }
+          if (ok) { saveAch(`visit_hq_${q.toLowerCase()}`); setSecretOpen(false); try { missionAudio.playEffect('navigate'); } catch {} }
         } else {
           const key = (args[0] || '').toLowerCase();
           const ok = !!(map.current && goToGeofence(map.current, key, 10));
@@ -213,6 +267,37 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
         // Random move and back
         if (map.current) { const c = map.current.getCenter(); map.current.easeTo({ bearing: map.current.getBearing() + 20, duration: 600 }); setTimeout(() => map.current?.easeTo({ center: c, duration: 600 }), 700); }
         addLine('Scanning…'); saveAch('map_scan'); try { unlockEasterEgg('map_scan'); } catch {}
+        break; }
+      case 'uxv': {
+        const sub = (args[0] || '').toLowerCase();
+        if (!sub || sub === 'help') { addLine('uxv subcmds: start [lng lat], stop, goto <lng> <lat> | region <key>, speed <mps>, drop'); break; }
+        if (sub === 'start') {
+          if (args.length >= 3) {
+            const lng = parseFloat(args[1]); const lat = parseFloat(args[2]);
+            if (!isNaN(lng) && !isNaN(lat)) { setUxvPos({ lng, lat }); setUxvBase({ lng, lat }); setUxvTrail([{ lng, lat }]); setUxvActive(true); setUxvPanelOpen(false); setSecretOpen(false); try { map.current?.easeTo({ center: [lng, lat], zoom: 12, duration: 800 }); } catch {}; addLine(`UXV started at ${lng.toFixed(3)}, ${lat.toFixed(3)}`); break; }
+          }
+          const c = map.current?.getCenter();
+          if (c) { setUxvPos({ lng: c.lng, lat: c.lat }); setUxvBase({ lng: c.lng, lat: c.lat }); setUxvTrail([{ lng: c.lng, lat: c.lat }]); setUxvActive(true); setUxvPanelOpen(false); setSecretOpen(false); try { map.current?.easeTo({ center: [c.lng, c.lat], zoom: 12, duration: 800 }); } catch {}; addLine('UXV started at map center'); }
+          else { addLine('UXV start failed'); }
+          break;
+        }
+        if (sub === 'stop') { setUxvActive(false); setUxvTarget(null); addLine('UXV stopped'); break; }
+        if (sub === 'goto') {
+          if ((args[1] || '').toLowerCase() === 'region') {
+            const key = (args[2] || '').toLowerCase();
+            const g = getGeofences().find(g => g.key === key);
+            if (g) { const lng = (g.box.minLng + g.box.maxLng)/2; const lat = (g.box.minLat + g.box.maxLat)/2; setUxvTarget({ lng, lat }); addLine(`UXV targeting ${key}`); try { missionAudio.playEffect('navigate'); } catch {} }
+            else addLine('Unknown region');
+          } else {
+            const lng = parseFloat(args[1]); const lat = parseFloat(args[2]);
+            if (!isNaN(lng) && !isNaN(lat)) { setUxvTarget({ lng, lat }); addLine(`UXV targeting ${lng.toFixed(3)}, ${lat.toFixed(3)}`); try { missionAudio.playEffect('navigate'); } catch {} }
+            else addLine('Usage: uxv goto <lng> <lat> | region <key>');
+          }
+          break;
+        }
+        if (sub === 'speed') { const sp = parseFloat(args[1]); if (!isNaN(sp) && sp > 0) { setUxvSpeed(sp); addLine(`UXV speed ${sp} m/s`); } else { addLine('Usage: uxv speed <mps>'); } break; }
+        if (sub === 'drop') { if (uxvPos) { const id = `${Date.now()}`; const trg = uxvTarget || uxvPos; setUxvProjectiles(prev => [...prev, { id, sx: uxvPos.lng, sy: uxvPos.lat, ex: trg.lng, ey: trg.lat, start: performance.now(), dur: 2000 }]); try { missionAudio.playEffect('sweep'); } catch {}; addLine('UXV ordnance deployed'); } else addLine('UXV not active'); break; }
+        addLine('Unknown uxv subcommand');
         break; }
       default:
         if (cmd === 'pwd') { addLine(cwd); break; }
@@ -368,6 +453,16 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
               }
             });
 
+            // Track zoom for mothership visibility
+            const onMove = () => {
+              if (!map.current) return;
+              const z = map.current.getZoom();
+              setZoomLevel(z);
+              setMothershipVisible(z <= 1.2);
+            };
+            map.current.on('move', onMove);
+            onMove();
+
             // Start dramatic flyTo USA animation after a brief delay
             setTimeout(() => {
               if (!map.current) return;
@@ -496,6 +591,64 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       }
     };
   }, [addMapTelemetry]);
+
+  // Animate UXV movement + trail + projectiles
+  useEffect(() => {
+    let raf = 0; let last = performance.now(); let lastTrail = last;
+    const step = () => {
+      const now = performance.now();
+      const dt = (now - last) / 1000;
+      last = now;
+      if (uxvActive && uxvPos && uxvTarget) {
+        const dLng = uxvTarget.lng - uxvPos.lng;
+        const dLat = uxvTarget.lat - uxvPos.lat;
+        const dist = Math.sqrt(dLng * dLng + dLat * dLat);
+        if (dist < 0.0003) {
+          setUxvPos(uxvTarget);
+          setUxvTarget(null);
+        } else {
+          const degPerSec = uxvSpeed / 111000; // approx degrees/sec
+          const stepSize = Math.min(dist, degPerSec * Math.max(0.001, dt));
+          const nx = uxvPos.lng + (dLng / dist) * stepSize;
+          const ny = uxvPos.lat + (dLat / dist) * stepSize;
+          setUxvPos({ lng: nx, lat: ny });
+          if (now - lastTrail > 120) {
+            setUxvTrail(prev => {
+              const arr = prev.slice();
+              const lastPt = arr[arr.length - 1];
+              const moved = !lastPt || Math.hypot((lastPt.lng - nx), (lastPt.lat - ny)) > 0.00005;
+              if (moved) {
+                arr.push({ lng: nx, lat: ny });
+                if (arr.length > uxvTrailMax) arr.splice(0, arr.length - uxvTrailMax);
+              }
+              return arr;
+            });
+            lastTrail = now;
+          }
+          if (uxvFollow && map.current) {
+            try { map.current.easeTo({ center: [nx, ny], duration: 280, essential: false }); } catch {}
+          }
+        }
+      }
+      // Update projectiles, spawn explosion on impact
+      if (uxvProjectiles.length > 0) {
+        setUxvProjectiles(prev => {
+          const remain: typeof prev = [];
+          prev.forEach(p => {
+            const t = (now - p.start) / p.dur;
+            if (t >= 1) {
+              setUxvExplosions(ex => [...ex, { id: p.id, lng: p.ex, lat: p.ey, start: now }]);
+              try { missionAudio.playEffect('alert'); } catch {}
+            } else remain.push(p);
+          });
+          return remain;
+        });
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [uxvActive, uxvPos, uxvTarget, uxvSpeed, uxvFollow, uxvProjectiles]);
 
   const generateTacticalGrid = () => {
     const features = [];
@@ -642,21 +795,14 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
 
       // Add click handler
       markerElement.addEventListener('click', () => {
-        setSelectedCareerMarker(careerMarker);
-        addMapTelemetry({
-          source: 'MAP',
-          message: `Engaging career target: ${careerMarker.codename}`,
-          level: 'success'
-        });
-
-        // Fly to career location
-        map.current?.flyTo({
-          center: [careerMarker.location.lng, careerMarker.location.lat],
-          zoom: 8,
-          pitch: 10, // More overhead when engaging
-          bearing: 0,
-          duration: 2000
-        });
+        if (uxvActive) {
+          setUxvTarget({ lng: careerMarker.location.lng, lat: careerMarker.location.lat });
+          addMapTelemetry({ source: 'UXV', message: `Tasked to ${careerMarker.name}`, level: 'info' });
+        } else {
+          setSelectedCareerMarker(careerMarker);
+          addMapTelemetry({ source: 'MAP', message: `Engaging career target: ${careerMarker.codename}`, level: 'success' });
+          map.current?.flyTo({ center: [careerMarker.location.lng, careerMarker.location.lat], zoom: 8, pitch: 10, bearing: 0, duration: 2000 });
+        }
       });
 
       // Enhanced popup with career information
@@ -814,6 +960,147 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     <div className="relative w-full h-full bg-black overflow-hidden">
       {/* Mapbox container */}
       <div ref={mapContainer} className="w-full h-full cursor-none" />
+
+      {/* Mothership overlay when zoomed out */}
+      {mapLoaded && mothershipVisible && (
+        <MothershipOverlay container={mapContainer} />
+      )}
+
+      {/* UXV game overlay */}
+      {mapLoaded && uxvActive && uxvPos && (
+        <UXVOverlay mapRef={map} pos={uxvPos} target={uxvTarget} explosions={uxvExplosions} onExplosionsChange={setUxvExplosions} trail={uxvTrail} projectiles={uxvProjectiles} />
+      )}
+
+      {/* UXV clickable marker to open panel */}
+      {mapLoaded && uxvActive && uxvPos && (
+        <UXVMarkerOverlay mapRef={map} pos={uxvPos} target={uxvTarget} onClick={() => setUxvPanelOpen(true)} />
+      )}
+
+      {/* UXV Control Panel */}
+      {uxvActive && uxvPanelOpen && uxvPos && (
+        <div
+          ref={uxvPanelRef}
+          className="absolute z-[120] w-80"
+          style={{
+            left: (uxvPanelPos?.left ?? Math.max(16, containerDimensions.width - 320 - 16)),
+            top: (uxvPanelPos?.top ?? Math.max(16, containerDimensions.height - 280)),
+            cursor: draggingRef.current ? 'grabbing' : 'default'
+          }}
+        >
+          <div className="tactical-panel p-4">
+            <div
+              className="flex justify-between items-center mb-2 cursor-move"
+              onMouseDown={(e) => {
+                e.preventDefault(); e.stopPropagation();
+                if (!uxvPanelRef.current || !mapContainer.current) return;
+                const rect = uxvPanelRef.current.getBoundingClientRect();
+                dragOffsetRef.current = { dx: e.clientX - rect.left, dy: e.clientY - rect.top };
+                draggingRef.current = true;
+                const onMove = (ev: MouseEvent) => {
+                  if (!draggingRef.current || !mapContainer.current) return;
+                  const cont = mapContainer.current.getBoundingClientRect();
+                  const left = Math.min(Math.max(0, ev.clientX - cont.left - dragOffsetRef.current.dx), cont.width - 320);
+                  const top = Math.min(Math.max(0, ev.clientY - cont.top - dragOffsetRef.current.dy), cont.height - 160);
+                  setUxvPanelPos({ left, top });
+                };
+                const onUp = () => {
+                  draggingRef.current = false;
+                  window.removeEventListener('mousemove', onMove);
+                  window.removeEventListener('mouseup', onUp);
+                  try { const pos = uxvPanelPos || { left: 0, top: 0 }; localStorage.setItem('uxvPanelPos', JSON.stringify(pos)); } catch {}
+                };
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onUp);
+              }}
+            >
+              <div className="holo-text text-sm font-mono">UXV CONTROL</div>
+              <button className="tactical-button text-xs px-2 py-1" onClick={() => setUxvPanelOpen(false)}>Hide</button>
+            </div>
+            <div className="text-xs font-mono text-gray-300 space-y-1 mb-2">
+              <div>Pos: {uxvPos.lng.toFixed(3)}, {uxvPos.lat.toFixed(3)}</div>
+              {uxvTarget && (<div>Target: {uxvTarget.lng.toFixed(3)}, {uxvTarget.lat.toFixed(3)}</div>)}
+              {uxvBase && (<div>Base: {uxvBase.lng.toFixed(3)}, {uxvBase.lat.toFixed(3)}</div>)}
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-mono text-gray-300">Speed: {uxvSpeed} m/s</label>
+                <input type="range" min="50" max="1500" value={uxvSpeed} onChange={(e) => setUxvSpeed(parseInt((e.target as HTMLInputElement).value))} />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-mono text-gray-300">Trail Len: {uxvTrailMax}</label>
+                <input
+                  type="range"
+                  min="10"
+                  max="200"
+                  value={uxvTrailMax}
+                  onChange={(e) => {
+                    const v = parseInt((e.target as HTMLInputElement).value);
+                    const clamped = Math.min(200, Math.max(10, v));
+                    setUxvTrailMax(clamped);
+                    try { localStorage.setItem('uxvTrailMax', String(clamped)); } catch {}
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-mono text-gray-300">Volume: {Math.round(missionAudio.getVolume()*100)}%</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={Math.round(missionAudio.getVolume()*100)}
+                  onChange={(e) => {
+                    const v = parseInt((e.target as HTMLInputElement).value) / 100;
+                    missionAudio.setVolume(v);
+                  }}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-mono text-gray-300 flex items-center gap-1"><input type="checkbox" checked={uxvFollow} onChange={e => setUxvFollow((e.target as HTMLInputElement).checked)} /> Follow</label>
+              </div>
+              <div className="flex items-center gap-2">
+                <button className="tactical-button text-xs px-2 py-1" onClick={() => {
+                  if (uxvPos) {
+                    const id = `${Date.now()}`;
+                    const target = uxvTarget || uxvPos; // if no target, drop at current pos
+                    setUxvProjectiles(prev => [...prev, { id, sx: uxvPos.lng, sy: uxvPos.lat, ex: target.lng, ey: target.lat, start: performance.now(), dur: 2000 }]);
+                    try { missionAudio.playEffect('sweep'); } catch {}
+                  }
+                }}>Drop</button>
+                <button className="tactical-button text-xs px-2 py-1" onClick={() => { setUxvActive(false); setUxvTarget(null); }}>Stop</button>
+                <button disabled={!uxvBase} className="tactical-button text-xs px-2 py-1" onClick={() => { if (uxvBase) setUxvTarget({ ...uxvBase }); }}>Return to Base</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* UXV marker (click to open controls) */}
+      {mapLoaded && uxvActive && uxvPos && (
+        <UXVMarkerOverlay mapRef={map} pos={uxvPos} target={uxvTarget} onClick={() => setUxvPanelOpen(true)} />
+      )}
+
+      {/* Task preview overlay */}
+      {uxvActive && uxvPreview && (
+        <TaskPreviewOverlay
+          mapRef={map}
+          target={uxvPreview}
+          onConfirm={() => { setUxvTarget(uxvPreview); setUxvPreview(null); try { missionAudio.playEffect('navigate'); } catch {} }}
+          onCancel={() => setUxvPreview(null)}
+        />
+      )}
+
+      {/* Context menu for UXV actions */}
+      {uxvContextMenu?.open && (
+        <div className="absolute z-[121]" style={{ left: uxvContextMenu.x, top: uxvContextMenu.y }}>
+          <div className="tactical-panel p-2 text-xs font-mono">
+            <div className="flex flex-col gap-1">
+              <button className="tactical-button text-[11px] px-2 py-1" onClick={() => { setUxvTarget({ lng: uxvContextMenu.lng, lat: uxvContextMenu.lat }); setUxvContextMenu(null); }}>Set Target Here</button>
+              <button className="tactical-button text-[11px] px-2 py-1" onClick={() => { if (uxvPos) setUxvProjectiles(prev => [...prev, { id: `${Date.now()}`, sx: uxvPos.lng, sy: uxvPos.lat, ex: uxvContextMenu.lng, ey: uxvContextMenu.lat, start: performance.now(), dur: 1800 }]); setUxvContextMenu(null); }}>Drop Payload Here</button>
+              <button className="tactical-button text-[11px] px-2 py-1" onClick={() => setUxvContextMenu(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Loading overlay */}
       {!mapLoaded && (
@@ -1113,3 +1400,237 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
 }
 
 export default MapboxScene;
+
+// Overlay: Mothership + escorts using Canvas 2D (lightweight WebGL feel)
+function MothershipOverlay({ container }: { container: React.RefObject<HTMLDivElement> }) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    if (!container.current) return;
+    const canvas = document.createElement('canvas');
+    canvas.style.position = 'absolute';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = '52';
+    container.current.appendChild(canvas);
+    canvasRef.current = canvas;
+    const ctx = canvas.getContext('2d');
+    let raf = 0;
+    const resize = () => { if (!container.current) return; canvas.width = container.current.clientWidth; canvas.height = container.current.clientHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+    const start = performance.now();
+    const drawShip = (x: number, y: number, scale: number, hue: number) => {
+      if (!ctx) return;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+      // Glow
+      ctx.shadowColor = `hsla(${hue}, 100%, 60%, 0.7)`;
+      ctx.shadowBlur = 16;
+      // Body
+      ctx.fillStyle = `hsla(${hue}, 100%, 50%, 0.8)`;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 80, 26, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Dome
+      ctx.fillStyle = 'rgba(200,255,240,0.8)';
+      ctx.beginPath();
+      ctx.ellipse(0, -10, 26, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Lights
+      ctx.fillStyle = `hsla(${hue}, 100%, 70%, 0.9)`;
+      for (let i = -3; i <= 3; i++) {
+        ctx.beginPath(); ctx.ellipse(i * 18, 12, 6, 4, 0, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    };
+    const drawEscort = (x: number, y: number, scale: number, hue: number) => {
+      if (!ctx) return;
+      ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
+      ctx.shadowColor = `hsla(${hue},100%,60%,0.7)`; ctx.shadowBlur = 10;
+      ctx.fillStyle = `hsla(${hue}, 100%, 60%, 0.9)`;
+      ctx.beginPath(); ctx.ellipse(0, 0, 26, 9, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    };
+    const render = (ts: number) => {
+      if (!ctx) return;
+      const t = (ts - start) / 1000;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width * 0.5;
+      const cy = canvas.height * 0.15; // near top edge (orbit above earth)
+      const radius = Math.min(canvas.width, canvas.height) * 0.45;
+      // Mothership orbit param
+      const theta = t * 0.2;
+      const mx = cx + Math.cos(theta) * radius;
+      const my = cy + Math.sin(theta) * (radius * 0.2);
+      drawShip(mx, my, 0.6, 150);
+      // Escorts
+      for (let i = 0; i < 5; i++) {
+        const a = theta + i * (Math.PI * 2 / 5) + Math.sin(t * 0.8 + i) * 0.2;
+        const ex = cx + Math.cos(a) * (radius * 0.8);
+        const ey = cy + Math.sin(a) * (radius * 0.18);
+        drawEscort(ex, ey, 0.35, 150);
+      }
+      raf = requestAnimationFrame(render);
+    };
+    raf = requestAnimationFrame(render);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); if (canvas.parentNode) canvas.parentNode.removeChild(canvas); };
+  }, [container]);
+  return null;
+}
+
+function UXVOverlay({ mapRef, pos, target, explosions, onExplosionsChange, trail, projectiles }: { mapRef: React.RefObject<mapboxgl.Map>, pos: { lng: number; lat: number }, target: { lng: number; lat: number } | null, explosions: Array<{ id: string; lng: number; lat: number; start: number }>, onExplosionsChange: (arr: any) => void, trail: Array<{ lng: number; lat: number }>, projectiles: Array<{ id: string; sx: number; sy: number; ex: number; ey: number; start: number; dur: number }> }) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    const map = mapRef.current; if (!map) return;
+    const container = map.getContainer();
+    const canvas = document.createElement('canvas');
+    canvas.style.position = 'absolute'; canvas.style.top = '0'; canvas.style.left = '0';
+    canvas.style.width = '100%'; canvas.style.height = '100%'; canvas.style.pointerEvents = 'none'; canvas.style.zIndex = '53';
+    container.appendChild(canvas); canvasRef.current = canvas;
+    const ctx = canvas.getContext('2d'); let raf = 0;
+    const resize = () => { canvas.width = container.clientWidth; canvas.height = container.clientHeight; };
+    resize(); window.addEventListener('resize', resize);
+    const drawUXV = (pt: { x: number; y: number }) => {
+      if (!ctx) return; ctx.save(); ctx.translate(pt.x, pt.y);
+      ctx.fillStyle = 'rgba(69,255,176,0.9)'; ctx.strokeStyle = 'rgba(69,255,176,0.9)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(6, 10); ctx.lineTo(-6, 10); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    };
+    const drawExplosion = (pt: { x: number; y: number }, age: number) => {
+      if (!ctx) return; const r = Math.min(60, age * 120);
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      const grd = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, r);
+      grd.addColorStop(0, 'rgba(255,200,80,0.9)');
+      grd.addColorStop(0.6, 'rgba(255,80,60,0.5)');
+      grd.addColorStop(1, 'rgba(255,0,0,0)');
+      ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    };
+    const render = () => {
+      if (!ctx) return; ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const p = map.project(pos as any);
+      // Trail rendering with age-based fade and smooth rounded curves (Catmull-Rom style via quadratic midpoints)
+      if (trail && trail.length > 1) {
+        // Build screen-space points, append current position to ensure connection
+        const pts = trail.map(ll => map.project(ll as any));
+        pts.push(p);
+
+        // Configure round joins/caps for smooth turns
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        // Outer glow stroke (single smooth path)
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'rgba(69,255,176,0.25)';
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length - 1; i++) {
+          const cp = pts[i];
+          const mid = { x: (pts[i].x + pts[i + 1].x) / 2, y: (pts[i].y + pts[i + 1].y) / 2 };
+          ctx.quadraticCurveTo(cp.x, cp.y, mid.x, mid.y);
+        }
+        // Curve to the last point
+        const last = pts[pts.length - 1];
+        ctx.quadraticCurveTo(last.x, last.y, last.x, last.y);
+        ctx.stroke();
+
+        // Inner stroke re-trace with slightly brighter color
+        ctx.lineWidth = 1.8;
+        ctx.strokeStyle = 'rgba(69,255,176,0.85)';
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length - 1; i++) {
+          const cp = pts[i];
+          const mid = { x: (pts[i].x + pts[i + 1].x) / 2, y: (pts[i].y + pts[i + 1].y) / 2 };
+          ctx.quadraticCurveTo(cp.x, cp.y, mid.x, mid.y);
+        }
+        ctx.quadraticCurveTo(last.x, last.y, last.x, last.y);
+        ctx.stroke();
+      }
+      // Projectiles with parabolic arc
+      const now = performance.now();
+      projectiles.forEach((pr) => {
+        const t = Math.min(1, (now - pr.start) / pr.dur);
+        const lng = pr.sx + (pr.ex - pr.sx) * t;
+        const lat = pr.sy + (pr.ey - pr.sy) * t;
+        const pt = map.project({ lng, lat } as any);
+        const arc = Math.sin(Math.PI * t);
+        const yOffset = arc * 40; // pixels
+        ctx.save();
+        ctx.fillStyle = 'rgba(255,200,80,0.9)';
+        ctx.beginPath(); ctx.arc(pt.x, pt.y - yOffset, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      });
+      drawUXV(p);
+      if (target) {
+        const t = map.project(target as any); ctx.strokeStyle = 'rgba(69,255,176,0.6)'; ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(t.x, t.y); ctx.stroke(); ctx.setLineDash([]);
+      }
+      // Explosions fade out by age
+      const remaining: typeof explosions = [];
+      for (const ex of explosions) {
+        const pt = map.project({ lng: ex.lng, lat: ex.lat } as any);
+        const age = (now - ex.start) / 1000;
+        if (age < 1.0) { drawExplosion(pt, age); remaining.push(ex); }
+      }
+      if (remaining.length !== explosions.length) onExplosionsChange(remaining);
+      raf = requestAnimationFrame(render);
+    };
+    raf = requestAnimationFrame(render);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); if (canvas.parentNode) canvas.parentNode.removeChild(canvas); };
+  }, [mapRef, pos, target, explosions, onExplosionsChange, trail, projectiles]);
+  return null;
+}
+
+function TaskPreviewOverlay({ mapRef, target, onConfirm, onCancel }: { mapRef: React.RefObject<mapboxgl.Map>, target: { lng: number; lat: number }, onConfirm: () => void, onCancel: () => void }) {
+  const [pt, setPt] = useState<{ x: number; y: number } | null>(null);
+  useEffect(() => {
+    const m = mapRef.current; if (!m) return;
+    const update = () => { const p = m.project(target as any); setPt({ x: p.x, y: p.y }); };
+    update(); m.on('move', update); m.on('zoom', update);
+    return () => { try { m.off('move', update); m.off('zoom', update); } catch {} };
+  }, [mapRef, target]);
+  if (!pt) return null;
+  return (
+    <div className="absolute z-[121]" style={{ left: pt.x - 10, top: pt.y - 10 }}>
+      {/* Crosshair */}
+      <div className="absolute -left-4 -top-4 w-8 h-8 border border-green-500/60 rounded-sm" />
+      {/* Action bubble */}
+      <div className="tactical-panel p-2 text-xs font-mono mt-8">
+        <div className="text-green-400 mb-1">Task UXV here?</div>
+        <div className="flex gap-2">
+          <button className="tactical-button text-[11px] px-2 py-1" onClick={onConfirm}>Confirm</button>
+          <button className="tactical-button text-[11px] px-2 py-1" onClick={onCancel}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Clickable UXV marker element positioned via map.project
+function UXVMarkerOverlay({ mapRef, pos, target, onClick }: { mapRef: React.RefObject<mapboxgl.Map>, pos: { lng: number; lat: number }, target: { lng: number; lat: number } | null, onClick: () => void }) {
+  const [pt, setPt] = useState<{ x: number; y: number } | null>(null);
+  const angle = (() => {
+    if (!target) return 0;
+    const dLng = target.lng - pos.lng; const dLat = target.lat - pos.lat;
+    return Math.atan2(dLat, dLng) * 180 / Math.PI; // degrees
+  })();
+  useEffect(() => {
+    const m = mapRef.current; if (!m) return;
+    const update = () => { const p = m.project(pos as any); setPt({ x: p.x, y: p.y }); };
+    update();
+    m.on('move', update);
+    m.on('zoom', update);
+    return () => { try { m.off('move', update); m.off('zoom', update); } catch {} };
+  }, [mapRef, pos]);
+  if (!pt) return null;
+  return (
+    <div className="absolute z-[120]" style={{ left: pt.x - 16, top: pt.y - 16 }}>
+      <button title="UXV" onClick={onClick} style={{ transform: `rotate(${angle}deg)` }} className="block">
+        <img src="/icons/drone.svg" alt="UXV" width="32" height="32" className="drop-shadow-[0_0_8px_rgba(69,255,176,0.6)] opacity-90 hover:opacity-100" />
+      </button>
+    </div>
+  );
+}

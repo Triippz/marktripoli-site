@@ -15,6 +15,7 @@ class MissionControlAudio {
   private audioContext: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private isEnabled = false;
+  private currentVolume = 0.7;
   private ambientLoop: OscillatorNode | null = null;
   private effects: Map<string, AudioEffect> = new Map();
 
@@ -51,7 +52,12 @@ class MissionControlAudio {
       // Create master gain for volume control
       this.masterGain = this.audioContext.createGain();
       this.masterGain.connect(this.audioContext.destination);
-      this.masterGain.gain.value = 0.7; // Master volume
+      // Load persisted volume
+      try {
+        const saved = localStorage.getItem('mc-audio-volume');
+        if (saved) this.currentVolume = Math.min(1, Math.max(0, parseFloat(saved)));
+      } catch {}
+      this.masterGain.gain.value = this.currentVolume; // Master volume
 
       // Resume audio context if suspended (required for user interaction)
       if (this.audioContext.state === 'suspended') {
@@ -77,6 +83,19 @@ class MissionControlAudio {
 
   isAudioEnabled(): boolean {
     return this.isEnabled && this.audioContext !== null;
+  }
+
+  setVolume(volume: number) {
+    const v = Math.min(1, Math.max(0, volume));
+    this.currentVolume = v;
+    try { localStorage.setItem('mc-audio-volume', String(v)); } catch {}
+    if (this.masterGain) {
+      try { this.masterGain.gain.value = v; } catch {}
+    }
+  }
+
+  getVolume(): number {
+    return this.currentVolume;
   }
 
   private createOscillator(frequency: number, type: OscillatorType = 'sine'): OscillatorNode {
