@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import mapboxgl from 'mapbox-gl';
 import { useMissionControl } from '../../store/missionControl';
 import type { SiteData } from '../../types';
+import type { CareerMarker, CareerMapData } from '../../types/careerData';
+import { resumeDataService } from '../../services/resumeDataService';
 import sitesData from '../../data/sites.json';
 import FlightPathAnimations from './FlightPathAnimations';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -21,7 +23,13 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   const stylesRef = useRef<HTMLStyleElement[]>([]);
   const { selectSite, selectedSite, addTelemetry } = useMissionControl();
   
+  // Legacy sites data (keeping for backward compatibility)
   const [sites, setSites] = useState<SiteData[]>(propSites || sitesData as SiteData[]);
+  
+  // New career data from resume
+  const [careerData, setCareerData] = useState<CareerMapData | null>(null);
+  const [selectedCareerMarker, setSelectedCareerMarker] = useState<CareerMarker | null>(null);
+  
   const [initialized, setInitialized] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [currentCoords, setCurrentCoords] = useState({ lat: 42.3601, lng: -71.0589 }); // Boston
@@ -33,30 +41,41 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     addTelemetry(log);
   }, [addTelemetry]);
 
-  // Initialize component once with error handling
+  // Initialize component with career data from resume
   useEffect(() => {
     if (!initialized) {
-      try {
-        console.log('[MapboxScene] Loading static mission sites from sites.json');
-        setSites(sitesData as SiteData[]);
-        setInitialized(true);
-        
-        addMapTelemetry({
-          source: 'MAP',
-          message: `Static mission sites loaded - ${sitesData.length} sites operational`,
-          level: 'info'
-        });
-      } catch (initError) {
-        console.error('[MapboxScene] Critical initialization error:', initError);
-        addMapTelemetry({
-          source: 'MAP',
-          message: `Component initialization failed: ${initError instanceof Error ? initError.message : 'Unknown error'}`,
-          level: 'error'
-        });
-        // Still mark as initialized to prevent retry loops
-        setInitialized(true);
-        throw initError; // Let error boundary handle it
-      }
+      const initializeCareerData = async () => {
+        try {
+          console.log('[MapboxScene] Loading career mission data from resume.json');
+          
+          // Load career data from resume
+          const careerMapData = await resumeDataService.getCareerMapData();
+          setCareerData(careerMapData);
+          
+          // Keep legacy sites for hobbies/projects (can be filtered later)
+          setSites(sitesData as SiteData[]);
+          
+          setInitialized(true);
+          
+          addMapTelemetry({
+            source: 'MAP',
+            message: `Career mission data loaded - ${careerMapData.markers.length} career locations operational`,
+            level: 'info'
+          });
+        } catch (initError) {
+          console.error('[MapboxScene] Critical career data initialization error:', initError);
+          addMapTelemetry({
+            source: 'MAP',
+            message: `Career data initialization failed: ${initError instanceof Error ? initError.message : 'Unknown error'}`,
+            level: 'error'
+          });
+          // Still mark as initialized to prevent retry loops
+          setInitialized(true);
+          throw initError; // Let error boundary handle it
+        }
+      };
+
+      initializeCareerData();
     }
   }, [initialized, addMapTelemetry]);
 
@@ -345,8 +364,111 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     };
   };
 
-  const addMissionSites = useCallback(() => {
-    if (!map.current) return;
+  // Create enhanced career markers with logos and category styling
+  const createCareerMarkerElement = useCallback((marker: CareerMarker): HTMLElement => {
+    const markerElement = document.createElement('div');
+    markerElement.className = 'career-marker';
+    
+    const categoryStyle = resumeDataService.getCategoryStyle(marker.type);
+    
+    // Enhanced marker with logo support
+    markerElement.innerHTML = `
+      <div class="marker-container">
+        ${marker.logo ? 
+          `<div class="marker-logo">
+             <img src="${marker.logo}" alt="${marker.name}" />
+           </div>` : 
+          `<div class="marker-fallback">${categoryStyle.icon}</div>`
+        }
+        <div class="marker-pulse"></div>
+      </div>
+    `;
+    
+    markerElement.style.cssText = `
+      width: 32px;
+      height: 32px;
+      cursor: none;
+      position: relative;
+    `;
+
+    // Add category-specific styling
+    const style = document.createElement('style');
+    style.textContent = `
+      .career-marker .marker-container {
+        position: relative;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .career-marker .marker-logo {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.8);
+        border: 2px solid ${categoryStyle.color};
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        position: relative;
+      }
+      
+      .career-marker .marker-logo img {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        object-fit: contain;
+      }
+      
+      .career-marker .marker-fallback {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: ${categoryStyle.color};
+        border: 2px solid ${categoryStyle.color};
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        z-index: 2;
+        position: relative;
+      }
+      
+      .career-marker .marker-pulse {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: ${categoryStyle.glowColor};
+        animation: marker-pulse 2s infinite;
+        z-index: 1;
+      }
+      
+      @keyframes marker-pulse {
+        0%, 100% { 
+          transform: translate(-50%, -50%) scale(0.8); 
+          opacity: 0.8;
+        }
+        50% { 
+          transform: translate(-50%, -50%) scale(1.2); 
+          opacity: 0.3;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    stylesRef.current.push(style);
+
+    return markerElement;
+  }, []);
+
+  const addCareerMarkers = useCallback(() => {
+    if (!map.current || !careerData) return;
 
     // Clear existing markers first
     markersRef.current.forEach(marker => {
@@ -358,53 +480,33 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     });
     markersRef.current = [];
 
-    // Create custom marker elements for each site
-    sites.forEach((site) => {
-      const markerElement = document.createElement('div');
-      markerElement.className = 'mission-marker';
-      markerElement.style.cssText = `
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: radial-gradient(circle, #00ff00, #00aa00);
-        border: 2px solid #00ff00;
-        box-shadow: 0 0 20px #00ff0080, inset 0 0 10px #00ff0040;
-        cursor: none;
-        animation: pulse 2s infinite;
-        position: relative;
-      `;
-
-      // Add pulsing animation
-      const style = document.createElement('style');
-      style.textContent = `
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); box-shadow: 0 0 20px #00ff0080; }
-          50% { transform: scale(1.2); box-shadow: 0 0 30px #00ff00ff; }
-        }
-      `;
-      document.head.appendChild(style);
-      stylesRef.current.push(style);
-
-      // Create marker
-      const marker = new mapboxgl.Marker(markerElement)
-        .setLngLat([site.hq.lng, site.hq.lat])
+    // Create career markers
+    careerData.markers.forEach((careerMarker) => {
+      const markerElement = createCareerMarkerElement(careerMarker);
+      
+      const coordinates = [careerMarker.location.lng, careerMarker.location.lat];
+      console.log(`[MapboxScene] Adding marker for ${careerMarker.name} at:`, coordinates);
+      
+      // Create mapbox marker
+      const mapboxMarker = new mapboxgl.Marker(markerElement)
+        .setLngLat(coordinates)
         .addTo(map.current!);
       
       // Store marker reference for cleanup
-      markersRef.current.push(marker);
+      markersRef.current.push(mapboxMarker);
 
       // Add click handler
       markerElement.addEventListener('click', () => {
-        selectSite(site);
+        setSelectedCareerMarker(careerMarker);
         addMapTelemetry({
           source: 'MAP',
-          message: `Engaging target: ${site.codename || site.name}`,
+          message: `Engaging career target: ${careerMarker.codename}`,
           level: 'success'
         });
 
-        // Fly to site
+        // Fly to career location
         map.current?.flyTo({
-          center: [site.hq.lng, site.hq.lat],
+          center: [careerMarker.location.lng, careerMarker.location.lat],
           zoom: 8,
           pitch: 60,
           bearing: 0,
@@ -412,47 +514,133 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
         });
       });
 
-      // Add popup
+      // Enhanced popup with career information
       const popup = new mapboxgl.Popup({
-        offset: 25,
+        offset: 35,
         closeButton: false,
-        className: 'tactical-popup'
+        className: 'tactical-popup career-popup'
       }).setHTML(`
-        <div style="
-          background: #000;
-          border: 1px solid #00ff00;
-          color: #00ff00;
-          font-family: 'Courier New', monospace;
-          font-size: 12px;
-          padding: 8px;
-          border-radius: 4px;
-        ">
-          <div style="color: #fff; font-weight: bold;">${site.codename || site.name}</div>
-          <div style="font-size: 10px; margin-top: 4px;">
-            ${site.type.toUpperCase()} • ${site.engagementType?.toUpperCase() || 'CLASSIFIED'}
+        <div class="career-popup-content">
+          <div class="popup-header">
+            <div class="company-name">${careerMarker.name}</div>
+            <div class="mission-codename">${careerMarker.codename}</div>
           </div>
-          <div style="font-size: 10px; color: #00ff00;">
-            LAT: ${site.hq.lat.toFixed(4)} LNG: ${site.hq.lng.toFixed(4)}
+          <div class="popup-body">
+            <div class="position">${careerMarker.position}</div>
+            <div class="date-range">${resumeDataService.getDateRange(careerMarker)}</div>
+            <div class="location">${careerMarker.location.city}, ${careerMarker.location.region}</div>
+            <div class="coordinates">${resumeDataService.getTacticalCoords(careerMarker)}</div>
+          </div>
+          <div class="popup-footer">
+            <div class="category">${careerMarker.category}</div>
+            ${careerMarker.isCurrent ? '<div class="status-current">ACTIVE</div>' : ''}
           </div>
         </div>
       `);
 
+      // Add styled popup CSS
+      const popupStyle = document.createElement('style');
+      popupStyle.textContent = `
+        .career-popup-content {
+          background: rgba(0, 0, 0, 0.95);
+          border: 1px solid ${resumeDataService.getCategoryStyle(careerMarker.type).color};
+          color: #ffffff;
+          font-family: 'Courier New', monospace;
+          font-size: 11px;
+          padding: 12px;
+          border-radius: 6px;
+          min-width: 200px;
+        }
+        
+        .popup-header .company-name {
+          color: #ffffff;
+          font-weight: bold;
+          font-size: 13px;
+          margin-bottom: 2px;
+        }
+        
+        .popup-header .mission-codename {
+          color: ${resumeDataService.getCategoryStyle(careerMarker.type).color};
+          font-size: 10px;
+          margin-bottom: 8px;
+        }
+        
+        .popup-body .position {
+          color: #cccccc;
+          margin-bottom: 4px;
+        }
+        
+        .popup-body .date-range {
+          color: ${resumeDataService.getCategoryStyle(careerMarker.type).color};
+          font-size: 10px;
+          margin-bottom: 2px;
+        }
+        
+        .popup-body .location,
+        .popup-body .coordinates {
+          color: #888888;
+          font-size: 9px;
+        }
+        
+        .popup-footer {
+          margin-top: 8px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .popup-footer .category {
+          color: ${resumeDataService.getCategoryStyle(careerMarker.type).color};
+          font-size: 9px;
+          text-transform: uppercase;
+        }
+        
+        .popup-footer .status-current {
+          background: #00ff00;
+          color: #000000;
+          padding: 1px 4px;
+          border-radius: 2px;
+          font-size: 8px;
+          font-weight: bold;
+        }
+      `;
+      document.head.appendChild(popupStyle);
+      stylesRef.current.push(popupStyle);
+
       markerElement.addEventListener('mouseenter', () => {
-        marker.setPopup(popup).togglePopup();
+        mapboxMarker.setPopup(popup).togglePopup();
       });
 
       markerElement.addEventListener('mouseleave', () => {
         popup.remove();
       });
     });
-  }, [sites, selectSite, addMapTelemetry]);
 
-  // Update markers when sites change
+    // Fit map to show all career markers after a brief delay
+    setTimeout(() => {
+      if (map.current && careerData.markers.length > 0) {
+        const bounds = new mapboxgl.LngLatBounds();
+        
+        careerData.markers.forEach(marker => {
+          bounds.extend([marker.location.lng, marker.location.lat]);
+        });
+        
+        console.log('[MapboxScene] Fitting map to career marker bounds:', bounds);
+        
+        map.current.fitBounds(bounds, {
+          padding: { top: 50, bottom: 50, left: 50, right: 50 },
+          maxZoom: 6 // Don't zoom in too much
+        });
+      }
+    }, 1000); // Small delay to let markers render
+  }, [careerData, createCareerMarkerElement, addMapTelemetry]);
+
+  // Update markers when career data loads
   useEffect(() => {
-    if (mapLoaded && sites.length > 0) {
-      addMissionSites();
+    if (mapLoaded && careerData) {
+      addCareerMarkers();
     }
-  }, [mapLoaded, sites, addMissionSites]);
+  }, [mapLoaded, careerData, addCareerMarkers]);
 
   const resetView = () => {
     if (!map.current) return;
@@ -495,17 +683,18 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       {mapLoaded && (
         <>
           {/* Map controls */}
+          {/* Career Data Display */}
           <div className="absolute bottom-4 left-4">
             <div className="bg-gray-900/90 border border-green-500/30 rounded-lg p-3 backdrop-blur-sm">
               <div className="text-green-500 text-xs font-mono mb-2">
-                TACTICAL DISPLAY
+                CAREER TACTICAL DISPLAY
               </div>
               <div className="text-white text-xs font-mono space-y-1">
-                <div>SITES: {sites.length}</div>
-                <div>STATUS: <span className="text-green-500">ACTIVE</span></div>
-                <div>ENGINE: <span className="text-green-500">MAPBOX GL</span></div>
-                {selectedSite && (
-                  <div>TARGET: <span className="text-green-500">{selectedSite.codename || selectedSite.name}</span></div>
+                <div>MARKERS: {careerData?.markers.length || 0}</div>
+                <div>STATUS: <span className="text-green-500">OPERATIONAL</span></div>
+                <div>SOURCE: <span className="text-green-500">RESUME.JSON</span></div>
+                {selectedCareerMarker && (
+                  <div>TARGET: <span className="text-green-500">{selectedCareerMarker.codename}</span></div>
                 )}
               </div>
               <button
@@ -516,6 +705,39 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
               </button>
             </div>
           </div>
+
+          {/* Career Legend */}
+          {careerData && (
+            <div className="absolute bottom-4 right-4">
+              <div className="bg-gray-900/90 border border-green-500/30 rounded-lg p-3 backdrop-blur-sm">
+                <div className="text-green-500 text-xs font-mono mb-2">
+                  MISSION LEGEND
+                </div>
+                <div className="space-y-2">
+                  {Object.entries(careerData.categories).map(([type, config]) => {
+                    const markersOfType = careerData.markers.filter(m => m.type === type);
+                    if (markersOfType.length === 0) return null;
+                    
+                    return (
+                      <div key={type} className="flex items-center space-x-2">
+                        <div 
+                          className="w-3 h-3 rounded-full border"
+                          style={{
+                            backgroundColor: config.color,
+                            borderColor: config.color,
+                            boxShadow: `0 0 8px ${config.color}80`
+                          }}
+                        />
+                        <span className="text-white text-xs font-mono">
+                          {config.icon} {config.label} ({markersOfType.length})
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Crosshair cursor overlay with coordinates */}
           {cursorPoint && (

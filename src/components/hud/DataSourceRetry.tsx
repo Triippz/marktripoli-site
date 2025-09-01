@@ -1,33 +1,23 @@
 import { motion } from 'framer-motion';
 import { useMissionControl } from '../../store/missionControl';
+import { useDataStore } from '../../store/missionControlV2';
 
 export default function DataSourceRetry() {
   const { addTelemetry } = useMissionControl();
+  const { loadResumeData, resumeDataState, resumeDataError } = useDataStore();
   
   const handleRetry = async () => {
-    const resumeUrl = import.meta.env.VITE_RESUME_URL;
-    const resumeLoaderEnabled = import.meta.env.VITE_ENABLE_RESUME_LOADER === 'true';
-    
-    if (!resumeUrl || !resumeLoaderEnabled) {
-      addTelemetry({
-        source: 'DATA_RETRY',
-        message: 'External intelligence URL not configured - cannot retry',
-        level: 'warning'
-      });
-      return;
-    }
-
     addTelemetry({
       source: 'DATA_RETRY',
-      message: 'Retrying external intelligence acquisition...',
+      message: 'Retrying resume data acquisition from local source...',
       level: 'info'
     });
 
     try {
-      await loadResumeData(resumeUrl);
+      await loadResumeData('/resume.json');
       addTelemetry({
         source: 'DATA_RETRY',
-        message: 'External intelligence acquisition successful',
+        message: 'Resume data acquisition successful',
         level: 'info'
       });
     } catch (error) {

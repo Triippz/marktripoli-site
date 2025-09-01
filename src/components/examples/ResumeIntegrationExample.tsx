@@ -8,8 +8,8 @@ import { ResumeDataErrorBoundary } from '../ErrorBoundary/ResumeDataErrorBoundar
  * Shows loading states, error handling, and data visualization
  */
 export function ResumeIntegrationExample() {
-  // Example GitHub URL - replace with actual resume JSON URL
-  const RESUME_URL = 'https://raw.githubusercontent.com/username/resume/main/resume.json';
+  // Local resume URL (served from public/)
+  const RESUME_URL = '/resume.json';
   
   const {
     sites,

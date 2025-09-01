@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useMapStore, useTelemetryStore } from '../../store/missionControlV2';
-import { useDataStore } from '../../store/missionControlV2';
+import { useMapStore, useTelemetryStore, useDataStore } from '../../store/missionControlV2';
 import type { SiteData, EnhancedSiteData } from '../../types/mission';
 import { ResumeDataLoader } from '../LoadingStates/ResumeDataLoader';
 import MissionPin from './MissionPin';
@@ -24,7 +23,7 @@ function MapScene() {
   const [allSites, setAllSites] = useState<EnhancedSiteData[]>(staticSites as EnhancedSiteData[]);
   const [hoveredSite, setHoveredSite] = useState<string | null>(null);
   const [mapInitialized, setMapInitialized] = useState(false);
-  const [resumeDataUrl, setResumeDataUrl] = useState<string>('');
+  const [resumeDataUrl, setResumeDataUrl] = useState<string>('/resume.json');
 
   // USA flyTo initialization effect
   useEffect(() => {
@@ -75,30 +74,23 @@ function MapScene() {
     });
   }, [dynamicSites, staticSites, addTelemetry]);
 
-  // Resume data URL handling
+  // Auto-load resume data from local source on first idle
   useEffect(() => {
-    // Check if we have a resume URL from environment or config
-    const envResumeUrl = process.env.VITE_RESUME_URL;
-    if (envResumeUrl && resumeDataUrl !== envResumeUrl) {
-      setResumeDataUrl(envResumeUrl);
-      
-      // Auto-load resume data if URL is available
-      if (!resumeUrl && resumeDataState === 'idle') {
+    if (!resumeUrl && resumeDataState === 'idle') {
+      addTelemetry({
+        source: 'DATA',
+        message: `Initializing resume data from local source`,
+        level: 'info'
+      });
+      loadResumeData('/resume.json').catch(error => {
         addTelemetry({
           source: 'DATA',
-          message: `Detected resume data source - Initiating data acquisition`,
-          level: 'info'
+          message: `Resume data acquisition failed: ${error.message}`,
+          level: 'error'
         });
-        loadResumeData(envResumeUrl).catch(error => {
-          addTelemetry({
-            source: 'DATA',
-            message: `Resume data acquisition failed: ${error.message}`,
-            level: 'error'
-          });
-        });
-      }
+      });
     }
-  }, [resumeUrl, resumeDataState, resumeDataUrl, loadResumeData, addTelemetry]);
+  }, [resumeUrl, resumeDataState, loadResumeData, addTelemetry]);
 
   const handleSiteClick = (site: EnhancedSiteData) => {
     selectSite(site);
@@ -285,7 +277,7 @@ function MapScene() {
   );
 
   // Wrap with resume data loader if we have a resume URL configured
-  if (resumeDataUrl && process.env.VITE_ENABLE_RESUME_LOADER !== 'false') {
+  if (resumeDataUrl) {
     return (
       <ResumeDataLoader
         resumeUrl={resumeDataUrl}

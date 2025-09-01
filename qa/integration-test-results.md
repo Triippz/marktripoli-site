@@ -20,12 +20,7 @@
 ### 1. Environment Configuration ✅ COMPLETED
 
 **Setup Validated:**
-- Test JSON resume data accessible at `http://localhost:5173/test-resume.json`
-- Environment variables configured:
-  ```env
-  VITE_RESUME_URL=http://localhost:5173/test-resume.json
-  VITE_ENABLE_RESUME_LOADER=true
-  ```
+- Test JSON resume data accessible at `http://localhost:5173/resume.json`
 - Development server running successfully
 
 ### 2. Current Behavior Analysis ❌ INTEGRATION FAILURE
@@ -33,8 +28,8 @@
 **Test:** Load Executive Briefing page (http://localhost:5173/briefing)
 
 **Expected Behavior:**
-1. Component should read `VITE_RESUME_URL` environment variable
-2. Call `resumeService.fetchResumeData()` with the URL
+1. Component should load local `/resume.json`
+2. Call `resumeService.fetchResumeData()`
 3. Display loading state while fetching
 4. Transform JSON resume data using existing services
 5. Display dynamic content from external source
@@ -209,25 +204,20 @@ const initialCenter = centerLocation || [39.8283, -98.5795];
 
 ## Test Scenarios Post-Fix
 
-### Scenario A: Successful External Data Load
-1. **Setup:** Valid `VITE_RESUME_URL` configured
-2. **Expected:** Loading spinner → Network request → Dynamic data display
-3. **Validation:** Network tab shows HTTP request, content matches test JSON
+### Scenario A: Successful Local Data Load
+1. **Setup:** Ensure `public/resume.json` is present and valid
+2. **Expected:** Loading spinner → Fetch `/resume.json` → Dynamic data display
+3. **Validation:** Network tab shows request to `/resume.json`, content matches file
 
-### Scenario B: Network Failure Handling  
-1. **Setup:** Invalid `VITE_RESUME_URL` (404 endpoint)
-2. **Expected:** Loading spinner → Network error → Fallback to static data
-3. **Validation:** Error logged, static data displayed, app remains functional
+### Scenario B: Local File Missing
+1. **Setup:** Temporarily rename `public/resume.json`
+2. **Expected:** Loading spinner → Fetch error → Fallback to static data (if implemented) or error state
+3. **Validation:** Error logged, UI handles gracefully
 
-### Scenario C: Malformed JSON Handling
-1. **Setup:** `VITE_RESUME_URL` pointing to malformed JSON
-2. **Expected:** Loading spinner → Parse error → Fallback to static data
-3. **Validation:** Parse error logged, graceful fallback
-
-### Scenario D: Disabled External Loading
-1. **Setup:** `VITE_ENABLE_RESUME_LOADER=false`
-2. **Expected:** Skip external fetch, use static data immediately
-3. **Validation:** No network requests, immediate static data load
+### Scenario C: Malformed Local JSON
+1. **Setup:** Introduce JSON syntax error in `public/resume.json`
+2. **Expected:** Loading spinner → Parse error → Fallback/error state
+3. **Validation:** Parse error logged, UI handles gracefully
 
 ---
 

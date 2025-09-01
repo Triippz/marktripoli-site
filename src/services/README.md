@@ -259,30 +259,13 @@ npm run dev
 # Test various URLs and error scenarios
 ```
 
-## Configuration
+## Data Source
 
-### Environment Variables
-```env
-# Optional: Default resume URL
-VITE_DEFAULT_RESUME_URL=https://example.com/resume.json
+This project reads resume data exclusively from the local public asset: `/resume.json`.
 
-# Optional: Cache duration (milliseconds)
-VITE_RESUME_CACHE_DURATION=3600000
-
-# Optional: Request timeout (milliseconds)  
-VITE_RESUME_TIMEOUT=15000
-```
-
-### Build Configuration
-```ts
-// vite.config.ts
-export default defineConfig({
-  define: {
-    __RESUME_CACHE_DURATION__: process.env.VITE_RESUME_CACHE_DURATION || 3600000,
-    __RESUME_TIMEOUT__: process.env.VITE_RESUME_TIMEOUT || 15000
-  }
-});
-```
+- Place your JSON Resume file at `public/resume.json`.
+- The resume service handles caching in localStorage and parsing.
+- No environment variables are required for the data source.
 
 ## Best Practices
 

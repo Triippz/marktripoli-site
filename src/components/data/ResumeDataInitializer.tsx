@@ -8,7 +8,7 @@ interface ResumeDataInitializerProps {
   retryDelay?: number;
 }
 
-const DEFAULT_RESUME_URL = 'https://raw.githubusercontent.com/mtripoli/resume/main/resume.json';
+const DEFAULT_RESUME_URL = '/resume.json';
 
 export default function ResumeDataInitializer({
   resumeUrl = DEFAULT_RESUME_URL,
