@@ -75,4 +75,4 @@ const TacticalCrosshair: React.FC<TacticalCrosshairProps> = ({
   );
 };
 
-export default TacticalCrosshair;
+export default React.memo(TacticalCrosshair);

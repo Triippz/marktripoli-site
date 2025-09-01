@@ -114,4 +114,4 @@ const MapContainer: React.FC<MapContainerProps> = ({
   );
 };
 
-export default MapContainer;
+export default React.memo(MapContainer);

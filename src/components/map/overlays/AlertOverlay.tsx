@@ -20,4 +20,4 @@ const AlertOverlay: React.FC<AlertOverlayProps> = ({ isAlertMode }) => {
   );
 };
 
-export default AlertOverlay;
+export default React.memo(AlertOverlay);

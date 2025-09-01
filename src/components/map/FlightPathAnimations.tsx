@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { SiteData } from '../../types/mission';
 
@@ -233,4 +233,4 @@ function FlightPathAnimations({ sites, selectedSite, containerWidth, containerHe
   );
 }
 
-export default FlightPathAnimations;
+export default React.memo(FlightPathAnimations);

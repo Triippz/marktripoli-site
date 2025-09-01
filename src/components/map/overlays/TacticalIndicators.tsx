@@ -40,4 +40,4 @@ const TacticalIndicators: React.FC<TacticalIndicatorsProps> = ({ zoomLevel = 4 }
   );
 };
 
-export default TacticalIndicators;
+export default React.memo(TacticalIndicators);

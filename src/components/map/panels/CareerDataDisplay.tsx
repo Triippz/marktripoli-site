@@ -37,4 +37,4 @@ const CareerDataDisplay: React.FC<CareerDataDisplayProps> = ({
   );
 };
 
-export default CareerDataDisplay;
+export default React.memo(CareerDataDisplay);
