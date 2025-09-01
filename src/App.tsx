@@ -59,7 +59,7 @@ function MissionControlInterface() {
     try {
       if (alertActive) document.body.classList.add('alert-mode');
       else document.body.classList.remove('alert-mode');
-    } catch {}
+    } catch { /* empty */ }
   }, [alertActive]);
 
 
