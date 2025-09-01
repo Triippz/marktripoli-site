@@ -8,13 +8,13 @@ export default defineConfig({
   plugins: [
     react(),
     // Bundle analyzer (only in build mode)
-    process.env.ANALYZE && visualizer({
+    ...(process.env.ANALYZE ? [visualizer({
       filename: 'dist/stats.html',
       open: true,
       gzipSize: true,
       brotliSize: true
-    })
-  ].filter(Boolean),
+    })] : [])
+  ],
   build: {
     // Enable code splitting
     rollupOptions: {
@@ -53,13 +53,7 @@ export default defineConfig({
     sourcemap: true,
     
     // Minification options
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true, // Remove console.log in production
-        drop_debugger: true
-      }
-    }
+    minify: 'terser'
   },
   
   // Performance optimizations

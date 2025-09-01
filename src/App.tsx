@@ -7,7 +7,6 @@ import { useMissionControl } from './store/missionControl';
 import { missionAudio } from './utils/audioSystem';
 
 // Base Components
-import { SkipNavigation } from './components/SkipNavigation';
 import BootSequence from './components/boot/BootSequence';
 import MapboxScene from './components/map/MapboxScene';
 import { EnhancedErrorBoundary } from './components/ErrorBoundary/EnhancedErrorBoundary';
@@ -65,7 +64,7 @@ function MissionControlInterface() {
         context="MAPBOX_SCENE"
         maxRetries={2}
         retryDelay={3000}
-        onError={(error, errorInfo) => {
+        onError={(error) => {
           console.error('[App] MapboxScene error boundary triggered:', error);
         }}
       >
@@ -192,7 +191,7 @@ function App() {
           context="MISSION_CONTROL_APP"
           maxRetries={3}
           retryDelay={2000}
-          onError={(error, errorInfo) => {
+          onError={(error) => {
             console.error('[App] Mission Control error boundary triggered:', error);
           }}
         >
