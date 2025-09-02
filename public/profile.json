@@ -19,5 +19,98 @@
     "Scalability & performance",
     "Executive communication"
   ],
-  "interests": ["Aviation", "DefenseTech", "Open Source", "UX for Engineers"]
+  "interests": ["Aviation", "DefenseTech", "Open Source", "UX for Engineers"],
+  "leadership": {
+    "philosophy": {
+      "title": "Command Philosophy",
+      "principles": [
+        "People are the force multiplier - technology enables, but humans deliver",
+        "Lead with context, not control - empower teams with clear objectives and trust",
+        "Own the outcome, delegate the approach - accountability flows up, autonomy flows down",
+        "Build systems that make the right thing the easy thing"
+      ],
+      "approach": "I believe in servant leadership that creates conditions for others to thrive. My job isn't to be the smartest person in the room, but to make everyone else smarter and more effective."
+    },
+    "mentorship": {
+      "title": "Force Development Strategy",
+      "approach": "Growing engineers requires both technical excellence and human understanding. I focus on creating growth trajectories that match individual strengths while building organizational capability.",
+      "methods": [
+        "Reverse mentoring - learning from junior engineers about emerging tech and fresh perspectives",
+        "Technical pairing - hands-on skill development through real problem-solving",
+        "Career path mapping - clear progression from individual contributor to technical leader",
+        "Failure-safe environments - psychological safety to experiment and learn from mistakes"
+      ]
+    },
+    "product_focus": {
+      "title": "Mission-Critical Execution",
+      "philosophy": "Engineering without customer impact is just expensive research. Every technical decision must serve user outcomes and business objectives.",
+      "practices": [
+        "Cross-functional collaboration - engineering sits at the table for product strategy",
+        "Data-driven architecture - technical decisions backed by user metrics and business KPIs",
+        "Customer-first trade-offs - balancing technical debt, feature velocity, and reliability",
+        "Executive translation - bridging technical complexity and business language"
+      ]
+    },
+    "team_culture": {
+      "title": "Unit Cohesion Principles",
+      "values": [
+        "Radical candor - direct feedback delivered with care and respect",
+        "Ownership mindset - teams that jump to own challenges, not walk away",
+        "Continuous learning - growth mindset that embraces change and complexity",
+        "Inclusive excellence - diverse perspectives make better technical decisions"
+      ],
+      "practices": [
+        "Regular one-on-ones focused on growth, not just status updates",
+        "Team retrospectives that identify both process and relationship improvements",
+        "Knowledge sharing sessions where teaching is valued as much as coding",
+        "Cross-team collaboration that breaks down silos and builds empathy"
+      ]
+    },
+    "innovation": {
+      "title": "Technology Force Multiplication",
+      "approach": "Innovation isn't just about new tech - it's about solving real problems with elegant solutions that scale.",
+      "focus_areas": [
+        "Platform engineering - building foundations that enable team velocity",
+        "Developer experience - treating internal tools as products with real users",
+        "Operational excellence - reliability and observability as competitive advantages",
+        "Strategic technical debt - conscious decisions about when to optimize vs. deliver"
+      ],
+      "mindset": "I balance pushing technical boundaries with practical delivery. The best architecture is one that ships and evolves."
+    },
+    "people_leadership": {
+      "title": "People-First Leadership",
+      "approach": "Technical excellence requires human flourishing. The best systems are built by teams that feel valued, heard, and empowered to take meaningful risks.",
+      "principles": [
+        "Lead with humility - the best leaders are always learning and readily admit when they don't know something",
+        "Empathy drives better decisions - understanding team perspectives leads to solutions that actually work for people",
+        "Create psychological safety - innovation requires an environment where people can take risks and learn from failures",
+        "Build blameless cultures - when things go wrong, focus on improving systems and processes, not finding someone to blame",
+        "Grow whole humans - technical skills flourish when people feel supported as complete individuals, not just resources"
+      ],
+      "practices": [
+        "Regular check-ins that prioritize personal well-being alongside project status",
+        "Transparent communication about mistakes and lessons learned from leadership",
+        "Active listening in meetings - ensuring every voice is heard before decisions are made",
+        "Post-incident reviews focused on learning and system improvement, never individual performance",
+        "Career conversations that consider life goals, not just technical advancement"
+      ]
+    }
+  },
+  "technical_craft": {
+      "title": "Technical Craft",
+      "approach": "Write simple, type-safe code that solves real business problems. Ship early, ship often.",
+      "domains": ["Edge Computing", "Distributed Systems", "High Throughput Computing", "Defense Technology", "Developer Platforms", "SaaS"],
+      "principles": [
+        "Type safety first - prefer Java/Go for reliability and maintainability",
+        "KISS principle - simple code beats clever code every time",
+        "Code for humans - write for the next person who reads it",
+        "Ship continuously - frequent delivery drives better outcomes"
+      ],
+      "practices": [
+        "Ownership model over Scrum - clear vision with appropriate guardrails",
+        "Type-safe languages as foundation for reliable systems",
+        "Continuous integration and deployment - always be shipping",
+        "Business-first engineering - solve real problems, not technical puzzles"
+      ]
+    }
 }

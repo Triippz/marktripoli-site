@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
+import {Map} from 'mapbox-gl';
 import { CareerMarker, CareerMapData } from '../../../types/careerData';
 import { resumeDataService } from '../../../services/resumeDataService';
 import { useMissionControlV2 } from '../../../store/missionControlV2';
@@ -16,7 +16,7 @@ export interface CareerMarkerState {
 export interface CareerMarkerControls {
   selectMarker: (marker: CareerMarker) => void;
   clearSelection: () => void;
-  flyToMarker: (marker: CareerMarker, map: mapboxgl.Map) => void;
+  flyToMarker: (marker: CareerMarker, map: Map) => void;
 }
 
 export function useCareerMarkers(): CareerMarkerState & CareerMarkerControls {

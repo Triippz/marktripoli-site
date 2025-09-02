@@ -1,8 +1,8 @@
-import mapboxgl from 'mapbox-gl';
-import { TerminalCommand, TerminalState, TerminalCommandResult, TerminalAction } from '../types';
+import {Map} from 'mapbox-gl';
+import { TerminalCommand, TerminalState, TerminalCommandResult } from '../types';
 import { getGeofences, goToGeofence } from '../../../utils/easterEggs/mapEasterEggs';
 import { createDefaultFS, resolvePath, isDir, listDir, readFile } from '../../../utils/fauxFS';
-import { CareerMapData, CareerMarker } from '../../../types/careerData';
+import { CareerMapData } from '../../../types/careerData';
 
 export class CommandProcessor {
   private commands: Map<string, TerminalCommand> = new Map();
@@ -10,7 +10,7 @@ export class CommandProcessor {
 
   constructor(
     private careerData: CareerMapData | null = null,
-    private map: mapboxgl.Map | null = null
+    private map: Map | null = null
   ) {
     this.initializeCommands();
   }
@@ -107,7 +107,7 @@ export class CommandProcessor {
     // Linux-like commands
     this.registerCommand({
       name: 'pwd',
-      execute: (args, state) => ({
+      execute: (_args, state) => ({
         output: [state.currentWorkingDir]
       })
     });
@@ -129,7 +129,7 @@ export class CommandProcessor {
 
     this.registerCommand({
       name: 'whoami',
-      execute: (args, state) => ({
+      execute: (_args, state) => ({
         output: [state.isAdmin ? 'root' : 'guest']
       })
     });

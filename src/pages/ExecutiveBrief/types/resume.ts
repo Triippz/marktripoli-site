@@ -26,7 +26,8 @@ export type Resume = {
   education?: any[];
   awards?: Array<{ title?: string; date?: string; awarder?: string; summary?: string }>;
   meta?: { clearance?: string; createdAt?: string };
-  projects?: Array<{ name?: string; description?: string; url?: string; keywords?: string[] }>;
+  projects?: Array<{ name?: string; description?: string; url?: string; keywords?: string[]; highlights?: string[] }>;
+  opensource?: Array<{ name?: string; description?: string; url?: string; keywords?: string[]; highlights?: string[] }>;
 };
 
 export type Profile = {
@@ -36,6 +37,47 @@ export type Profile = {
   contact?: { email?: string; website?: string; linkedin?: string; github?: string };
   strengths?: string[];
   interests?: string[];
+  leadership?: {
+    philosophy?: {
+      title?: string;
+      principles?: string[];
+      approach?: string;
+    };
+    mentorship?: {
+      title?: string;
+      approach?: string;
+      methods?: string[];
+    };
+    product_focus?: {
+      title?: string;
+      philosophy?: string;
+      practices?: string[];
+    };
+    team_culture?: {
+      title?: string;
+      values?: string[];
+      practices?: string[];
+    };
+    innovation?: {
+      title?: string;
+      approach?: string;
+      focus_areas?: string[];
+      mindset?: string;
+    };
+    people_leadership?: {
+      title?: string;
+      approach?: string;
+      principles?: string[];
+      practices?: string[];
+    };
+    technical_craft?: {
+      title?: string;
+      approach?: string;
+      domains?: string[];
+      principles?: string[];
+      practices?: string[];
+    };
+  };
 };
 
 export interface ResumeDataContextType {

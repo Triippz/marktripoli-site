@@ -10,4 +10,8 @@ export { ErrorState } from './ErrorState';
 export { MainContent } from './MainContent';
 export { ExperienceCard } from './ExperienceCard';
 export { EducationCard } from './EducationCard';
+export { ProjectsCard } from './ProjectsCard';
+export { LeadershipSection } from './LeadershipSection';
+export { TechnicalCraftSection } from './TechnicalCraftSection';
+export { CollapsibleCard } from './CollapsibleCard';
 export type * from '../../types/resume';

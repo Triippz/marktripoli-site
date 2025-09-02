@@ -50,7 +50,7 @@
         "Established secure SDLC practices aligned with FedRAMP, IL5/IL6, and NIST 800-53/171.",
         "Partnered with BD to translate DoD field requirements into roadmap priorities (e.g., TAK Server-as-a-Service, ATAK plugins).",
         "Built self-service integration framework for rapid onboarding of integrations.",
-        "Directed FedRAMP SSP & continuous monitoring compliance workstreams."
+      "Directed FedRAMP SSP & continuous monitoring compliance workstreams."
       ],
       "x_languages": ["Go", "TypeScript", "Python"],
       "x_frameworks": ["Gin", "FastAPI", "React"],
@@ -298,21 +298,23 @@
   ],
   "projects": [
     {
-      "name": "Legion Integration Layer",
-      "description": "Redesigned Picogrid's Legion into a modular integration layer for C2, AI, and analytics systems.",
+      "name": "Legion",
+      "description": "Redesigned and Reenvisioned Picogrid's Legion into a modular data integration layer that provides an open series of APIs for developers or companies to easily integrate their end-effects or software systems with Picogrid's data layer to easily integrate with various other software systems. I also rebuild Picogrid's Legion C2 capabilities to provide a mechanism to provide a unified common operating picture for Picogrid's C2-based customers.",
       "highlights": [
         "Unlocked IL5/IL6 classified deployments",
-        "Contributed to >$15M in new defense contracts"
+        "Contributed directly to >$15M in new defense contracts",
+        "Cloud Native and Cloud Agnostic deployments"
       ],
       "keywords": [
         "C2",
-        "Integration",
+        "Data Pipeline",
+        "Platform Integrations",
         "DefenseTech"
       ]
     },
     {
-      "name": "Build & Deploy Orchestration System",
-      "description": "Distributed orchestration system that reduced build times 50–80% across HubSpot engineering.",
+      "name": "HubSpot Developer Projects",
+      "description": "HubSpot's Distributed orchestration system used by various team's throughout HubSpot to build their developer-facing products.",
       "highlights": [
         "Java",
         "Kafka",
@@ -322,7 +324,8 @@
       ],
       "keywords": [
         "CI/CD",
-        "Distributed Systems"
+        "Distributed Systems",
+        "Developer Platform"
       ]
     },
     {
@@ -339,7 +342,9 @@
         "Mobile",
         "Platform"
       ]
-    },
+    }
+  ],
+  "opensource": [
     {
       "name": "JYTB",
       "description": "Open-source project",

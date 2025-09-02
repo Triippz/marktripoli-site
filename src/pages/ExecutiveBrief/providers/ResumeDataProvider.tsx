@@ -17,9 +17,11 @@ export function ResumeDataProvider({ children }: ResumeDataProviderProps) {
   useEffect(() => {
     const load = async () => {
       try {
+        // Add cache-busting timestamp to prevent stale data
+        const timestamp = Date.now();
         const [r, p] = await Promise.all([
-          fetch('/resume.json').then(res => res.json()),
-          fetch('/profile.json').then(res => res.ok ? res.json() : null).catch(() => null)
+          fetch(`/resume.json?v=${timestamp}`).then(res => res.json()),
+          fetch(`/profile.json?v=${timestamp}`).then(res => res.ok ? res.json() : null).catch(() => null)
         ]);
         setResume(r);
         setProfile(p);

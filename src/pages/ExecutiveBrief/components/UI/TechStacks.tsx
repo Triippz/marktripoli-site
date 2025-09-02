@@ -34,7 +34,7 @@ function TechCategory({ label, items }: TechCategoryProps) {
 
 export function TechStacks({ stacks }: TechStacksProps) {
   return (
-    <div className="mission-panel p-6 md:p-8 mb-6">
+    <div>
       <div className="flex flex-col gap-3">
         <TechCategory label="Languages" items={stacks.languages} />
         <TechCategory label="Frameworks" items={stacks.frameworks} />

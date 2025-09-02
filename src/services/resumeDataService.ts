@@ -63,7 +63,9 @@ class ResumeDataService {
     }
 
     try {
-      const response = await fetch('/resume.json');
+      // Add cache-busting timestamp to prevent stale data
+      const timestamp = Date.now();
+      const response = await fetch(`/resume.json?v=${timestamp}`);
       if (!response.ok) {
         throw new Error(`Failed to load resume data: ${response.status}`);
       }

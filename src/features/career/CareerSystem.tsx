@@ -1,5 +1,5 @@
 import React from 'react';
-import mapboxgl from 'mapbox-gl';
+import {Map} from 'mapbox-gl';
 import { useCareerMarkers } from './hooks/useCareerMarkers';
 import CareerMarkerRenderer from './components/CareerMarkerRenderer';
 import CareerDetailsDialog from './components/CareerDetailsDialog';
@@ -7,7 +7,7 @@ import MissionLegend from './components/MissionLegend';
 import { CareerMarker } from '../../types/careerData';
 
 interface CareerSystemProps {
-  map: mapboxgl.Map | null;
+  map: Map | null;
   isMapLoaded: boolean;
   isUXVActive?: boolean;
   onUXVTarget?: (position: { lng: number; lat: number }) => void;
@@ -20,7 +20,6 @@ const CareerSystem: React.FC<CareerSystemProps> = ({
   onUXVTarget
 }) => {
   const {
-    markers,
     selectedMarker,
     isLoading,
     error,

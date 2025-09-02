@@ -8,9 +8,9 @@ interface EducationCardProps {
 export function EducationCard({ resume }: EducationCardProps) {
   const [repoMeta, setRepoMeta] = useState<Record<string, { stars: number; forks: number; fetchedAt: number }>>({});
 
-  // Fetch GitHub repo meta (stars/forks) for side projects without API key, with simple localStorage cache
+  // Fetch GitHub repo meta (stars/forks) for open source projects without API key, with simple localStorage cache
   useEffect(() => {
-    const projects = (resume?.projects || []).filter(p => (p.url || '').includes('github.com'));
+    const projects = resume?.opensource || [];
     if (projects.length === 0) return;
 
     const TTL_MS = 24 * 60 * 60 * 1000; // 24h
@@ -57,8 +57,7 @@ export function EducationCard({ resume }: EducationCardProps) {
   }, [resume]);
 
   return (
-    <div className="tactical-glass p-4">
-      <div className="holo-text font-mono text-lg mb-2">Education</div>
+    <div>
       <div className="space-y-3">
         {(resume?.education || []).map((e: any, i: number) => (
           <div key={i} className="border border-green-500/20 rounded p-3">
@@ -74,7 +73,7 @@ export function EducationCard({ resume }: EducationCardProps) {
       {/* Awards */}
       {Array.isArray(resume?.awards) && resume!.awards!.length > 0 && (
         <div className="mt-4">
-          <div className="holo-text font-mono text-lg mb-2">Awards</div>
+          <div className="holo-text font-mono text-base mb-2">Awards</div>
           <div className="space-y-2">
             {resume!.awards!.map((a, i) => (
               <div key={i} className="border border-green-500/20 rounded p-3">
@@ -87,12 +86,12 @@ export function EducationCard({ resume }: EducationCardProps) {
         </div>
       )}
       
-      {/* Side Projects (GitHub) */}
-      {Array.isArray(resume?.projects) && (resume!.projects!.some(p => (p.url || '').includes('github.com'))) && (
+      {/* Open Source Projects (GitHub) */}
+      {Array.isArray(resume?.opensource) && resume!.opensource!.length > 0 && (
         <div className="mt-4">
-          <div className="holo-text font-mono text-lg mb-2">Side Projects</div>
+          <div className="holo-text font-mono text-base mb-2">Open Source Projects</div>
           <div className="space-y-2">
-            {resume!.projects!.filter(p => (p.url || '').includes('github.com')).slice(0, 6).map((p, i) => {
+            {resume!.opensource!.slice(0, 6).map((p, i) => {
               const url = p.url || '';
               let repoKey: string | null = null;
               try {

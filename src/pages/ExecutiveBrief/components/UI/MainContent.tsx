@@ -1,4 +1,4 @@
-import { Header, ContactCard, StrengthsCard, Timeline, TechStacks, ExperienceCard, EducationCard } from './';
+import { Header, ContactCard, StrengthsCard, Timeline, TechStacks, ExperienceCard, EducationCard, ProjectsCard, LeadershipSection, TechnicalCraftSection, CollapsibleCard } from './';
 import type { Resume, Profile } from '../../types/resume';
 
 interface MainContentProps {
@@ -51,20 +51,36 @@ export function MainContent({
 
       {/* Mission Timeline */}
       {(resume?.work && resume.work.length > 0) && (
-        <div className="mission-panel p-6 md:p-8 mb-6">
-          <div className="holo-text font-mono text-lg mb-3">Mission Timeline</div>
+        <CollapsibleCard title="Mission Timeline" storageKey="mission-timeline">
           <Timeline work={resume.work} />
-        </div>
+        </CollapsibleCard>
       )}
 
-      {/* Experience & Education */}
+      {/* Leadership Section */}
+      <LeadershipSection profile={profile} />
+
+      {/* Technical Craft Section */}
+      <TechnicalCraftSection profile={profile} />
+
+      {/* Experience & Education/Projects */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <ExperienceCard resume={resume} />
-        <EducationCard resume={resume} />
+        <CollapsibleCard title="Experience" storageKey="experience" className="tactical-glass p-4">
+          <ExperienceCard resume={resume} />
+        </CollapsibleCard>
+        <div className="space-y-6">
+          <CollapsibleCard title="Education" storageKey="education" className="tactical-glass p-4">
+            <EducationCard resume={resume} />
+          </CollapsibleCard>
+          <CollapsibleCard title="Key Projects" storageKey="projects" className="tactical-glass p-4">
+            <ProjectsCard resume={resume} />
+          </CollapsibleCard>
+        </div>
       </div>
 
       {/* Tech Stacks */}
-      <TechStacks stacks={stacks} />
+      <CollapsibleCard title="Tech Stacks" storageKey="tech-stacks">
+        <TechStacks stacks={stacks} />
+      </CollapsibleCard>
     </div>
   );
 }
