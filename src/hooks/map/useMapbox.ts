@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useMissionControl } from '../../store/missionControl';
+import { featureLoggers, criticalLog } from '../../utils/debugLogger';
 
 // Set Mapbox access token from environment variables (primary, explicit path)
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string;
@@ -77,7 +78,7 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
 
     const initializeMap = async () => {
       try {
-        console.log('[useMapbox] Initializing map with API key:', import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.substring(0, 20) + '...');
+        featureLoggers.map.log('[useMapbox] Initializing map with API key:', import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.substring(0, 20) + '...');
 
         // Initialize map with global view for smooth transition from boot
         mapInstance = new mapboxgl.Map({
@@ -93,7 +94,7 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
         
         mapRef.current = mapInstance;
         setMap(mapInstance);
-        console.log('[useMapbox] Map instance created successfully');
+        featureLoggers.map.log('[useMapbox] Map instance created successfully');
 
         addMapTelemetry({
           source: 'MAP',
@@ -119,9 +120,9 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
             // Enable globe projection for cinematic effect
             if (mapRef.current.setProjection) {
               mapRef.current.setProjection('globe');
-              console.log('[useMapbox] ✅ Globe projection enabled');
+              featureLoggers.map.log('[useMapbox] ✅ Globe projection enabled');
             } else {
-              console.log('[useMapbox] ⚠️ Globe projection not available');
+              featureLoggers.map.warn('[useMapbox] ⚠️ Globe projection not available');
             }
             
             setIsLoaded(true);
@@ -192,7 +193,7 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
             setTimeout(() => {
               if (!mapRef.current) return;
               
-              console.log('[useMapbox] 🚀 Starting flyTo USA transition');
+              featureLoggers.map.log('[useMapbox] 🚀 Starting flyTo USA transition');
               addMapTelemetry({
                 source: 'MAP',
                 message: 'Engaging USA theater of operations...',
@@ -226,7 +227,7 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
             });
 
           } catch (loadError) {
-            console.error('[useMapbox] Map load configuration failed:', loadError);
+            criticalLog.error('[useMapbox] Map load configuration failed:', loadError);
             const error = loadError instanceof Error ? loadError : new Error('Map load failed');
             errorRef.current = error;
             setError(error);
@@ -240,7 +241,7 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
         });
 
         mapInstance.on('error', (e) => {
-          console.error('[useMapbox] Map error event:', e.error);
+          criticalLog.error('[useMapbox] Map error event:', e.error);
           errorRef.current = e.error;
           setError(e.error);
           addMapTelemetry({
@@ -251,7 +252,7 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
         });
 
       } catch (error) {
-        console.error('[useMapbox] Failed to create map instance:', error);
+        criticalLog.error('[useMapbox] Failed to create map instance:', error);
         const errorObj = error instanceof Error ? error : new Error('Map initialization failed');
         errorRef.current = errorObj;
         setError(errorObj);
@@ -265,16 +266,16 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
     };
 
     initializeMap().catch(error => {
-      console.error('[useMapbox] Map initialization promise failed:', error);
+      criticalLog.error('[useMapbox] Map initialization promise failed:', error);
     });
 
     return () => {
       try {
-        console.log('[useMapbox] Starting map cleanup...');
+        featureLoggers.map.log('[useMapbox] Starting map cleanup...');
         
         const mapToCleanup = mapInstance || mapRef.current;
         if (mapToCleanup && !mapToCleanup._removed) {
-          console.log('[useMapbox] Removing map instance...');
+          featureLoggers.map.log('[useMapbox] Removing map instance...');
           mapToCleanup.remove();
         }
         
@@ -282,10 +283,10 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
         setMap(null);
         setIsLoaded(false);
         setError(null);
-        console.log('[useMapbox] Map cleanup completed successfully');
+        featureLoggers.map.log('[useMapbox] Map cleanup completed successfully');
         
       } catch (cleanupError) {
-        console.warn('[useMapbox] Map cleanup error:', cleanupError);
+        criticalLog.warn('[useMapbox] Map cleanup error:', cleanupError);
         mapRef.current = null;
         setMap(null);
         setIsLoaded(false);

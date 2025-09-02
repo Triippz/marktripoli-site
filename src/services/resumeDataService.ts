@@ -1,5 +1,6 @@
 import type { CareerMarker, CareerMapData, ResumeData, ResumeWorkEntry, ResumeEducationEntry } from '../types/careerData';
 import { getLocationCoordinates } from '../utils/coordinates';
+import { featureLoggers, criticalLog } from '../utils/debugLogger';
 
 // Mission control codenames for companies/institutions
 const TACTICAL_CODENAMES: { [key: string]: string } = {
@@ -70,7 +71,7 @@ class ResumeDataService {
       this.resumeData = await response.json();
       return this.resumeData!;
     } catch (error) {
-      console.error('[ResumeDataService] Failed to load resume data:', error);
+      criticalLog.error('[ResumeDataService] Failed to load resume data:', error);
       throw error;
     }
   }
@@ -79,22 +80,22 @@ class ResumeDataService {
   private validateCoordinates(lat: number, lon: number, locationName: string): boolean {
     // Valid latitude range: -90 to 90
     if (lat < -90 || lat > 90) {
-      console.error(`[ResumeDataService] Invalid latitude for ${locationName}: ${lat}. Must be between -90 and 90.`);
+      featureLoggers.career.error(`[ResumeDataService] Invalid latitude for ${locationName}: ${lat}. Must be between -90 and 90.`);
       return false;
     }
     
     // Valid longitude range: -180 to 180
     if (lon < -180 || lon > 180) {
-      console.error(`[ResumeDataService] Invalid longitude for ${locationName}: ${lon}. Must be between -180 and 180.`);
+      featureLoggers.career.error(`[ResumeDataService] Invalid longitude for ${locationName}: ${lon}. Must be between -180 and 180.`);
       return false;
     }
 
     // Check for obviously invalid coordinates (0, 0) which often indicates missing data
     if (lat === 0 && lon === 0) {
-      console.warn(`[ResumeDataService] Suspicious coordinates (0, 0) for ${locationName}. This may indicate missing location data.`);
+      featureLoggers.career.warn(`[ResumeDataService] Suspicious coordinates (0, 0) for ${locationName}. This may indicate missing location data.`);
     }
 
-    console.log(`[ResumeDataService] ✅ Valid coordinates for ${locationName}: lat=${lat}, lon=${lon}`);
+    featureLoggers.career.log(`[ResumeDataService] ✅ Valid coordinates for ${locationName}: lat=${lat}, lon=${lon}`);
     return true;
   }
 
@@ -127,17 +128,17 @@ class ResumeDataService {
       const inferred = getLocationCoordinates(entry.location);
       lat = inferred.lat;
       lon = inferred.lng;
-      console.warn(`[ResumeDataService] Inferred coordinates for ${entry.name} from location "${entry.location}":`, inferred);
+      featureLoggers.career.log(`[ResumeDataService] Inferred coordinates for ${entry.name} from location "${entry.location}":`, inferred);
     }
 
     if (lat === null || lon === null) {
-      console.warn(`[ResumeDataService] Skipping ${entry.name} - no location data`);
+      featureLoggers.career.warn(`[ResumeDataService] Skipping ${entry.name} - no location data`);
       return null;
     }
 
     // Validate coordinates before processing
     if (!this.validateCoordinates(lat, lon, entry.name)) {
-      console.error(`[ResumeDataService] Skipping ${entry.name} - invalid coordinates`);
+      featureLoggers.career.error(`[ResumeDataService] Skipping ${entry.name} - invalid coordinates`);
       return null;
     }
 
@@ -150,7 +151,7 @@ class ResumeDataService {
       lng: lon
     };
 
-    console.log(`[ResumeDataService] ✅ ${entry.name} processed with coordinates:`, coordinates);
+    featureLoggers.career.log(`[ResumeDataService] ✅ ${entry.name} processed with coordinates:`, coordinates);
 
     const parsedLoc = this.parseBasicLocation(entry.location);
 
@@ -192,17 +193,17 @@ class ResumeDataService {
       const inferred = getLocationCoordinates((entry as any).location);
       lat = inferred.lat;
       lon = inferred.lng;
-      console.warn(`[ResumeDataService] Inferred coordinates for ${entry.institution} from location`, inferred);
+      featureLoggers.career.log(`[ResumeDataService] Inferred coordinates for ${entry.institution} from location`, inferred);
     }
 
     if (lat === null || lon === null) {
-      console.warn(`[ResumeDataService] Skipping ${entry.institution} - no location data`);
+      featureLoggers.career.warn(`[ResumeDataService] Skipping ${entry.institution} - no location data`);
       return null;
     }
 
     // Validate coordinates before processing
     if (!this.validateCoordinates(lat, lon, entry.institution)) {
-      console.error(`[ResumeDataService] Skipping ${entry.institution} - invalid coordinates`);
+      featureLoggers.career.error(`[ResumeDataService] Skipping ${entry.institution} - invalid coordinates`);
       return null;
     }
 

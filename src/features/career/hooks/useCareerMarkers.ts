@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import { CareerMarker, CareerMapData } from '../../../types/careerData';
 import { resumeDataService } from '../../../services/resumeDataService';
 import { useMissionControlV2 } from '../../../store/missionControlV2';
+import { featureLoggers, criticalLog } from '../../../utils/debugLogger';
 
 export interface CareerMarkerState {
   markers: CareerMarker[];
@@ -42,7 +43,7 @@ export function useCareerMarkers(): CareerMarkerState & CareerMarkerControls {
         setIsLoading(true);
         setError(null);
 
-        console.log('[useCareerMarkers] Loading career mission data from resume.json');
+        featureLoggers.career.log('[useCareerMarkers] Loading career mission data from resume.json');
         
         const careerMapData = await resumeDataService.getCareerMapData();
         setCareerData(careerMapData);
@@ -55,7 +56,7 @@ export function useCareerMarkers(): CareerMarkerState & CareerMarkerControls {
         });
 
       } catch (initError) {
-        console.error('[useCareerMarkers] Critical career data initialization error:', initError);
+        criticalLog.error('[useCareerMarkers] Critical career data initialization error:', initError);
         const errorMessage = initError instanceof Error ? initError.message : 'Unknown error';
         setError(errorMessage);
         

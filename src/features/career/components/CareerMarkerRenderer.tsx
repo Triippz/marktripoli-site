@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { CareerMarker, CareerMapData } from '../../../types/careerData';
 import { resumeDataService } from '../../../services/resumeDataService';
+import { featureLoggers, criticalLog } from '../../../utils/debugLogger';
 
 interface CareerMarkerRendererProps {
   map: mapboxgl.Map;
@@ -127,7 +128,7 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
       try {
         marker.remove();
       } catch (error) {
-        console.warn('[CareerMarkerRenderer] Error removing marker:', error);
+        featureLoggers.career.warn('[CareerMarkerRenderer] Error removing marker:', error);
       }
     });
     markersRef.current = [];
@@ -137,7 +138,7 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
       const markerElement = createMarkerElement(careerMarker);
       
       const coordinates: [number, number] = [careerMarker.location.lng, careerMarker.location.lat];
-      console.log(`[CareerMarkerRenderer] 📍 Adding ${careerMarker.type} marker:`, {
+      featureLoggers.career.log(`[CareerMarkerRenderer] 📍 Adding ${careerMarker.type} marker:`, {
         company: careerMarker.name,
         position: careerMarker.position,
         coordinates: coordinates,
@@ -239,7 +240,7 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
         try {
           marker.remove();
         } catch (error) {
-          console.warn('[CareerMarkerRenderer] Error removing marker during cleanup:', error);
+          featureLoggers.career.warn('[CareerMarkerRenderer] Error removing marker during cleanup:', error);
         }
       });
       markersRef.current = [];

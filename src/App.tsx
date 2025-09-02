@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import { useMissionControl } from './store/missionControl';
 import { missionAudio } from './utils/audioSystem';
 import SEO from './components/SEO';
+import { debugLog, criticalLog } from './utils/debugLogger';
 
 // Base Components
 import BootSequence from './components/boot/BootSequence';
@@ -37,9 +38,9 @@ function MissionControlInterface() {
 
   // Auto-trigger earth control mode after a brief delay
   useEffect(() => {
-    console.log('[App] 🚀 Mission Control loaded - starting 2 second timer for earth control');
+    debugLog.log('[App] 🚀 Mission Control loaded - starting 2 second timer for earth control');
     const timer = setTimeout(() => {
-      console.log('[App] ⏰ Timer fired - setting earthControlActive to TRUE');
+      debugLog.log('[App] ⏰ Timer fired - setting earthControlActive to TRUE');
       setEarthControlActive(true);
     }, 2000); // 2 seconds after mission control loads
 
@@ -48,9 +49,9 @@ function MissionControlInterface() {
 
   // Debug earth control active state changes
   useEffect(() => {
-    console.log('[App] 🌍 earthControlActive state changed to:', earthControlActive);
+    debugLog.log('[App] 🌍 earthControlActive state changed to:', earthControlActive);
     if (earthControlActive) {
-      console.log('[App] 📡 Earth control active - interactive mode enabled');
+      debugLog.log('[App] 📡 Earth control active - interactive mode enabled');
     }
   }, [earthControlActive]);
 
@@ -90,7 +91,7 @@ function MissionControlInterface() {
         maxRetries={2}
         retryDelay={3000}
         onError={(error) => {
-          console.error('[App] MapboxScene error boundary triggered:', error);
+          criticalLog.error('[App] MapboxScene error boundary triggered:', error);
         }}
       >
         <MapboxScene />
@@ -217,7 +218,7 @@ function App() {
           maxRetries={3}
           retryDelay={2000}
           onError={(error) => {
-            console.error('[App] Mission Control error boundary triggered:', error);
+            criticalLog.error('[App] Mission Control error boundary triggered:', error);
           }}
         >
           <Routes>

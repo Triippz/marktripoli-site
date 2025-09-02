@@ -25,6 +25,23 @@ npm run lint
 npm run preview
 ```
 
+### Debug Logging
+
+To enable debug console logs during development:
+
+```bash
+# Create .env file from example
+cp .env.example .env
+
+# Enable debug logs
+VITE_DEBUG_LOGS=true
+
+# Enable performance logs  
+VITE_DEBUG_PERF=true
+```
+
+Debug logs are automatically disabled in production builds.
+
 ## Architecture & Design
 
 ### Core Concept

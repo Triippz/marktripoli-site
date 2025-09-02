@@ -3,6 +3,8 @@
  * Implements tactical audio effects using WebAudio API
  */
 
+import { featureLoggers, criticalLog } from './debugLogger';
+
 interface AudioEffect {
   name: string;
   frequency: number;
@@ -65,9 +67,9 @@ class MissionControlAudio {
       }
 
       this.isEnabled = true;
-      console.log('[AUDIO] Mission Control Audio System initialized');
+      featureLoggers.audio.log('[AUDIO] Mission Control Audio System initialized');
     } catch (error) {
-      console.warn('[AUDIO] Failed to initialize audio system:', error);
+      criticalLog.warn('[AUDIO] Failed to initialize audio system:', error);
       this.isEnabled = false;
     }
   }
@@ -123,11 +125,19 @@ class MissionControlAudio {
     const envelope = this.audioContext.createGain();
     envelope.connect(this.masterGain);
 
+    // Ensure envelope parameters don't exceed duration
+    const safeAttack = Math.min(attack, duration * 0.2);
+    const safeDecay = Math.min(decay, duration * 0.3);
+    const safeRelease = Math.min(release, duration * 0.3);
+    
+    // Ensure release doesn't make negative time
+    const sustainTime = Math.max(safeAttack + safeDecay, duration - safeRelease);
+
     const now = this.audioContext.currentTime;
     envelope.gain.setValueAtTime(0, now);
-    envelope.gain.linearRampToValueAtTime(1, now + attack);
-    envelope.gain.linearRampToValueAtTime(sustain, now + attack + decay);
-    envelope.gain.setValueAtTime(sustain, now + duration - release);
+    envelope.gain.linearRampToValueAtTime(1, now + safeAttack);
+    envelope.gain.linearRampToValueAtTime(sustain, now + safeAttack + safeDecay);
+    envelope.gain.setValueAtTime(sustain, now + sustainTime);
     envelope.gain.linearRampToValueAtTime(0, now + duration);
 
     return envelope;
@@ -138,13 +148,13 @@ class MissionControlAudio {
 
     const effect = this.effects.get(effectName);
     if (!effect) {
-      console.warn(`[AUDIO] Unknown effect: ${effectName}`);
+      featureLoggers.audio.warn(`[AUDIO] Unknown effect: ${effectName}`);
       return;
     }
 
     // Validate effect object has required properties
     if (typeof effect.frequency !== 'number' || typeof effect.duration !== 'number') {
-      console.warn(`[AUDIO] Invalid effect properties for ${effectName}:`, effect);
+      featureLoggers.audio.warn(`[AUDIO] Invalid effect properties for ${effectName}:`, effect);
       return;
     }
 
@@ -172,7 +182,7 @@ class MissionControlAudio {
           this.playBeep(effect);
       }
     } catch (error) {
-      console.warn(`[AUDIO] Failed to play effect ${effectName}:`, error);
+      featureLoggers.audio.warn(`[AUDIO] Failed to play effect ${effectName}:`, error);
     }
   }
 
@@ -336,9 +346,9 @@ class MissionControlAudio {
 
       this.ambientLoop = oscillator1; // Store reference for cleanup
       
-      console.log('[AUDIO] Ambient loop started');
+      featureLoggers.audio.log('[AUDIO] Ambient loop started');
     } catch (error) {
-      console.warn('[AUDIO] Failed to start ambient loop:', error);
+      featureLoggers.audio.warn('[AUDIO] Failed to start ambient loop:', error);
     }
   }
 
@@ -347,9 +357,9 @@ class MissionControlAudio {
       try {
         this.ambientLoop.stop();
         this.ambientLoop = null;
-        console.log('[AUDIO] Ambient loop stopped');
+        featureLoggers.audio.log('[AUDIO] Ambient loop stopped');
       } catch (error) {
-        console.warn('[AUDIO] Error stopping ambient loop:', error);
+        featureLoggers.audio.warn('[AUDIO] Error stopping ambient loop:', error);
       }
     }
   }
