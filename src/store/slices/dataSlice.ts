@@ -5,7 +5,7 @@ import type {
   ExecutiveBriefing,
   TransformationMetadata,
   DataSyncState 
-} from '../../types/mission';
+} from '../../types';
 import type { 
   JsonResume, 
   ResumeDataState, 
@@ -17,7 +17,7 @@ import type {
   BriefingGenerationConfig,
   GeneratedBriefing,
   PerformanceMetrics
-} from '../../types/resume';
+} from '../../types';
 import { resumeService } from '../../services/resumeService';
 
 export interface DataSlice {
@@ -191,7 +191,7 @@ export const createDataSlice: StateCreator<
 
     } catch (error) {
       const resumeError: ResumeDataError = error instanceof Error && 'code' in error
-        ? error as ResumeDataError
+        ? error as unknown as ResumeDataError
         : {
             code: 'FETCH_ERROR',
             message: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -230,11 +230,11 @@ export const createDataSlice: StateCreator<
     return state.loadResumeData(state.resumeUrl);
   },
 
-  setSites: (sites: SiteData[]) => {
+  setSites: (sites: EnhancedSiteData[]) => {
     set({ sites });
   },
 
-  addSite: (site: SiteData) => {
+  addSite: (site: EnhancedSiteData) => {
     set((state) => ({
       sites: [...state.sites, site]
     }));
@@ -246,7 +246,7 @@ export const createDataSlice: StateCreator<
     }));
   },
 
-  updateSite: (siteId: string, updates: Partial<SiteData>) => {
+  updateSite: (siteId: string, updates: Partial<EnhancedSiteData>) => {
     set((state) => ({
       sites: state.sites.map(site => 
         site.id === siteId ? { ...site, ...updates } : site
@@ -284,7 +284,7 @@ export const createDataSlice: StateCreator<
     return get().sites.find(site => site.id === id);
   },
 
-  getSitesByType: (type: SiteData['type']) => {
+  getSitesByType: (type: EnhancedSiteData['type']) => {
     return get().sites.filter(site => site.type === type);
   },
 

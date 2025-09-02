@@ -139,7 +139,7 @@ class PWAManager {
 
   // Share API support
   async shareContent(data: ShareData): Promise<boolean> {
-    if ('share' in navigator) {
+    if ('share' in navigator && typeof navigator.share === 'function') {
       try {
         await navigator.share(data);
         console.log('[PWA] Content shared successfully');
@@ -148,20 +148,24 @@ class PWAManager {
         if ((error as Error).name !== 'AbortError') {
           console.error('[PWA] Error sharing content:', error);
         }
-        return false;
+        // Fall through to clipboard fallback
       }
     }
     
     // Fallback to clipboard
-    try {
-      const text = `${data.title || ''}\n${data.text || ''}\n${data.url || ''}`.trim();
-      await navigator.clipboard.writeText(text);
-      console.log('[PWA] Content copied to clipboard as fallback');
-      return true;
-    } catch (error) {
-      console.error('[PWA] Error copying to clipboard:', error);
-      return false;
+    if ('clipboard' in navigator && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      try {
+        const text = `${data.title || ''}\n${data.text || ''}\n${data.url || ''}`.trim();
+        await navigator.clipboard.writeText(text);
+        console.log('[PWA] Content copied to clipboard as fallback');
+        return true;
+      } catch (error) {
+        console.error('[PWA] Error copying to clipboard:', error);
+      }
     }
+    
+    console.warn('[PWA] No sharing or clipboard support available');
+    return false;
   }
 
   // Check connectivity status
@@ -197,7 +201,7 @@ export function getPWACapabilities() {
   return {
     serviceWorker: 'serviceWorker' in navigator,
     pushNotifications: 'PushManager' in window,
-    backgroundSync: 'sync' in window.ServiceWorkerRegistration.prototype,
+    backgroundSync: 'ServiceWorkerRegistration' in window && 'sync' in window.ServiceWorkerRegistration.prototype,
     persistentStorage: 'storage' in navigator && 'persist' in navigator.storage,
     share: 'share' in navigator,
     clipboard: 'clipboard' in navigator,

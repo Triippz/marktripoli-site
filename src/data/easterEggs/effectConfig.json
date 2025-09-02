@@ -1,0 +1,131 @@
+{
+  "timing": {
+    "idleTimeMs": 10000,
+    "randomIntervalMs": 60000,
+    "throttleMs": 60000
+  },
+  "probabilities": {
+    "anomalyPing": 0.25,
+    "ufoBlips": 0.20,
+    "satelliteStreak": 0.15,
+    "matrixPulse": 0.10,
+    "auroraOverlay": 0.10,
+    "scanlinesOverlay": 0.05
+  },
+  "durations": {
+    "satelliteStreak": 3500,
+    "matrixPulse": 2500,
+    "auroraOverlay": 6000,
+    "scanlinesOverlay": 5000,
+    "neonSweep": 2500,
+    "starTwinkle": 6000,
+    "sandDrift": 7000,
+    "particleRing": 3000,
+    "radarSweep": 4000,
+    "rocketLaunch": 3200,
+    "lightningFlash": 1200
+  },
+  "effects": {
+    "ufoBlips": {
+      "pointCount": { "min": 3, "max": 6 },
+      "circleRadius": 4,
+      "animationSteps": 10,
+      "stepDurationMs": 80
+    },
+    "anomalyPing": {
+      "initialRadius": 2,
+      "radiusIncrement": 2.5,
+      "opacityDecrement": 0.08,
+      "intervalMs": 60
+    },
+    "satelliteStreak": {
+      "lineWidth": 1.2,
+      "trailLength": 60,
+      "opacity": 0.85
+    },
+    "hikingBurst": {
+      "emoji": "🏔️",
+      "count": { "min": 10, "max": 20 },
+      "size": { "min": 18, "max": 36 },
+      "duration": { "min": 7, "max": 13 },
+      "delay": { "min": 0, "max": 1.2 }
+    },
+    "pawBurst": {
+      "emoji": "🐾",
+      "count": { "min": 16, "max": 32 },
+      "size": { "min": 14, "max": 30 },
+      "duration": { "min": 5, "max": 11 },
+      "delay": { "min": 0, "max": 1.5 }
+    },
+    "graduationBurst": {
+      "emoji": "🎓",
+      "count": { "min": 10, "max": 20 },
+      "size": { "min": 18, "max": 36 },
+      "duration": { "min": 7, "max": 13 },
+      "delay": { "min": 0, "max": 1.2 }
+    },
+    "rocketLaunch": {
+      "emoji": "🚀",
+      "fontSize": 28,
+      "exhaustEmoji": "•",
+      "exhaustOpacity": 0.7,
+      "exhaustLifeMs": 600
+    },
+    "sandDrift": {
+      "particleCount": 200,
+      "particleSpeed": { "min": 0.1, "max": 0.4 },
+      "particleSize": { "min": 0.2, "max": 1.4 },
+      "color": "rgba(230,224,201,0.4)"
+    },
+    "starTwinkle": {
+      "starCount": 120,
+      "radius": { "min": 0.3, "max": 1.5 },
+      "twinkleSpeed": 500,
+      "skyHeight": 0.6
+    },
+    "particleRing": {
+      "strokeWidth": 1.5,
+      "color": "rgba(0, 225, 255, 0.8)",
+      "maxRadiusMultiplier": 0.6
+    },
+    "radarSweep": {
+      "sweepCount": 2,
+      "sweepWidth": 0.393,
+      "gradientStops": [
+        { "offset": 0, "color": "rgba(69,255,176,0.25)" },
+        { "offset": 1, "color": "rgba(69,255,176,0.0)" }
+      ]
+    },
+    "neonSweep": {
+      "width": "20%",
+      "startPosition": "-20%",
+      "endPosition": "120%",
+      "gradient": "linear-gradient(90deg, rgba(0,0,0,0), rgba(69,255,176,0.18), rgba(0,0,0,0))",
+      "blur": "1px"
+    },
+    "auroraOverlay": {
+      "height": "45%",
+      "gradient": "radial-gradient(ellipse at top, rgba(69,255,176,0.22), rgba(69,255,176,0.08) 60%, rgba(69,255,176,0.0) 75%)",
+      "blur": "0.6px",
+      "variationMs": 2000
+    },
+    "matrixPulse": {
+      "fogColor": "rgb(10, 30, 10)",
+      "fogHighColor": "rgb(30, 150, 80)",
+      "gridOpacity": 0.55,
+      "horizonBlend": 0.1,
+      "fogRange": [-1, 2]
+    },
+    "scanlinesOverlay": {
+      "className": "scanlines-overlay"
+    },
+    "lightningFlash": {
+      "flashes": [
+        { "delay": 200, "duration": 100 },
+        { "delay": 600, "duration": 100 }
+      ],
+      "colors": ["#bfe7ff", "#ffffff"],
+      "opacity": 0.6
+    }
+  }
+}

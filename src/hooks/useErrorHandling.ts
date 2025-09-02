@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import type { ResumeDataError } from '../types/resume';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import type { ResumeDataError } from '../types';
 
 // Error severity levels
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
@@ -56,17 +56,18 @@ const DEFAULT_CONFIG: ErrorHandlingConfig = {
  * Comprehensive error handling hook for Mission Control
  */
 export function useErrorHandling(config: Partial<ErrorHandlingConfig> = {}) {
-  const finalConfig = { ...DEFAULT_CONFIG, ...config };
+  const finalConfig = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config]);
   const [errors, setErrors] = useState<EnhancedError[]>([]);
   const [isHandlingError, setIsHandlingError] = useState(false);
-  const retryTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const retryTimeouts = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const errorCounters = useRef<Map<string, number>>(new Map());
 
   // Cleanup timeouts on unmount
   useEffect(() => {
+    const timeouts = retryTimeouts.current;
     return () => {
-      retryTimeouts.current.forEach(timeout => clearTimeout(timeout));
-      retryTimeouts.current.clear();
+      timeouts.forEach(timeout => clearTimeout(timeout));
+      timeouts.clear();
     };
   }, []);
 
@@ -77,7 +78,7 @@ export function useErrorHandling(config: Partial<ErrorHandlingConfig> = {}) {
     recoverable: boolean;
   } => {
     const message = error.message.toLowerCase();
-    const errorName = error.name?.toLowerCase() || '';
+    const errorName = ('name' in error ? error.name?.toLowerCase() : '') || '';
     
     // Network errors
     if (message.includes('fetch') || message.includes('network') || 
@@ -216,7 +217,7 @@ export function useErrorHandling(config: Partial<ErrorHandlingConfig> = {}) {
     
     try {
       const { category, severity, recoverable } = classifyError(error);
-      const errorId = `ERR-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+      const errorId = `ERR-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
       
       // Get retry count for this type of error
       const errorKey = `${category}-${error.message}`;
@@ -232,8 +233,8 @@ export function useErrorHandling(config: Partial<ErrorHandlingConfig> = {}) {
         context,
         metadata: {
           ...metadata,
-          stack: error.stack,
-          name: error.name,
+          stack: 'stack' in error ? error.stack : undefined,
+          name: 'name' in error ? error.name : undefined,
           originalError: error
         },
         recoverable,
@@ -411,14 +412,14 @@ export function useResumeErrorHandling() {
       resumeUrl,
       timestamp: new Date().toISOString()
     });
-  }, [errorHandling.handleError]);
+  }, [errorHandling]);
   
   const retryResumeOperation = useCallback(async <T>(
     operation: () => Promise<T>,
     resumeUrl?: string
   ): Promise<T> => {
     return errorHandling.retryOperation(operation, `RESUME_DATA_${resumeUrl}`, 2);
-  }, [errorHandling.retryOperation]);
+  }, [errorHandling]);
   
   return {
     ...errorHandling,

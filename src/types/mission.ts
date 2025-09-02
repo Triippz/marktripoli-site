@@ -23,7 +23,18 @@ export type ExternalLink = {
 }
 
 export type SiteType = 'job' | 'project' | 'hobby';
-export type EngagementType = 'engage' | 'deploy-uas' | 'exfiltrate' | 'integration-matrix' | 'build-pipeline' | 'scan-datacenter' | 'dispatch-train' | 'cbrn-protocol';
+export type EngagementType = 
+  | 'engage' 
+  | 'deploy-uas' 
+  | 'exfiltrate' 
+  | 'integration-matrix' 
+  | 'build-pipeline' 
+  | 'scan-datacenter' 
+  | 'dispatch-train' 
+  | 'cbrn-protocol'
+  | 'network-optimization'
+  | 'infrastructure-upgrade'
+  | 'intelligence-analysis';
 
 export type SiteData = {
   id: string;

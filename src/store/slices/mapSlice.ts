@@ -1,14 +1,14 @@
 import type { StateCreator } from 'zustand';
-import type { SiteData, MapView } from '../../types/mission';
+import type { EnhancedSiteData, MapView } from '../../types';
 import { missionAudio } from '../../utils/audioSystem';
 
 export interface MapSlice {
   // State
-  selectedSite: SiteData | null;
+  selectedSite: EnhancedSiteData | null;
   mapView: MapView;
   
   // Actions
-  selectSite: (site: SiteData | null) => void;
+  selectSite: (site: EnhancedSiteData | null) => void;
   setMapView: (view: Partial<MapView>) => void;
 }
 

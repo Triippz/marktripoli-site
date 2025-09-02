@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { UserRank } from '../../types/mission';
+import type { UserRank } from '../../types';
 import { missionAudio } from '../../utils/audioSystem';
 
 export interface UserSlice {
@@ -31,12 +31,18 @@ export const createUserSlice: StateCreator<
     if (!state.visitedSites.includes(siteId)) {
       const newVisited = [...state.visitedSites, siteId];
       localStorage.setItem('mc-visited', JSON.stringify(newVisited));
-      
-      const newRank = state.calculateRank();
-      
-      set({ 
+
+      // Calculate rank based on the updated visited list
+      const visitedCount = newVisited.length;
+      const newRank = visitedCount >= 8
+        ? { level: 3, title: 'Commander', badge: '★★★' }
+        : visitedCount >= 4
+          ? { level: 2, title: 'Operator', badge: '★★' }
+          : { level: 1, title: 'Analyst', badge: '★' };
+
+      set({
         visitedSites: newVisited,
-        userRank: newRank
+        userRank: newRank,
       });
     }
   },

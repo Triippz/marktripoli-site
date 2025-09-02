@@ -1,6 +1,6 @@
-import { JSONResumeSchema, Resume } from '../types/resume';
-import { SiteData, EngagementType } from '../types/mission';
-import { getCoordinatesForLocation, generateCodename, formatPeriod } from '../utils/dataTransforms';
+import { JsonResume } from '../types';
+import { SiteData, EngagementType } from '../types';
+import { generateCodename, formatPeriod } from '../utils/dataTransforms';
 
 /**
  * Company location mapping based on JSON resume analysis
@@ -30,43 +30,43 @@ const ENGAGEMENT_TYPE_MAPPING: Record<string, EngagementType> = {
 /**
  * Transform JSON Resume work experience into Mission Control SiteData
  */
-export function transformWorkExperienceToSites(resume: Resume): SiteData[] {
+export function transformWorkExperienceToSites(resume: JsonResume): SiteData[] {
   if (!resume.work || !Array.isArray(resume.work)) {
     console.warn('Resume work experience not found or invalid');
     return [];
   }
 
   return resume.work.map((job, index) => {
-    const companyKey = job.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const companyKey = (job.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const location = COMPANY_LOCATIONS[companyKey];
     const engagementType = ENGAGEMENT_TYPE_MAPPING[companyKey] || 'deploy-uas';
 
     // Generate deployment logs from highlights
     const deploymentLogs = job.highlights && Array.isArray(job.highlights) 
       ? job.highlights.slice(0, 4) // Limit to 4 key achievements
-      : [`Led ${job.position} responsibilities at ${job.name}`];
+      : [`Led ${job.position || 'assigned'} responsibilities at ${job.name || 'organization'}`];
 
     // Generate after-action report from summary
     const afterAction = job.summary 
       ? [job.summary]
-      : [`Gained valuable experience in ${job.position} role`];
+      : [`Gained valuable experience in ${job.position || 'assigned'} role`];
 
     const siteData: SiteData = {
       id: companyKey,
       type: 'job',
-      name: job.name,
-      codename: generateCodename(job.name, index),
+      name: job.name || 'Unknown Organization',
+      codename: generateCodename(job.name || 'Unknown', index),
       hq: location || { lat: 39.8283, lng: -98.5795 }, // Center of US fallback
       period: {
-        start: formatPeriod(job.startDate),
+        start: formatPeriod(job.startDate) || 'Unknown',
         end: job.endDate ? formatPeriod(job.endDate) : undefined
       },
-      briefing: job.summary || `${job.position} role focused on ${job.name} operations and strategic initiatives.`,
+      briefing: job.summary || `${job.position || 'Role'} focused on ${job.name || 'organizational'} operations and strategic initiatives.`,
       deploymentLogs,
       afterAction,
       engagementType,
       links: job.url ? [{
-        label: `${job.name} Website`,
+        label: `${job.name || 'Organization'} Website`,
         url: job.url,
         type: 'demo' as const
       }] : []
@@ -79,42 +79,42 @@ export function transformWorkExperienceToSites(resume: Resume): SiteData[] {
 /**
  * Transform education data into sites if needed
  */
-export function transformEducationToSites(resume: Resume): SiteData[] {
+export function transformEducationToSites(resume: JsonResume): SiteData[] {
   if (!resume.education || !Array.isArray(resume.education)) {
     return [];
   }
 
   return resume.education.map((edu, index) => {
-    const institutionKey = edu.institution.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const institutionKey = (edu.institution || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const location = COMPANY_LOCATIONS[institutionKey] || { lat: 39.8283, lng: -98.5795 };
 
     const siteData: SiteData = {
       id: `edu-${institutionKey}`,
       type: 'project',
-      name: edu.institution,
-      codename: generateCodename(edu.institution, index, 'ACADEMY'),
+      name: edu.institution || 'Unknown Institution',
+      codename: generateCodename(edu.institution || 'Unknown', index, 'ACADEMY'),
       hq: location,
       period: {
-        start: formatPeriod(edu.startDate),
+        start: formatPeriod(edu.startDate) || 'Unknown',
         end: edu.endDate ? formatPeriod(edu.endDate) : undefined
       },
-      briefing: `Academic mission: ${edu.studyType} in ${edu.area}`,
+      briefing: `Academic mission: ${edu.studyType || 'Studies'} in ${edu.area || 'General Field'}`,
       deploymentLogs: [
-        `Completed ${edu.studyType} program in ${edu.area}`,
+        `Completed ${edu.studyType || 'academic'} program in ${edu.area || 'chosen field'}`,
         `Graduated ${edu.endDate ? new Date(edu.endDate).getFullYear() : 'In Progress'}`,
-        edu.score ? `Achieved academic performance score: ${edu.score}` : 'Maintained academic excellence',
+        (edu as any).score ? `Achieved academic performance score: ${(edu as any).score}` : 'Maintained academic excellence',
         'Developed critical thinking and analytical capabilities'
       ],
       afterAction: [
-        `Gained comprehensive knowledge in ${edu.area}`,
+        `Gained comprehensive knowledge in ${edu.area || 'academic field'}`,
         'Built foundation for technical career advancement',
         'Developed research and problem-solving methodologies'
       ],
       engagementType: 'intelligence-analysis',
       links: edu.url ? [{
-        label: `${edu.institution} Profile`,
+        label: `${edu.institution || 'Institution'} Profile`,
         url: edu.url,
-        type: 'reference' as const
+        type: 'docs' as const
       }] : []
     };
 
@@ -157,7 +157,7 @@ export function mergeSitesData(resumeSites: SiteData[], staticSites: SiteData[])
 /**
  * Extract skills data for Executive Briefing
  */
-export function extractSkillsData(resume: Resume) {
+export function extractSkillsData(resume: JsonResume) {
   if (!resume.skills || !Array.isArray(resume.skills)) {
     return {
       leadership: [],
@@ -196,7 +196,7 @@ export function extractSkillsData(resume: Resume) {
 /**
  * Generate Executive Briefing data from resume
  */
-export function generateExecutiveBriefing(resume: Resume) {
+export function generateExecutiveBriefing(resume: JsonResume) {
   const skillsData = extractSkillsData(resume);
   
   return {
@@ -226,7 +226,7 @@ export function generateExecutiveBriefing(resume: Resume) {
 /**
  * Main transformation function
  */
-export function transformResumeToMissionControlData(resume: Resume) {
+export function transformResumeToMissionControlData(resume: JsonResume) {
   const workSites = transformWorkExperienceToSites(resume);
   const educationSites = transformEducationToSites(resume);
   const executiveBriefing = generateExecutiveBriefing(resume);

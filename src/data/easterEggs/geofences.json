@@ -1,0 +1,314 @@
+[
+  {
+    "key": "area51",
+    "name": "Area 51",
+    "category": "ufo",
+    "box": { "minLng": -115.95, "maxLng": -115.45, "minLat": 37.05, "maxLat": 37.45 },
+    "effects": ["ufoBlips", "anomalyPing", "ufoBeamOnMap"],
+    "colors": ["#45ffb0"]
+  },
+  {
+    "key": "roswell",
+    "name": "Roswell, NM",
+    "category": "ufo",
+    "box": { "minLng": -104.7, "maxLng": -104.3, "minLat": 33.2, "maxLat": 33.6 },
+    "effects": ["ufoBlips", "anomalyPing"],
+    "colors": ["#45ffb0"]
+  },
+  {
+    "key": "rainier",
+    "name": "Mount Rainier",
+    "category": "outdoor",
+    "box": { "minLng": -121.95, "maxLng": -121.45, "minLat": 46.6, "maxLat": 47.0 },
+    "effects": ["hikingBurst"],
+    "colors": []
+  },
+  {
+    "key": "yosemite",
+    "name": "Yosemite National Park",
+    "category": "outdoor",
+    "box": { "minLng": -119.85, "maxLng": -119.25, "minLat": 37.6, "maxLat": 38.0 },
+    "effects": ["hikingBurst"],
+    "colors": []
+  },
+  {
+    "key": "rmnp",
+    "name": "Rocky Mountain National Park",
+    "category": "outdoor",
+    "box": { "minLng": -105.9, "maxLng": -105.4, "minLat": 40.3, "maxLat": 40.6 },
+    "effects": ["hikingBurst", "pawBurst"],
+    "colors": []
+  },
+  {
+    "key": "white-sands",
+    "name": "White Sands National Park",
+    "category": "desert",
+    "box": { "minLng": -106.6, "maxLng": -106.1, "minLat": 32.6, "maxLat": 32.9 },
+    "effects": ["sandDrift", "anomalyPing"],
+    "colors": ["#e6e0c9"]
+  },
+  {
+    "key": "ksc",
+    "name": "Kennedy Space Center",
+    "category": "space",
+    "box": { "minLng": -80.8, "maxLng": -80.5, "minLat": 28.4, "maxLat": 28.7 },
+    "effects": ["rocketLaunch", "satelliteStreak"],
+    "colors": []
+  },
+  {
+    "key": "silicon-valley",
+    "name": "Silicon Valley",
+    "category": "tech",
+    "box": { "minLng": -122.3, "maxLng": -121.8, "minLat": 37.2, "maxLat": 37.6 },
+    "effects": ["matrixPulse", "satelliteStreak"],
+    "colors": []
+  },
+  {
+    "key": "dc-pentagon",
+    "name": "Pentagon, Washington DC",
+    "category": "military",
+    "box": { "minLng": -77.12, "maxLng": -77.01, "minLat": 38.84, "maxLat": 38.92 },
+    "effects": ["anomalyPing", "scanlinesOverlay"],
+    "colors": ["#ff4d6d"]
+  },
+  {
+    "key": "boston",
+    "name": "Boston, MA",
+    "category": "city",
+    "box": { "minLng": -71.18, "maxLng": -71.03, "minLat": 42.32, "maxLat": 42.42 },
+    "effects": ["satelliteStreak"],
+    "colors": []
+  },
+  {
+    "key": "lancaster",
+    "name": "Lancaster, PA",
+    "category": "personal",
+    "box": { "minLng": -76.40, "maxLng": -76.20, "minLat": 40.00, "maxLat": 40.08 },
+    "effects": ["pawBurst", "anomalyPing"],
+    "colors": ["#45ffb0"]
+  },
+  {
+    "key": "philadelphia",
+    "name": "Philadelphia, PA",
+    "category": "personal",
+    "box": { "minLng": -75.30, "maxLng": -75.00, "minLat": 39.85, "maxLat": 40.10 },
+    "effects": ["satelliteStreak", "anomalyPing"],
+    "colors": ["#00e1ff"]
+  },
+  {
+    "key": "el-segundo",
+    "name": "El Segundo, CA",
+    "category": "personal",
+    "box": { "minLng": -118.45, "maxLng": -118.32, "minLat": 33.88, "maxLat": 33.95 },
+    "effects": ["ufoBlips", "rocketLaunch"],
+    "colors": []
+  },
+  {
+    "key": "state-college",
+    "name": "Penn State University",
+    "category": "education",
+    "box": { "minLng": -78.00, "maxLng": -77.60, "minLat": 40.70, "maxLat": 40.90 },
+    "effects": ["graduationBurst", "anomalyPing"],
+    "colors": ["#ffd166"]
+  },
+  {
+    "key": "bletchley-park",
+    "name": "Bletchley Park, UK",
+    "category": "tech",
+    "box": { "minLng": -0.85, "maxLng": -0.62, "minLat": 51.90, "maxLat": 52.05 },
+    "effects": ["matrixPulse", "scanlinesOverlay", "anomalyPing"],
+    "colors": ["#00e1ff"]
+  },
+  {
+    "key": "cern",
+    "name": "CERN, Switzerland",
+    "category": "science",
+    "box": { "minLng": 5.95, "maxLng": 6.20, "minLat": 46.15, "maxLat": 46.32 },
+    "effects": ["particleRing", "satelliteStreak"],
+    "colors": []
+  },
+  {
+    "key": "starbase",
+    "name": "SpaceX Starbase",
+    "category": "space",
+    "box": { "minLng": -97.30, "maxLng": -96.90, "minLat": 25.90, "maxLat": 26.10 },
+    "effects": ["rocketLaunch", "sandDrift"],
+    "colors": []
+  },
+  {
+    "key": "vandenberg",
+    "name": "Vandenberg Space Force Base",
+    "category": "space",
+    "box": { "minLng": -120.80, "maxLng": -120.40, "minLat": 34.50, "maxLat": 34.90 },
+    "effects": ["rocketLaunch", "satelliteStreak"],
+    "colors": []
+  },
+  {
+    "key": "jpl-pasadena",
+    "name": "JPL Pasadena",
+    "category": "space",
+    "box": { "minLng": -118.25, "maxLng": -118.05, "minLat": 34.12, "maxLat": 34.25 },
+    "effects": ["rocketLaunch", "anomalyPing"],
+    "colors": ["#ffa94d"]
+  },
+  {
+    "key": "mojave",
+    "name": "Mojave Air & Space Port",
+    "category": "space",
+    "box": { "minLng": -118.25, "maxLng": -118.05, "minLat": 34.95, "maxLat": 35.15 },
+    "effects": ["rocketLaunch", "sandDrift"],
+    "colors": []
+  },
+  {
+    "key": "nyc-midtown",
+    "name": "NYC Midtown",
+    "category": "city",
+    "box": { "minLng": -74.02, "maxLng": -73.95, "minLat": 40.70, "maxLat": 40.78 },
+    "effects": ["neonSweep", "scanlinesOverlay", "anomalyPing"],
+    "colors": ["#00e1ff"]
+  },
+  {
+    "key": "seattle",
+    "name": "Seattle, WA",
+    "category": "tech",
+    "box": { "minLng": -122.45, "maxLng": -122.25, "minLat": 47.55, "maxLat": 47.70 },
+    "effects": ["matrixPulse", "particleRing"],
+    "colors": []
+  },
+  {
+    "key": "austin",
+    "name": "Austin, TX",
+    "category": "tech",
+    "box": { "minLng": -97.90, "maxLng": -97.60, "minLat": 30.17, "maxLat": 30.42 },
+    "effects": ["rocketLaunch", "matrixPulse"],
+    "colors": []
+  },
+  {
+    "key": "denver",
+    "name": "Denver, CO",
+    "category": "city",
+    "box": { "minLng": -105.10, "maxLng": -104.75, "minLat": 39.60, "maxLat": 39.85 },
+    "effects": ["hikingBurst", "particleRing"],
+    "colors": []
+  },
+  {
+    "key": "la-downtown",
+    "name": "Downtown Los Angeles",
+    "category": "city",
+    "box": { "minLng": -118.30, "maxLng": -118.20, "minLat": 34.00, "maxLat": 34.12 },
+    "effects": ["scanlinesOverlay", "neonSweep"],
+    "colors": []
+  },
+  {
+    "key": "san-diego",
+    "name": "San Diego, CA",
+    "category": "city",
+    "box": { "minLng": -117.25, "maxLng": -117.05, "minLat": 32.65, "maxLat": 32.80 },
+    "effects": ["sandDrift", "ufoBlips"],
+    "colors": []
+  },
+  {
+    "key": "houston-jsc",
+    "name": "Johnson Space Center",
+    "category": "space",
+    "box": { "minLng": -95.20, "maxLng": -95.00, "minLat": 29.50, "maxLat": 29.70 },
+    "effects": ["rocketLaunch", "particleRing"],
+    "colors": []
+  },
+  {
+    "key": "norad-cheyenne",
+    "name": "NORAD Cheyenne Mountain",
+    "category": "military",
+    "box": { "minLng": -104.90, "maxLng": -104.80, "minLat": 38.70, "maxLat": 38.76 },
+    "effects": ["radarSweep", "anomalyPing"],
+    "colors": ["#ff4d6d"]
+  },
+  {
+    "key": "langley-afb",
+    "name": "Langley Air Force Base",
+    "category": "military",
+    "box": { "minLng": -76.42, "maxLng": -76.32, "minLat": 37.06, "maxLat": 37.12 },
+    "effects": ["radarSweep", "ufoBlips"],
+    "colors": []
+  },
+  {
+    "key": "wright-patterson",
+    "name": "Wright-Patterson AFB",
+    "category": "military",
+    "box": { "minLng": -84.15, "maxLng": -84.00, "minLat": 39.80, "maxLat": 39.90 },
+    "effects": ["anomalyPing", "particleRing"],
+    "colors": ["#ffd166"]
+  },
+  {
+    "key": "palmdale-skunkworks",
+    "name": "Lockheed Skunk Works",
+    "category": "military",
+    "box": { "minLng": -118.20, "maxLng": -118.00, "minLat": 34.55, "maxLat": 34.65 },
+    "effects": ["ufoBlips", "rocketLaunch"],
+    "colors": []
+  },
+  {
+    "key": "pine-gap-au",
+    "name": "Pine Gap, Australia",
+    "category": "military",
+    "box": { "minLng": 133.67, "maxLng": 133.90, "minLat": -23.90, "maxLat": -23.70 },
+    "effects": ["scanlinesOverlay", "anomalyPing"],
+    "colors": ["#00e1ff"]
+  },
+  {
+    "key": "stonehenge-uk",
+    "name": "Stonehenge, UK",
+    "category": "mysterious",
+    "box": { "minLng": -1.84, "maxLng": -1.80, "minLat": 51.17, "maxLat": 51.20 },
+    "effects": ["particleRing", "matrixPulse"],
+    "colors": []
+  },
+  {
+    "key": "mt-shasta",
+    "name": "Mount Shasta, CA",
+    "category": "mysterious",
+    "box": { "minLng": -122.35, "maxLng": -122.25, "minLat": 41.28, "maxLat": 41.35 },
+    "effects": ["hikingBurst", "particleRing"],
+    "colors": []
+  },
+  {
+    "key": "sedona-az",
+    "name": "Sedona, AZ",
+    "category": "mysterious",
+    "box": { "minLng": -111.85, "maxLng": -111.70, "minLat": 34.80, "maxLat": 34.95 },
+    "effects": ["particleRing", "neonSweep"],
+    "colors": []
+  },
+  {
+    "key": "nazca-pe",
+    "name": "Nazca Lines, Peru",
+    "category": "mysterious",
+    "box": { "minLng": -75.20, "maxLng": -74.90, "minLat": -14.90, "maxLat": -14.65 },
+    "effects": ["satelliteStreak", "anomalyPing"],
+    "colors": ["#ffd166"]
+  },
+  {
+    "key": "mauna-kea",
+    "name": "Mauna Kea Observatory",
+    "category": "science",
+    "box": { "minLng": -155.50, "maxLng": -155.30, "minLat": 19.70, "maxLat": 19.85 },
+    "effects": ["starTwinkle", "particleRing"],
+    "colors": []
+  },
+  {
+    "key": "reykjavik",
+    "name": "Reykjavik, Iceland",
+    "category": "northern",
+    "box": { "minLng": -22.10, "maxLng": -21.60, "minLat": 64.05, "maxLat": 64.20 },
+    "effects": ["auroraOverlay", "starTwinkle"],
+    "colors": []
+  },
+  {
+    "key": "tokyo-akihabara",
+    "name": "Akihabara, Tokyo",
+    "category": "tech",
+    "box": { "minLng": 139.76, "maxLng": 139.78, "minLat": 35.69, "maxLat": 35.70 },
+    "effects": ["neonSweep", "scanlinesOverlay"],
+    "colors": []
+  }
+]

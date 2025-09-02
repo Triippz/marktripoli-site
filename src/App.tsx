@@ -1,10 +1,11 @@
 // React & Router
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 
 // Store & Utils
 import { useMissionControl } from './store/missionControl';
 import { missionAudio } from './utils/audioSystem';
+import SEO from './components/SEO';
 
 // Base Components
 import BootSequence from './components/boot/BootSequence';
@@ -58,12 +59,18 @@ function MissionControlInterface() {
     try {
       if (alertActive) document.body.classList.add('alert-mode');
       else document.body.classList.remove('alert-mode');
-    } catch {}
+    } catch { /* empty */ }
   }, [alertActive]);
 
 
   return (
     <div className="h-screen w-screen text-white overflow-hidden relative">
+      <SEO
+        title="Mission Control — Mark Tripoli"
+        description="Command and Control interface for Mark Tripoli's professional operations. Interactive career map with mission sites and tactical briefings."
+        url={typeof window !== 'undefined' ? window.location.origin : undefined}
+        image="/logos/og-cover.png"
+      />
       {/* Global Alert Ribbon */}
       {alertActive && (
         <div className="alert-ribbon" aria-live="assertive" aria-atomic="true">
