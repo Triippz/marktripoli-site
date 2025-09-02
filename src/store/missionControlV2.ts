@@ -84,6 +84,7 @@ export const useUserStore = () => useMissionControlV2(state => ({
   visitSite: state.visitSite,
   unlockEasterEgg: state.unlockEasterEgg,
   calculateRank: state.calculateRank,
+  setUserName: state.setUserName,
 }));
 
 export const useTelemetryStore = () => useMissionControlV2(state => ({
@@ -98,10 +99,12 @@ export const useUIStore = () => useMissionControlV2(state => ({
   hudVisible: state.hudVisible,
   theme: state.theme,
   bootCompleted: state.bootCompleted,
+  alertActive: state.alertActive,
   toggleSound: state.toggleSound,
   toggleHUD: state.toggleHUD,
   setTheme: state.setTheme,
   setBootCompleted: state.setBootCompleted,
+  triggerAlert: state.triggerAlert,
 }));
 
 // Memoized selector to prevent infinite re-renders  
