@@ -1,4 +1,4 @@
-import type mapboxgl from 'mapbox-gl';
+import type { Map as MapboxMap } from 'mapbox-gl';
 import effectConfig from '../../data/easterEggs/effectConfig.json';
 import { mapEffects } from './effects/mapEffects';
 import { canvasEffects } from './effects/canvasEffects';
@@ -6,7 +6,7 @@ import { overlayEffects } from './effects/overlayEffects';
 import { particleEffects } from './effects/particleEffects';
 
 export interface EffectExecutor {
-  [key: string]: (container: HTMLElement | mapboxgl.Map, ...args: any[]) => void;
+  [key: string]: (target: HTMLElement | MapboxMap, ...args: unknown[]) => void;
 }
 
 /**
@@ -14,13 +14,101 @@ export interface EffectExecutor {
  */
 const effectRegistry: EffectExecutor = {
   // Map effects (operate on Mapbox map)
-  ...mapEffects,
+  ufoBlips: (target) => {
+    if (target && 'getCenter' in target) {
+      mapEffects.ufoBlips(target as MapboxMap);
+    }
+  },
+  anomalyPing: (target, ...args) => {
+    if (target && 'getCenter' in target) {
+      const color = args[0] as string | undefined;
+      mapEffects.anomalyPing(target as MapboxMap, color);
+    }
+  },
+  matrixPulse: (target) => {
+    if (target && 'getCenter' in target) {
+      mapEffects.matrixPulse(target as MapboxMap);
+    }
+  },
+  
   // Canvas effects (create canvas animations)
-  ...canvasEffects,
+  satelliteStreak: (target) => {
+    if (target && 'appendChild' in target) {
+      canvasEffects.satelliteStreak(target as HTMLElement);
+    }
+  },
+  sandDrift: (target) => {
+    if (target && 'appendChild' in target) {
+      canvasEffects.sandDrift(target as HTMLElement);
+    }
+  },
+  starTwinkle: (target, ...args) => {
+    if (target && 'appendChild' in target) {
+      const ms = args[0] as number | undefined;
+      canvasEffects.starTwinkle(target as HTMLElement, ms);
+    }
+  },
+  particleRing: (target) => {
+    if (target && 'appendChild' in target) {
+      canvasEffects.particleRing(target as HTMLElement);
+    }
+  },
+  radarSweep: (target) => {
+    if (target && 'appendChild' in target) {
+      canvasEffects.radarSweep(target as HTMLElement);
+    }
+  },
+  
   // Overlay effects (create DOM overlays)
-  ...overlayEffects,
+  auroraOverlay: (target) => {
+    if (target && 'appendChild' in target) {
+      overlayEffects.auroraOverlay(target as HTMLElement);
+    }
+  },
+  scanlinesOverlay: (target, ...args) => {
+    if (target && 'appendChild' in target) {
+      const ms = args[0] as number | undefined;
+      overlayEffects.scanlinesOverlay(target as HTMLElement, ms);
+    }
+  },
+  neonSweep: (target, ...args) => {
+    if (target && 'appendChild' in target) {
+      const ms = args[0] as number | undefined;
+      overlayEffects.neonSweep(target as HTMLElement, ms);
+    }
+  },
+  lightningFlash: (target) => {
+    if (target && 'appendChild' in target) {
+      overlayEffects.lightningFlash(target as HTMLElement);
+    }
+  },
+  
   // Particle effects (create particle animations)
-  ...particleEffects
+  hikingBurst: (target) => {
+    if (target && 'appendChild' in target) {
+      particleEffects.hikingBurst(target as HTMLElement);
+    }
+  },
+  pawBurst: (target) => {
+    if (target && 'appendChild' in target) {
+      particleEffects.pawBurst(target as HTMLElement);
+    }
+  },
+  graduationBurst: (target) => {
+    if (target && 'appendChild' in target) {
+      particleEffects.graduationBurst(target as HTMLElement);
+    }
+  },
+  rocketLaunch: (target) => {
+    if (target && 'appendChild' in target) {
+      particleEffects.rocketLaunch(target as HTMLElement);
+    }
+  },
+  ufoBeamOnMap: (target) => {
+    if (target && 'appendChild' in target) {
+      particleEffects.ufoBeamOnMap(target as HTMLElement);
+    }
+  }
 };
 
 /**
@@ -28,8 +116,8 @@ const effectRegistry: EffectExecutor = {
  */
 export function executeEffect(
   effectName: string, 
-  target: HTMLElement | mapboxgl.Map, 
-  ...params: any[]
+  target: HTMLElement | MapboxMap, 
+  ...params: unknown[]
 ): boolean {
   const effect = effectRegistry[effectName];
   if (!effect) {
@@ -51,7 +139,7 @@ export function executeEffect(
  */
 export function executeEffects(
   effects: string[], 
-  target: HTMLElement | mapboxgl.Map,
+  target: HTMLElement | MapboxMap,
   mode: 'sequence' | 'parallel' = 'parallel',
   delayMs = 0
 ): Promise<void> {
@@ -96,6 +184,8 @@ export function getRandomEffect(): string | null {
 /**
  * Get effect configuration
  */
+export function getEffectConfig(): typeof effectConfig;
+export function getEffectConfig(effectName: string): unknown;
 export function getEffectConfig(effectName?: string) {
   if (effectName) {
     return effectConfig.effects[effectName as keyof typeof effectConfig.effects];
@@ -129,7 +219,7 @@ export function getAvailableEffects(): string[] {
  */
 export function executeEffectWithColor(
   effectName: string,
-  target: HTMLElement | mapboxgl.Map,
+  target: HTMLElement | MapboxMap,
   color?: string
 ): boolean {
   // Effects that support color parameters

@@ -190,17 +190,23 @@ export function getUSACenterCoordinates(): { lat: number; lng: number; zoom: num
 /**
  * Validate and sanitize site data
  */
-export function validateSiteData(site: any): boolean {
+export function validateSiteData(site: unknown): boolean {
+  if (typeof site !== 'object' || site === null) {
+    return false;
+  }
+  
+  const siteObj = site as Record<string, unknown>;
   const required = ['id', 'type', 'name', 'hq', 'briefing'];
   
   for (const field of required) {
-    if (!site[field]) {
+    if (!siteObj[field]) {
       console.warn(`Site validation failed: missing ${field}`, site);
       return false;
     }
   }
 
-  if (!site.hq.lat || !site.hq.lng) {
+  const hq = siteObj.hq as Record<string, unknown>;
+  if (!hq || typeof hq !== 'object' || !hq.lat || !hq.lng) {
     console.warn('Site validation failed: invalid coordinates', site);
     return false;
   }

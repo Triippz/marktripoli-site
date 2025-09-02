@@ -1,4 +1,4 @@
-import type mapboxgl from 'mapbox-gl';
+import type { Map as MapboxMap } from 'mapbox-gl';
 import geofencesData from '../../data/easterEggs/geofences.json';
 
 export interface Geofence {
@@ -70,7 +70,7 @@ export function getGeofenceCenter(box: GeofenceBox): [number, number] {
 /**
  * Navigate map to a specific geofence
  */
-export function goToGeofence(map: mapboxgl.Map, key: string, zoom = 9): boolean {
+export function goToGeofence(map: MapboxMap, key: string, zoom = 9): boolean {
   const geofence = getGeofenceByKey(key);
   if (!geofence) return false;
 

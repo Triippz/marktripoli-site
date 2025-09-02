@@ -1,4 +1,4 @@
-import type mapboxgl from 'mapbox-gl';
+import type { Map as MapboxMap } from 'mapbox-gl';
 import { getFullGeofences, isInGeofence } from './geofenceUtils';
 import { executeEffect, getRandomEffect, getEffectConfig } from './effectEngine';
 
@@ -9,7 +9,7 @@ type Options = {
 
 type Cleanup = () => void;
 
-export function registerMapEasterEggs(map: mapboxgl.Map, opts: Options = {}) {
+export function registerMapEasterEggs(map: MapboxMap, opts: Options = {}) {
   const container = opts.container || map.getContainer();
   const cleanups: Cleanup[] = [];
   let disposed = false;
@@ -21,20 +21,32 @@ export function registerMapEasterEggs(map: mapboxgl.Map, opts: Options = {}) {
   // Subtle console hint
   try {
     console.log('%c[Hint]', 'color:#45ffb0', 'Tactical display supports hidden events. Stay idle to observe…');
-  } catch {}
+  } catch {
+    // Console may not be available in all environments
+  }
 
   // Insert an HTML comment node as an easter egg hint
   try {
     const c = document.createComment(' Watch the skies. Idle on the map for anomalies. ');
     container.appendChild(c);
-    cleanups.push(() => { try { container.contains(c) && container.removeChild(c); } catch {} });
-  } catch {}
+    cleanups.push(() => { 
+      try { 
+        if (container.contains(c)) {
+          container.removeChild(c);
+        }
+      } catch {
+        // Cleanup may fail if DOM is already cleaned up
+      }
+    });
+  } catch {
+    // DOM operations may fail in some environments
+  }
 
   // Track idle
   const markActive = () => { idleSince = Date.now(); };
-  const events: (keyof mapboxgl.MapboxEventHandler)[] = ['move', 'zoom', 'drag', 'rotate'];
-  events.forEach(ev => map.on(ev as any, markActive));
-  cleanups.push(() => { events.forEach(ev => map.off(ev as any, markActive)); });
+  const events = ['move', 'zoom', 'drag', 'rotate'];
+  events.forEach(ev => map.on(ev, markActive));
+  cleanups.push(() => { events.forEach(ev => map.off(ev, markActive)); });
 
   // Random engine
   if (opts.enableRandom !== false) {
@@ -73,7 +85,9 @@ export function registerMapEasterEggs(map: mapboxgl.Map, opts: Options = {}) {
           } else {
             executeEffect(effectName, target);
           }
-        } catch {}
+        } catch {
+          // Effect execution may fail, continue with others
+        }
       });
     });
   };
@@ -83,7 +97,14 @@ export function registerMapEasterEggs(map: mapboxgl.Map, opts: Options = {}) {
   return {
     dispose() {
       disposed = true;
-      while (cleanups.length) { try { cleanups.pop()!(); } catch {} }
+      while (cleanups.length) { 
+        try { 
+          const cleanup = cleanups.pop();
+          if (cleanup) cleanup();
+        } catch {
+          // Cleanup function may fail, continue with others
+        }
+      }
     }
   };
 }

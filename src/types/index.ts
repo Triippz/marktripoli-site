@@ -108,20 +108,32 @@ export {
  * Common type combinations for easier usage
  */
 
-// Data Layer Types
-export type DataLayer = Pick<MissionControlState, 'data' | 'dataSync' | 'resumeProcessing' | 'validation'>;
+// Data Layer Types (simplified without MissionControlState dependency)
+export type DataLayer = {
+  data: any;
+  dataSync: any;
+  resumeProcessing: any;
+  validation: any;
+};
 
 // UI Layer Types  
-export type UILayer = Pick<MissionControlState, 'ui'>;
+export type UILayer = {
+  ui: any;
+};
 
 // User Layer Types
-export type UserLayer = Pick<MissionControlState, 'user'>;
+export type UserLayer = {
+  user: any;
+};
 
 // System Layer Types
-export type SystemLayer = Pick<MissionControlState, 'telemetry' | 'config'>;
+export type SystemLayer = {
+  telemetry: any;
+  config: any;
+};
 
 // Complete Site Information
-export type CompleteSiteInfo = EnhancedSiteData & {
+export type CompleteSiteInfo = SiteData & {
   isVisited: boolean;
   isBookmarked: boolean;
   lastViewed?: Date;
@@ -144,8 +156,15 @@ export type ResumeIntegrationStatus = {
 
 // Executive Summary Data
 export type ExecutiveSummaryData = {
-  profile: Pick<ExecutiveBriefing['operatorProfile'], 'callsign' | 'specialties' | 'yearsOfService'>;
-  metrics: Pick<ExecutiveBriefing['missionSummary'], 'totalOperations' | 'successRate'>;
+  profile: {
+    callsign?: string;
+    specialties?: string[];
+    yearsOfService?: number;
+  };
+  metrics: {
+    totalOperations?: number;
+    successRate?: number;
+  };
   topSkills: Array<{ name: string; proficiency: string; category: string }>;
   recentMissions: Array<{ name: string; role: string; duration: string; outcome: string }>;
   availability: {
@@ -158,15 +177,15 @@ export type ExecutiveSummaryData = {
 // Mission Control Dashboard Data
 export type DashboardData = {
   summary: ExecutiveSummaryData;
-  systemStatus: SystemHealthStatus;
-  recentActivity: TelemetryEntry[];
-  userProgress: EnhancedUserProgress;
+  systemStatus: any;
+  recentActivity: any[];
+  userProgress: any;
   integrationHealth: ResumeIntegrationStatus;
   quickActions: Array<{
     id: string;
     label: string;
     description: string;
-    action: keyof MissionControlAction;
+    action: string;
     enabled: boolean;
     priority: 'high' | 'medium' | 'low';
   }>;
@@ -199,20 +218,20 @@ export const TypeValidators = {
            Array.isArray(obj.deploymentLogs);
   },
 
-  isValidEnhancedSiteData: (obj: any): obj is EnhancedSiteData => {
+  isValidEnhancedSiteData: (obj: any): obj is SiteData => {
     return TypeValidators.isValidSiteData(obj) &&
            (!obj.skills || Array.isArray(obj.skills)) &&
            (!obj.clearanceLevel || ['unclassified', 'confidential', 'secret', 'top-secret'].includes(obj.clearanceLevel));
   },
 
-  isValidJsonResume: (obj: any): obj is JsonResume => {
+  isValidJsonResume: (obj: any): obj is any => {
     return obj && typeof obj === 'object' &&
            (!obj.basics || (obj.basics && typeof obj.basics === 'object')) &&
            (!obj.work || Array.isArray(obj.work)) &&
            (!obj.skills || Array.isArray(obj.skills));
   },
 
-  isValidUserRank: (obj: any): obj is UserRank => {
+  isValidUserRank: (obj: any): obj is any => {
     return obj && typeof obj.level === 'number' && obj.level > 0 &&
            typeof obj.title === 'string' && typeof obj.badge === 'string';
   }
@@ -248,8 +267,8 @@ export type AsyncReturnType<T extends (...args: any) => Promise<any>> =
 export type EventHandler<T = any> = (event: T) => void | Promise<void>;
 
 // Mission Control specific event types
-export type MissionControlEventHandler<T extends keyof MissionControlAction = keyof MissionControlAction> = 
-  EventHandler<{ type: T; payload: MissionControlAction[T] extends { payload: infer P } ? P : never }>;
+export type MissionControlEventHandler<T extends string = string> = 
+  EventHandler<{ type: T; payload: any }>;
 
 // =============================================================================
 // CONSTANTS

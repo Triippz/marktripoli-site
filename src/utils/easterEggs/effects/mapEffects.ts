@@ -1,15 +1,20 @@
-import type mapboxgl from 'mapbox-gl';
+import type { Map as MapboxMap } from 'mapbox-gl';
 
 /**
  * Map-based effects that operate on Mapbox GL layers
  */
 
-export function ufoBlips(map: mapboxgl.Map) {
+export function ufoBlips(map: MapboxMap) {
   const id = `egg-ufo-${Math.random().toString(36).slice(2)}`;
   const sourceId = `${id}-src`;
   const layerId = `${id}-layer`;
-  const center = map.getCenter();
   const bounds = map.getBounds();
+  
+  if (!bounds) {
+    console.warn('[UFO] Cannot get map bounds for UFO blips');
+    return;
+  }
+  
   const jitter = (min: number, max: number) => min + Math.random() * (max - min);
   const points = Array.from({ length: 3 + Math.floor(Math.random() * 3) }).map(() => ({
     type: 'Feature',
@@ -52,7 +57,7 @@ export function ufoBlips(map: mapboxgl.Map) {
   };
 }
 
-export function anomalyPing(map: mapboxgl.Map, color = '#45ffb0') {
+export function anomalyPing(map: MapboxMap, color = '#45ffb0') {
   const id = `egg-ping-${Math.random().toString(36).slice(2)}`;
   const sourceId = `${id}-src`;
   const layerId = `${id}-layer`;
@@ -91,7 +96,7 @@ export function anomalyPing(map: mapboxgl.Map, color = '#45ffb0') {
   }, 60);
 }
 
-export function matrixPulse(map: mapboxgl.Map) {
+export function matrixPulse(map: MapboxMap) {
   // Boost grid opacity and apply greenish fog briefly
   const restore: (() => void)[] = [];
   try {

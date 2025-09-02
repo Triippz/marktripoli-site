@@ -5,7 +5,7 @@ import type {
   ExecutiveBriefing,
   TransformationMetadata,
   DataSyncState 
-} from '../../types/mission';
+} from '../../types';
 import type { 
   JsonResume, 
   ResumeDataState, 
@@ -17,7 +17,7 @@ import type {
   BriefingGenerationConfig,
   GeneratedBriefing,
   PerformanceMetrics
-} from '../../types/resume';
+} from '../../types';
 import { resumeService } from '../../services/resumeService';
 
 export interface DataSlice {

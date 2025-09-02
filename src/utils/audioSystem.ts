@@ -101,7 +101,7 @@ class MissionControlAudio {
   private createOscillator(frequency: number, type: OscillatorType = 'sine'): OscillatorNode {
     if (!this.audioContext) throw new Error('Audio context not initialized');
     if (!this.audioContext.currentTime && this.audioContext.currentTime !== 0) throw new Error('Audio context in invalid state');
-    if (typeof frequency !== 'number' || isNaN(frequency) || frequency <= 0) {
+    if (isNaN(frequency) || frequency <= 0) {
       throw new Error(`Invalid frequency: ${frequency}`);
     }
     

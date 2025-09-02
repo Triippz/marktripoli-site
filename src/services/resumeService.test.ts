@@ -24,7 +24,6 @@ describe('ResumeService', () => {
     const svc = new ResumeService();
     const payload = { basics: { name: 'Test' } };
     const fetchMock = makeFetch(payload, 10);
-    // @ts-expect-error override
     global.fetch = fetchMock;
 
     const p1 = svc.fetchResumeData('/anything');
@@ -39,7 +38,6 @@ describe('ResumeService', () => {
     const svc = new ResumeService();
     const payload = { basics: { name: 'Cached' } };
     const fetchMock = makeFetch(payload);
-    // @ts-expect-error override
     global.fetch = fetchMock;
 
     const first = await svc.fetchResumeData('/anything');

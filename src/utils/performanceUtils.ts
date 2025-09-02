@@ -240,13 +240,13 @@ export class PerformanceOptimizer {
   }
 
   // Throttle utility for scroll/resize events
-  static throttle<T extends (...args: any[]) => any>(
+  static throttle<T extends (...args: never[]) => unknown>(
     func: T,
     limit: number
   ): (...args: Parameters<T>) => void {
     let inThrottle: boolean;
     
-    return function executedFunction(...args: Parameters<T>) {
+    return function executedFunction(this: ThisParameterType<T>, ...args: Parameters<T>) {
       if (!inThrottle) {
         func.apply(this, args);
         inThrottle = true;
@@ -258,14 +258,16 @@ export class PerformanceOptimizer {
   // RequestIdleCallback wrapper with fallback
   static runWhenIdle(callback: () => void, timeout = 5000) {
     if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(callback, { timeout });
+      (window as typeof window & { 
+        requestIdleCallback: (callback: () => void, options?: { timeout: number }) => void 
+      }).requestIdleCallback(callback, { timeout });
     } else {
       setTimeout(callback, 16); // Fallback to next frame
     }
   }
 
   // Web Worker utility for offloading heavy computations
-  static createWorker(workerFunction: Function): Worker {
+  static createWorker(workerFunction: () => void): Worker {
     const blob = new Blob([`(${workerFunction.toString()})()`], { type: 'application/javascript' });
     return new Worker(URL.createObjectURL(blob));
   }

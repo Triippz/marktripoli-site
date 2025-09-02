@@ -36,7 +36,13 @@ class MissionControlFeedback {
 
   private initializeAudio() {
     try {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // Type assertion for webkit prefixed AudioContext
+      const AudioContextClass = window.AudioContext || 
+        (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      
+      if (AudioContextClass) {
+        this.audioContext = new AudioContextClass();
+      }
     } catch (error) {
       console.warn('Web Audio API not supported');
     }
