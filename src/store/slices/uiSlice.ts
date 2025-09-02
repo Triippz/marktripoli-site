@@ -6,11 +6,13 @@ export interface UISlice {
   soundEnabled: boolean;
   hudVisible: boolean;
   theme: 'tactical' | 'classic';
+  bootCompleted: boolean;
   
   // Actions
   toggleSound: () => void;
   toggleHUD: () => void;
   setTheme: (theme: 'tactical' | 'classic') => void;
+  setBootCompleted: (completed: boolean) => void;
 }
 
 export const createUISlice: StateCreator<
@@ -23,6 +25,7 @@ export const createUISlice: StateCreator<
   soundEnabled: JSON.parse(localStorage.getItem('mc-sound') || 'false'),
   hudVisible: true,
   theme: 'tactical',
+  bootCompleted: JSON.parse(localStorage.getItem('mc-boot-completed') || 'false'),
   
   // Actions
   toggleSound: () => {
@@ -43,5 +46,10 @@ export const createUISlice: StateCreator<
   setTheme: (theme) => {
     localStorage.setItem('mc-theme', theme);
     set({ theme });
+  },
+  
+  setBootCompleted: (completed) => {
+    localStorage.setItem('mc-boot-completed', JSON.stringify(completed));
+    set({ bootCompleted: completed });
   },
 });

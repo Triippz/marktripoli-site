@@ -117,32 +117,32 @@ export const createResponsiveSlice: StateCreator<ResponsiveSlice> = (set, get) =
   },
   performanceMetrics: null,
   
-  // Computed properties
-  get isMobile() {
-    return get().screenSize === 'mobile';
-  },
-  get isTablet() {
-    return get().screenSize === 'tablet';
-  },
-  get isDesktop() {
-    const size = get().screenSize;
-    return size === 'desktop' || size === 'ultrawide';
-  },
-  get shouldReduceMotion() {
-    const state = get();
-    return state.capabilities.reducedMotion || !state.features.animations;
-  },
+  // Computed properties (removed getters that cause issues)
+  isMobile: false, // Will be updated by actions
+  isTablet: false,
+  isDesktop: true, // Default to desktop
+  shouldReduceMotion: false,
   
   // Actions
   updateResponsiveState: (screenSize, orientation, capabilities) => {
     const currentState = get();
     const newFeatures = getOptimalFeatures(screenSize, capabilities, currentState.performanceMetrics || undefined);
     
+    // Calculate computed properties
+    const isMobile = screenSize === 'mobile';
+    const isTablet = screenSize === 'tablet';
+    const isDesktop = screenSize === 'desktop' || screenSize === 'ultrawide';
+    const shouldReduceMotion = capabilities.reducedMotion || !newFeatures.animations;
+    
     set({
       screenSize,
       orientation,
       capabilities,
       features: newFeatures,
+      isMobile,
+      isTablet,
+      isDesktop,
+      shouldReduceMotion,
       // Reset mobile state if switching away from mobile
       mobileState: screenSize !== 'mobile' ? {
         bottomSheetOpen: false,
@@ -213,8 +213,11 @@ export const createResponsiveSlice: StateCreator<ResponsiveSlice> = (set, get) =
       optimizedFeatures.backgroundProcessing = false;
     }
     
+    const shouldReduceMotion = state.capabilities.reducedMotion || !optimizedFeatures.animations;
+    
     set({ 
       features: optimizedFeatures,
+      shouldReduceMotion,
       mobileState: state.screenSize === 'mobile' ? {
         ...state.mobileState,
         simplifiedUI: true

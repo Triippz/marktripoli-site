@@ -97,12 +97,15 @@ export const useUIStore = () => useMissionControlV2(state => ({
   soundEnabled: state.soundEnabled,
   hudVisible: state.hudVisible,
   theme: state.theme,
+  bootCompleted: state.bootCompleted,
   toggleSound: state.toggleSound,
   toggleHUD: state.toggleHUD,
   setTheme: state.setTheme,
+  setBootCompleted: state.setBootCompleted,
 }));
 
-export const useResponsiveStore = () => useMissionControlV2(state => ({
+// Memoized selector to prevent infinite re-renders  
+const responsiveStoreSelector = (state: any) => ({
   screenSize: state.screenSize,
   orientation: state.orientation,
   capabilities: state.capabilities,
@@ -121,7 +124,9 @@ export const useResponsiveStore = () => useMissionControlV2(state => ({
   getOptimalBreakpoint: state.getOptimalBreakpoint,
   shouldUseComponent: state.shouldUseComponent,
   getAnimationSettings: state.getAnimationSettings,
-}));
+});
+
+export const useResponsiveStore = () => useMissionControlV2(responsiveStoreSelector);
 
 // Memoized selector to prevent infinite re-renders
 const dataStoreSelector = (state: any) => ({

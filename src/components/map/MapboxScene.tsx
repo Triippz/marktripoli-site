@@ -95,11 +95,6 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
             return prev;
           }
           
-          // Update performance metrics for responsive optimization
-          updatePerformanceMetrics({
-            lastRenderTime: Date.now()
-          });
-          
           return { width: rect.width, height: rect.height };
         });
       }
@@ -121,6 +116,15 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       return () => window.removeEventListener('resize', updateDimensions);
     }
   }, [updatePerformanceMetrics]);
+
+  // Update performance metrics when container dimensions change
+  useEffect(() => {
+    if (containerDimensions.width > 0 && containerDimensions.height > 0) {
+      updatePerformanceMetrics({
+        lastRenderTime: Date.now()
+      });
+    }
+  }, [containerDimensions, updatePerformanceMetrics]);
 
   // Hide crosshair when cursor leaves the map container (desktop only)
   useEffect(() => {

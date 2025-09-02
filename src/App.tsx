@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 
 // Store & Utils
-import { useMissionControl } from './store/missionControl';
+import { useMissionControlV2 } from './store/missionControlV2';
 import { missionAudio } from './utils/audioSystem';
 import SEO from './components/SEO';
 import { debugLog, criticalLog } from './utils/debugLogger';
@@ -36,7 +36,7 @@ import './styles/responsive-performance.css';
 
 
 function MissionControlInterface() {
-  const { telemetryLogs, userRank, soundEnabled, toggleSound, selectedSite, currentDossier, alertActive } = useMissionControl() as any;
+  const { telemetryLogs, userRank, soundEnabled, toggleSound, selectedSite, currentDossier, alertActive } = useMissionControlV2() as any;
   const [showContactForm, setShowContactForm] = useState(false);
   const [earthControlActive, setEarthControlActive] = useState(false);
 
@@ -172,7 +172,7 @@ function GlobalKeyboardHandler() {
 }
 
 function App() {
-  const { addTelemetry, soundEnabled, bootCompleted, setBootCompleted } = useMissionControl() as any;
+  const { addTelemetry, soundEnabled, bootCompleted, setBootCompleted } = useMissionControlV2() as any;
 
   // Ensure remembered users skip boot sequence
   useEffect(() => {

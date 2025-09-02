@@ -1,4 +1,4 @@
-import React, { useEffect, ReactNode } from 'react';
+import React, { useEffect, ReactNode, useMemo } from 'react';
 import { useResponsive } from '../hooks/useResponsive';
 import { useResponsiveStore } from '../store/missionControlV2';
 import { performanceMonitor } from '../utils/performanceMonitor';
