@@ -232,7 +232,7 @@ export function withPerformanceTracking<T extends React.ComponentType<any>>(
   Component: T,
   componentName?: string
 ): T {
-  const WrappedComponent = React.forwardRef<any, React.ComponentProps<T>>((props, ref) => {
+  const WrappedComponent = React.forwardRef((props: React.ComponentProps<T>, ref: any) => {
     const name = componentName || Component.displayName || Component.name;
     
     React.useEffect(() => {
@@ -240,7 +240,7 @@ export function withPerformanceTracking<T extends React.ComponentType<any>>(
       return endMeasure;
     });
     
-    return <Component {...props} ref={ref} />;
+    return React.createElement(Component, { ...props, ref });
   });
   
   WrappedComponent.displayName = `withPerformanceTracking(${componentName || Component.displayName || Component.name})`;
