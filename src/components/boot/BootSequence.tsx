@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useMissionControlV2 } from '../../store/missionControlV2';
+import { useMissionControl } from '../../store/missionControl';
 import { motion } from 'framer-motion';
 import MapboxGlobe from '../MapboxGlobe';
 
@@ -25,7 +25,7 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
   const [password, setPassword] = useState('');
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [remember, setRemember] = useState<boolean>(() => localStorage.getItem('mc-remember') === 'true');
-  const { setUserName, addTelemetry } = useMissionControlV2();
+  const { setUserName, addTelemetry } = useMissionControl();
   
   useEffect(() => {
     const stored = localStorage.getItem('mc-user');

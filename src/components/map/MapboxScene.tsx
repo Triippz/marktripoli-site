@@ -4,9 +4,8 @@ import { motion } from 'framer-motion';
 import type { SiteData } from '../../types';
 import sitesData from '../../data/sites.json';
 
-// Responsive hooks and store
+// Responsive hooks
 import { useResponsive } from '../../hooks/useResponsive';
-import { useResponsiveStore } from '../../store/missionControlV2';
 
 // Core map components
 import MapContainer from './core/MapContainer';
@@ -40,18 +39,7 @@ interface MapboxSceneProps {
 function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   // Responsive state
   const responsive = useResponsive();
-  const {
-    isMobile,
-    isTablet,
-    isDesktop,
-    capabilities,
-    features,
-    shouldReduceMotion,
-    getAnimationSettings,
-    shouldUseComponent,
-    updateResponsiveState,
-    updatePerformanceMetrics
-  } = useResponsiveStore();
+  const { isMobile, isTablet, isDesktop, capabilities } = responsive;
   
   // Map state
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
@@ -75,14 +63,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   // UXV system integration
   const uxvState = useUXVState();
   
-  // Sync responsive state with store
-  useEffect(() => {
-    updateResponsiveState(
-      responsive.screenSize,
-      responsive.orientation,
-      responsive.capabilities
-    );
-  }, [responsive.screenSize, responsive.orientation, responsive.capabilities, updateResponsiveState]);
+  // Note: ResponsiveProvider handles updating responsive state in the store
 
   // Track container size for flight path animations (now responsive)
   useEffect(() => {
@@ -115,16 +96,9 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       window.addEventListener('resize', updateDimensions);
       return () => window.removeEventListener('resize', updateDimensions);
     }
-  }, [updatePerformanceMetrics]);
+  }, []);
 
-  // Update performance metrics when container dimensions change
-  useEffect(() => {
-    if (containerDimensions.width > 0 && containerDimensions.height > 0) {
-      updatePerformanceMetrics({
-        lastRenderTime: Date.now()
-      });
-    }
-  }, [containerDimensions, updatePerformanceMetrics]);
+  // Note: Performance metrics are handled by ResponsiveProvider
 
   // Hide crosshair when cursor leaves the map container (desktop only)
   useEffect(() => {
@@ -269,12 +243,18 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   }, []);
 
   // Get responsive CSS classes and animation settings
-  const animationSettings = getAnimationSettings();
+  const animationSettings = isMobile 
+    ? { duration: 200, easing: 'ease-out', reduce: false }
+    : { duration: 400, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', reduce: capabilities.reducedMotion };
   const mapCursorClass = isMobile 
     ? "cursor-default touch-manipulation" 
     : capabilities.hover 
       ? "cursor-none" 
       : "cursor-default";
+      
+  // Simple responsive feature flags
+  const enableComplexAnimations = !isMobile && !capabilities.reducedMotion;
+  const enableAnimations = !capabilities.reducedMotion;
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden" ref={mapContainer}>
@@ -291,7 +271,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       {isMapLoaded && map && (
         <>
           {/* UXV System - render based on device capabilities */}
-          {shouldUseComponent('ComplexAnimations') && (
+          {enableComplexAnimations && (
             <UXVSystem
               map={map}
               isMapLoaded={isMapLoaded}
@@ -322,7 +302,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       )}
 
       {/* Mothership overlay when zoomed out - desktop only */}
-      {isMapLoaded && mothershipVisible && shouldUseComponent('ComplexAnimations') && (
+      {isMapLoaded && mothershipVisible && enableComplexAnimations && (
         <MothershipOverlay containerRef={mapContainer} />
       )}
 
@@ -352,7 +332,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
           <AlertOverlay isAlertMode={alertMode} />
 
           {/* Flight Path Animations (legacy) - reduce on mobile */}
-          {shouldUseComponent('AnimationLibrary') && (
+          {enableAnimations && (
             <FlightPathAnimations
               sites={sites}
               selectedSite={null}
@@ -364,7 +344,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       )}
 
       {/* Tactical scanning overlay - responsive animation */}
-      {isMapLoaded && features.animations && !shouldReduceMotion && (
+      {isMapLoaded && enableAnimations && (
         <motion.div
           className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-30 pointer-events-none"
           animate={{ y: [0, containerDimensions.height || 800] }}

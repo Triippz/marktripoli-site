@@ -1,4 +1,4 @@
-import React, { useEffect, ReactNode, useMemo } from 'react';
+import React, { useEffect, ReactNode, useCallback, useRef } from 'react';
 import { useResponsive } from '../hooks/useResponsive';
 import { useResponsiveStore } from '../store/missionControlV2';
 import { performanceMonitor } from '../utils/performanceMonitor';
@@ -49,31 +49,43 @@ export function ResponsiveProvider({ children }: ResponsiveProviderProps) {
     };
   }, [responsive]);
 
+  // Throttled performance metrics callback
+  const performanceUpdateRef = useRef<number>(0);
+  
+  const throttledPerformanceUpdate = useCallback((metrics: any) => {
+    const now = Date.now();
+    
+    // Throttle updates to once per second to prevent infinite loops
+    if (now - performanceUpdateRef.current < 1000) {
+      return;
+    }
+    
+    performanceUpdateRef.current = now;
+    updatePerformanceMetrics(metrics);
+    
+    // Auto-optimize if performance is critical
+    if (performanceMonitor.isPerformanceCritical()) {
+      optimizeForDevice();
+      
+      // Add performance warning class to body
+      document.body.classList.add('memory-critical');
+    } else {
+      document.body.classList.remove('memory-critical');
+      
+      // Add warning class if performance is low
+      if (performanceMonitor.getPerformanceLevel() === 'low') {
+        document.body.classList.add('memory-warning');
+      } else {
+        document.body.classList.remove('memory-warning');
+      }
+    }
+  }, [updatePerformanceMetrics, optimizeForDevice]);
+
   // Set up performance monitoring
   useEffect(() => {
-    const unsubscribe = performanceMonitor.subscribe((metrics) => {
-      updatePerformanceMetrics(metrics);
-      
-      // Auto-optimize if performance is critical
-      if (performanceMonitor.isPerformanceCritical()) {
-        optimizeForDevice();
-        
-        // Add performance warning class to body
-        document.body.classList.add('memory-critical');
-      } else {
-        document.body.classList.remove('memory-critical');
-        
-        // Add warning class if performance is low
-        if (performanceMonitor.getPerformanceLevel() === 'low') {
-          document.body.classList.add('memory-warning');
-        } else {
-          document.body.classList.remove('memory-warning');
-        }
-      }
-    });
-
+    const unsubscribe = performanceMonitor.subscribe(throttledPerformanceUpdate);
     return unsubscribe;
-  }, [updatePerformanceMetrics, optimizeForDevice]);
+  }, [throttledPerformanceUpdate]);
 
   // Initialize performance monitoring
   useEffect(() => {

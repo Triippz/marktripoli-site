@@ -3,13 +3,12 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 
 // Store & Utils
-import { useMissionControlV2 } from './store/missionControlV2';
+import { useMissionControl } from './store/missionControl';
 import { missionAudio } from './utils/audioSystem';
 import SEO from './components/SEO';
 import { debugLog, criticalLog } from './utils/debugLogger';
 
-// Providers
-import { ResponsiveProvider } from './providers/ResponsiveProvider';
+// Note: ResponsiveProvider temporarily disabled to fix infinite loops
 
 // Base Components
 import BootSequence from './components/boot/BootSequence';
@@ -36,7 +35,7 @@ import './styles/responsive-performance.css';
 
 
 function MissionControlInterface() {
-  const { telemetryLogs, userRank, soundEnabled, toggleSound, selectedSite, currentDossier, alertActive } = useMissionControlV2() as any;
+  const { telemetryLogs, userRank, soundEnabled, toggleSound, selectedSite, currentDossier, alertActive } = useMissionControl() as any;
   const [showContactForm, setShowContactForm] = useState(false);
   const [earthControlActive, setEarthControlActive] = useState(false);
 
@@ -172,7 +171,7 @@ function GlobalKeyboardHandler() {
 }
 
 function App() {
-  const { addTelemetry, soundEnabled, bootCompleted, setBootCompleted } = useMissionControlV2() as any;
+  const { addTelemetry, soundEnabled, bootCompleted, setBootCompleted } = useMissionControl() as any;
 
   // Ensure remembered users skip boot sequence
   useEffect(() => {
@@ -215,25 +214,23 @@ function App() {
   return (
     <div>
       <Router>
-        <ResponsiveProvider>
-          <GlobalKeyboardHandler />
-          <EnhancedErrorBoundary
-            enableTelemetry={true}
-            context="MISSION_CONTROL_APP"
-            maxRetries={3}
-            retryDelay={2000}
-            onError={(error) => {
-              criticalLog.error('[App] Mission Control error boundary triggered:', error);
-            }}
-          >
-            <Routes>
-              <Route path="/" element={<MissionControlInterface />} />
-              <Route path="/brief" element={<ExecutiveBrief />} />
-              <Route path="/briefing" element={<ExecutiveBrief />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </EnhancedErrorBoundary>
-        </ResponsiveProvider>
+        <GlobalKeyboardHandler />
+        <EnhancedErrorBoundary
+          enableTelemetry={true}
+          context="MISSION_CONTROL_APP"
+          maxRetries={3}
+          retryDelay={2000}
+          onError={(error) => {
+            criticalLog.error('[App] Mission Control error boundary triggered:', error);
+          }}
+        >
+          <Routes>
+            <Route path="/" element={<MissionControlInterface />} />
+            <Route path="/brief" element={<ExecutiveBrief />} />
+            <Route path="/briefing" element={<ExecutiveBrief />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </EnhancedErrorBoundary>
       </Router>
     </div>
   );
