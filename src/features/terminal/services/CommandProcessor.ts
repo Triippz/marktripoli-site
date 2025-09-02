@@ -1,7 +1,8 @@
+import mapboxgl from 'mapbox-gl';
 import { TerminalCommand, TerminalState, TerminalCommandResult, TerminalAction } from '../types';
 import { getGeofences, goToGeofence } from '../../../utils/easterEggs/mapEasterEggs';
 import { createDefaultFS, resolvePath, isDir, listDir, readFile } from '../../../utils/fauxFS';
-import { CareerMapData, CareerMarker } from '../../career/types';
+import { CareerMapData, CareerMarker } from '../../../types/careerData';
 
 export class CommandProcessor {
   private commands: Map<string, TerminalCommand> = new Map();

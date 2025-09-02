@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { CareerMarker, CareerMapData } from '../types';
+import { CareerMarker, CareerMapData } from '../../../types/careerData';
 import { resumeDataService } from '../../../services/resumeDataService';
 
 interface CareerMarkerRendererProps {

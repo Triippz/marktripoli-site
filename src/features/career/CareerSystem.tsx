@@ -1,9 +1,10 @@
 import React from 'react';
+import mapboxgl from 'mapbox-gl';
 import { useCareerMarkers } from './hooks/useCareerMarkers';
 import CareerMarkerRenderer from './components/CareerMarkerRenderer';
 import CareerDetailsDialog from './components/CareerDetailsDialog';
 import MissionLegend from './components/MissionLegend';
-import { CareerMarker } from './types';
+import { CareerMarker } from '../../types/careerData';
 
 interface CareerSystemProps {
   map: mapboxgl.Map | null;

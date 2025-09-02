@@ -1,17 +1,17 @@
 import type { StateCreator } from 'zustand';
-import type { SiteData, Command, TerminalState, DossierTab } from '../../types/mission';
+import type { EnhancedSiteData, Command, TerminalState, DossierTab } from '../../types';
 import { missionAudio } from '../../utils/audioSystem';
 
 export interface TerminalSlice {
   // State
   terminalState: TerminalState;
-  currentDossier: SiteData | null;
+  currentDossier: EnhancedSiteData | null;
   activeTab: DossierTab;
   commandHistory: Command[];
   
   // Actions
   setTerminalState: (state: TerminalState) => void;
-  setCurrentDossier: (dossier: SiteData | null) => void;
+  setCurrentDossier: (dossier: EnhancedSiteData | null) => void;
   setActiveTab: (tab: DossierTab) => void;
   addCommand: (command: Command) => void;
 }

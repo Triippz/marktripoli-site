@@ -3,6 +3,8 @@
  * Provides clean, organized access to the complete type system
  */
 
+import type { Coordinates, DateRange, SiteData, EnhancedSiteData } from './mission';
+
 // Core Mission Control Types
 export type {
   // Basic types
@@ -218,10 +220,10 @@ export const TypeValidators = {
            Array.isArray(obj.deploymentLogs);
   },
 
-  isValidEnhancedSiteData: (obj: any): obj is SiteData => {
+  isValidEnhancedSiteData: (obj: any): obj is EnhancedSiteData => {
     return TypeValidators.isValidSiteData(obj) &&
-           (!obj.skills || Array.isArray(obj.skills)) &&
-           (!obj.clearanceLevel || ['unclassified', 'confidential', 'secret', 'top-secret'].includes(obj.clearanceLevel));
+           (!(obj as EnhancedSiteData).skills || Array.isArray((obj as EnhancedSiteData).skills)) &&
+           (!(obj as EnhancedSiteData).clearanceLevel || ['unclassified', 'confidential', 'secret', 'top-secret'].includes((obj as EnhancedSiteData).clearanceLevel));
   },
 
   isValidJsonResume: (obj: any): obj is any => {

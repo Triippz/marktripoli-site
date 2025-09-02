@@ -1,7 +1,22 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { CareerMarker, CareerMapData, CareerMarkerState, CareerMarkerControls } from '../types';
+import mapboxgl from 'mapbox-gl';
+import { CareerMarker, CareerMapData } from '../../../types/careerData';
 import { resumeDataService } from '../../../services/resumeDataService';
-import { useMissionControl } from '../../../store/missionControl';
+import { useTelemetryStore } from '../../../store/missionControlV2';
+
+export interface CareerMarkerState {
+  markers: CareerMarker[];
+  selectedMarker: CareerMarker | null;
+  isLoading: boolean;
+  error: string | null;
+  careerData: CareerMapData | null;
+}
+
+export interface CareerMarkerControls {
+  selectMarker: (marker: CareerMarker) => void;
+  clearSelection: () => void;
+  flyToMarker: (marker: CareerMarker, map: mapboxgl.Map) => void;
+}
 
 export function useCareerMarkers(): CareerMarkerState & CareerMarkerControls {
   const [markers, setMarkers] = useState<CareerMarker[]>([]);
@@ -11,7 +26,7 @@ export function useCareerMarkers(): CareerMarkerState & CareerMarkerControls {
   const [careerData, setCareerData] = useState<CareerMapData | null>(null);
   const initialized = useRef(false);
 
-  const { addTelemetry } = useMissionControl() as any;
+  const { addTelemetry } = useTelemetryStore();
 
   const addCareerTelemetry = useCallback((log: any) => {
     addTelemetry(log);
@@ -99,5 +114,5 @@ export function useCareerMarkers(): CareerMarkerState & CareerMarkerControls {
     selectMarker,
     clearSelection,
     flyToMarker
-  } as any;
+  };
 }

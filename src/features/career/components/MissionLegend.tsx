@@ -1,5 +1,5 @@
 import React from 'react';
-import { CareerMapData } from '../types';
+import { CareerMapData } from '../../../types/careerData';
 
 interface MissionLegendProps {
   careerData: CareerMapData;

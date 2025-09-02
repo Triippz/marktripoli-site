@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { UserRank } from '../../types/mission';
+import type { UserRank } from '../../types';
 import { missionAudio } from '../../utils/audioSystem';
 
 export interface UserSlice {

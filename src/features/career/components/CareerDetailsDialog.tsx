@@ -1,5 +1,5 @@
 import React from 'react';
-import { CareerMarker } from '../types';
+import { CareerMarker } from '../../../types/careerData';
 import { resumeDataService } from '../../../services/resumeDataService';
 
 interface CareerDetailsDialogProps {

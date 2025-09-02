@@ -55,12 +55,7 @@ export const useMapStore = () => useMissionControlV2(state => ({
   mapView: state.mapView,
   selectSite: state.selectSite,
   setMapView: state.setMapView,
-}), (a, b) => 
-  a.selectedSite === b.selectedSite && 
-  a.mapView === b.mapView && 
-  a.selectSite === b.selectSite && 
-  a.setMapView === b.setMapView
-);
+}));
 
 export const useTerminalStore = () => useMissionControlV2(state => ({
   terminalState: state.terminalState,
@@ -71,16 +66,7 @@ export const useTerminalStore = () => useMissionControlV2(state => ({
   setCurrentDossier: state.setCurrentDossier,
   setActiveTab: state.setActiveTab,
   addCommand: state.addCommand,
-}), (a, b) => 
-  a.terminalState === b.terminalState &&
-  a.currentDossier === b.currentDossier &&
-  a.activeTab === b.activeTab &&
-  a.commandHistory === b.commandHistory &&
-  a.setTerminalState === b.setTerminalState &&
-  a.setCurrentDossier === b.setCurrentDossier &&
-  a.setActiveTab === b.setActiveTab &&
-  a.addCommand === b.addCommand
-);
+}));
 
 export const useUserStore = () => useMissionControlV2(state => ({
   visitedSites: state.visitedSites,
@@ -89,26 +75,14 @@ export const useUserStore = () => useMissionControlV2(state => ({
   visitSite: state.visitSite,
   unlockEasterEgg: state.unlockEasterEgg,
   calculateRank: state.calculateRank,
-}), (a, b) => 
-  a.visitedSites === b.visitedSites &&
-  a.unlockedEasterEggs === b.unlockedEasterEggs &&
-  a.userRank === b.userRank &&
-  a.visitSite === b.visitSite &&
-  a.unlockEasterEgg === b.unlockEasterEgg &&
-  a.calculateRank === b.calculateRank
-);
+}));
 
 export const useTelemetryStore = () => useMissionControlV2(state => ({
   telemetryLogs: state.telemetryLogs,
   addTelemetry: state.addTelemetry,
   clearTelemetry: state.clearTelemetry,
   getTelemetryByLevel: state.getTelemetryByLevel,
-}), (a, b) => 
-  a.telemetryLogs === b.telemetryLogs && 
-  a.addTelemetry === b.addTelemetry && 
-  a.clearTelemetry === b.clearTelemetry && 
-  a.getTelemetryByLevel === b.getTelemetryByLevel
-);
+}));
 
 export const useUIStore = () => useMissionControlV2(state => ({
   soundEnabled: state.soundEnabled,
@@ -117,14 +91,7 @@ export const useUIStore = () => useMissionControlV2(state => ({
   toggleSound: state.toggleSound,
   toggleHUD: state.toggleHUD,
   setTheme: state.setTheme,
-}), (a, b) => 
-  a.soundEnabled === b.soundEnabled &&
-  a.hudVisible === b.hudVisible &&
-  a.theme === b.theme &&
-  a.toggleSound === b.toggleSound &&
-  a.toggleHUD === b.toggleHUD &&
-  a.setTheme === b.setTheme
-);
+}));
 
 // Memoized selector to prevent infinite re-renders
 const dataStoreSelector = (state: any) => ({
@@ -184,22 +151,7 @@ const dataStoreSelector = (state: any) => ({
   getTransformationHealth: state.getTransformationHealth,
 });
 
-export const useDataStore = () => useMissionControlV2(dataStoreSelector, (a, b) => {
-  // Shallow equality check to prevent unnecessary re-renders
-  if (a === b) return true;
-  if (!a || !b) return false;
-  
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-  
-  if (keysA.length !== keysB.length) return false;
-  
-  for (const key of keysA) {
-    if (a[key] !== b[key]) return false;
-  }
-  
-  return true;
-});
+export const useDataStore = () => useMissionControlV2(dataStoreSelector);
 
 // Computed selectors for complex state derivations
 export const useUserStats = () => useMissionControlV2(state => {

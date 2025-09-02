@@ -1,10 +1,10 @@
 import type { StateCreator } from 'zustand';
-import type { TelemetryEntry } from '../../types/mission';
+import type { TelemetryEntry } from '../../types';
 import { missionAudio } from '../../utils/audioSystem';
 
 // Throttle telemetry to prevent UI blocking
 let telemetryBuffer: Array<Omit<TelemetryEntry, 'timestamp'>> = [];
-let telemetryTimeout: number | null = null;
+let telemetryTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export interface TelemetrySlice {
   // State
