@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { CareerMarker, CareerMapData } from '../../../types/careerData';
 import { resumeDataService } from '../../../services/resumeDataService';
-import { useTelemetryStore } from '../../../store/missionControlV2';
+import { useMissionControlV2 } from '../../../store/missionControlV2';
 
 export interface CareerMarkerState {
   markers: CareerMarker[];
@@ -26,7 +26,7 @@ export function useCareerMarkers(): CareerMarkerState & CareerMarkerControls {
   const [careerData, setCareerData] = useState<CareerMapData | null>(null);
   const initialized = useRef(false);
 
-  const { addTelemetry } = useTelemetryStore();
+  const addTelemetry = useMissionControlV2(state => state.addTelemetry);
 
   const addCareerTelemetry = useCallback((log: any) => {
     addTelemetry(log);

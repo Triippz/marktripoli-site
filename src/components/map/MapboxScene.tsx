@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import type * as mapboxgl from 'mapbox-gl';
+import mapboxgl from 'mapbox-gl';
 import { motion } from 'framer-motion';
 import type { SiteData } from '../../types';
 import sitesData from '../../data/sites.json';
@@ -47,7 +47,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   const [alertMode, setAlertMode] = useState(false);
   
   // Legacy sites data (keeping for backward compatibility)
-  const [sites] = useState<SiteData[]>(propSites || sitesData as SiteData[]);
+  const [sites] = useState<SiteData[]>(() => propSites || sitesData as SiteData[]);
   
   // Refs
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -61,7 +61,13 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     const updateDimensions = () => {
       if (mapContainer.current) {
         const rect = mapContainer.current.getBoundingClientRect();
-        setContainerDimensions({ width: rect.width, height: rect.height });
+        setContainerDimensions(prev => {
+          // Prevent unnecessary updates if dimensions haven't changed significantly
+          if (Math.abs(prev.width - rect.width) < 1 && Math.abs(prev.height - rect.height) < 1) {
+            return prev;
+          }
+          return { width: rect.width, height: rect.height };
+        });
       }
     };
 
@@ -84,15 +90,19 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     setMap(mapInstance);
     setIsMapLoaded(true);
 
-    // Register map easter eggs
-    try {
-      eggsRef.current = require('../../utils/easterEggs/mapEasterEggs').registerMapEasterEggs(
-        mapInstance, 
-        { container: mapContainer.current!, enableRandom: true }
-      );
-    } catch (eggErr) {
-      console.warn('[MapboxScene] Map easter eggs registration failed:', eggErr);
-    }
+    // Register map easter eggs (async import)
+    import('../../utils/easterEggs/mapEasterEggs')
+      .then(mapEasterEggs => {
+        if (mapEasterEggs.registerMapEasterEggs && mapContainer.current) {
+          eggsRef.current = mapEasterEggs.registerMapEasterEggs(
+            mapInstance, 
+            { container: mapContainer.current, enableRandom: true }
+          );
+        }
+      })
+      .catch(eggErr => {
+        console.warn('[MapboxScene] Map easter eggs registration failed:', eggErr);
+      });
 
     // Handle HQ query param navigation
     try {
@@ -114,8 +124,15 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     if (!map) return;
     const onMove = () => {
       const z = map.getZoom();
-      setZoomLevel(z);
-      setMothershipVisible(z <= 1.2);
+      setZoomLevel(prevZoom => {
+        if (Math.abs(prevZoom - z) < 0.01) return prevZoom; // Prevent tiny updates
+        return z;
+      });
+      setMothershipVisible(prev => {
+        const shouldShow = z <= 1.2;
+        if (prev === shouldShow) return prev; // Prevent unnecessary updates
+        return shouldShow;
+      });
     };
     map.on('move', onMove);
     onMove();
@@ -125,11 +142,18 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   }, [map]);
 
   const handleMapMove = useCallback((e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
-    setCurrentCoords({
-      lat: parseFloat(e.lngLat.lat.toFixed(4)),
-      lng: parseFloat(e.lngLat.lng.toFixed(4))
+    const newLat = parseFloat(e.lngLat.lat.toFixed(4));
+    const newLng = parseFloat(e.lngLat.lng.toFixed(4));
+    
+    setCurrentCoords(prev => {
+      if (prev.lat === newLat && prev.lng === newLng) return prev;
+      return { lat: newLat, lng: newLng };
     });
-    setCursorPoint({ x: e.point.x, y: e.point.y });
+    
+    setCursorPoint(prev => {
+      if (prev?.x === e.point.x && prev?.y === e.point.y) return prev;
+      return { x: e.point.x, y: e.point.y };
+    });
   }, []);
 
   const handleMapClick = useCallback((e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
@@ -146,8 +170,11 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   const handleTerminalAction = useCallback((action: any) => {
     switch (action.type) {
       case 'trigger_alert':
-        setAlertMode(true);
-        setTimeout(() => setAlertMode(false), action.payload || 4000);
+        setAlertMode(prev => {
+          if (prev) return prev; // Already in alert mode, don't restart
+          setTimeout(() => setAlertMode(false), action.payload || 4000);
+          return true;
+        });
         break;
       // Other terminal actions are handled by TerminalSystem internally
     }
