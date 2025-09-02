@@ -4,6 +4,10 @@ import { motion } from 'framer-motion';
 import type { SiteData } from '../../types';
 import sitesData from '../../data/sites.json';
 
+// Responsive hooks and store
+import { useResponsive } from '../../hooks/useResponsive';
+import { useResponsiveStore } from '../../store/missionControlV2';
+
 // Core map components
 import MapContainer from './core/MapContainer';
 
@@ -34,6 +38,21 @@ interface MapboxSceneProps {
 }
 
 function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
+  // Responsive state
+  const responsive = useResponsive();
+  const {
+    isMobile,
+    isTablet,
+    isDesktop,
+    capabilities,
+    features,
+    shouldReduceMotion,
+    getAnimationSettings,
+    shouldUseComponent,
+    updateResponsiveState,
+    updatePerformanceMetrics
+  } = useResponsiveStore();
+  
   // Map state
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
@@ -42,7 +61,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   
   // UI state
   const [currentCoords, setCurrentCoords] = useState({ lat: 42.3601, lng: -71.0589 });
-  const [containerDimensions, setContainerDimensions] = useState({ width: 800, height: 600 });
+  const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   const [cursorPoint, setCursorPoint] = useState<{ x: number; y: number } | null>(null);
   const [alertMode, setAlertMode] = useState(false);
   
@@ -55,8 +74,17 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
 
   // UXV system integration
   const uxvState = useUXVState();
+  
+  // Sync responsive state with store
+  useEffect(() => {
+    updateResponsiveState(
+      responsive.screenSize,
+      responsive.orientation,
+      responsive.capabilities
+    );
+  }, [responsive.screenSize, responsive.orientation, responsive.capabilities, updateResponsiveState]);
 
-  // Track container size for flight path animations
+  // Track container size for flight path animations (now responsive)
   useEffect(() => {
     const updateDimensions = () => {
       if (mapContainer.current) {
@@ -66,24 +94,43 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
           if (Math.abs(prev.width - rect.width) < 1 && Math.abs(prev.height - rect.height) < 1) {
             return prev;
           }
+          
+          // Update performance metrics for responsive optimization
+          updatePerformanceMetrics({
+            lastRenderTime: Date.now()
+          });
+          
           return { width: rect.width, height: rect.height };
         });
       }
     };
 
     updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
-  }, []);
+    
+    // Use ResizeObserver if available for better performance
+    if (mapContainer.current && 'ResizeObserver' in window) {
+      const resizeObserver = new ResizeObserver(updateDimensions);
+      resizeObserver.observe(mapContainer.current);
+      
+      return () => {
+        resizeObserver.disconnect();
+      };
+    } else {
+      // Fallback to window resize listener
+      window.addEventListener('resize', updateDimensions);
+      return () => window.removeEventListener('resize', updateDimensions);
+    }
+  }, [updatePerformanceMetrics]);
 
-  // Hide crosshair when cursor leaves the map container
+  // Hide crosshair when cursor leaves the map container (desktop only)
   useEffect(() => {
     const el = mapContainer.current;
-    if (!el) return;
+    if (!el || isMobile) return; // Skip mouse events on mobile
+    
     const handleLeave = () => setCursorPoint(null);
     el.addEventListener('mouseleave', handleLeave);
     return () => el.removeEventListener('mouseleave', handleLeave);
-  }, []);
+  }, [isMobile]);
 
   // Map event handlers
   const handleMapLoad = useCallback((mapInstance: mapboxgl.Map) => {
@@ -150,11 +197,14 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
       return { lat: newLat, lng: newLng };
     });
     
-    setCursorPoint(prev => {
-      if (prev?.x === e.point.x && prev?.y === e.point.y) return prev;
-      return { x: e.point.x, y: e.point.y };
-    });
-  }, []);
+    // Only track cursor point on desktop devices with hover capability
+    if (capabilities.hover && !isMobile) {
+      setCursorPoint(prev => {
+        if (prev?.x === e.point.x && prev?.y === e.point.y) return prev;
+        return { x: e.point.x, y: e.point.y };
+      });
+    }
+  }, [capabilities.hover, isMobile]);
 
   const handleMapClick = useCallback((e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     // UXV system will handle its own click events
@@ -214,6 +264,14 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     };
   }, []);
 
+  // Get responsive CSS classes and animation settings
+  const animationSettings = getAnimationSettings();
+  const mapCursorClass = isMobile 
+    ? "cursor-default touch-manipulation" 
+    : capabilities.hover 
+      ? "cursor-none" 
+      : "cursor-default";
+
   return (
     <div className="relative w-full h-full bg-black overflow-hidden" ref={mapContainer}>
       {/* Core map container */}
@@ -222,23 +280,25 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
         onMapMove={handleMapMove}
         onMapClick={handleMapClick}
         onMapContextMenu={handleMapContextMenu}
-        className="w-full h-full cursor-none"
+        className={`w-full h-full ${mapCursorClass}`}
       />
 
       {/* Feature systems - only render when map is loaded */}
       {isMapLoaded && map && (
         <>
-          {/* UXV System */}
-          <UXVSystem
-            map={map}
-            isMapLoaded={isMapLoaded}
-            containerDimensions={containerDimensions}
-            onMapClick={handleMapClick}
-            onMapContextMenu={handleMapContextMenu}
-            uxv={uxvState}
-          />
+          {/* UXV System - render based on device capabilities */}
+          {shouldUseComponent('ComplexAnimations') && (
+            <UXVSystem
+              map={map}
+              isMapLoaded={isMapLoaded}
+              containerDimensions={containerDimensions}
+              onMapClick={handleMapClick}
+              onMapContextMenu={handleMapContextMenu}
+              uxv={uxvState}
+            />
+          )}
 
-          {/* Career System */}
+          {/* Career System - always render but may have reduced features */}
           <CareerSystem
             map={map}
             isMapLoaded={isMapLoaded}
@@ -246,7 +306,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
             onUXVTarget={uxvState.setTarget}
           />
 
-          {/* Terminal System */}
+          {/* Terminal System - always render but adapts to screen size */}
           <TerminalSystem
             map={map}
             careerData={null} // Will be loaded by CareerSystem
@@ -257,25 +317,27 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
         </>
       )}
 
-      {/* Mothership overlay when zoomed out */}
-      {isMapLoaded && mothershipVisible && (
+      {/* Mothership overlay when zoomed out - desktop only */}
+      {isMapLoaded && mothershipVisible && shouldUseComponent('ComplexAnimations') && (
         <MothershipOverlay containerRef={mapContainer} />
       )}
 
       {/* UI Overlays */}
       {isMapLoaded && (
         <>
-          {/* Tactical crosshair cursor */}
-          <TacticalCrosshair
-            cursorPoint={cursorPoint}
-            currentCoords={currentCoords}
-            containerDimensions={containerDimensions}
-          />
+          {/* Tactical crosshair cursor - desktop only */}
+          {!isMobile && capabilities.hover && (
+            <TacticalCrosshair
+              cursorPoint={cursorPoint}
+              currentCoords={currentCoords}
+              containerDimensions={containerDimensions}
+            />
+          )}
 
-          {/* Tactical indicators */}
+          {/* Tactical indicators - adapt to screen size */}
           <TacticalIndicators zoomLevel={zoomLevel} />
 
-          {/* Career data display */}
+          {/* Career data display - responsive layout */}
           <CareerDataDisplay
             markerCount={0} // Will be updated by career system
             selectedMarker={null} // Will be updated by career system  
@@ -285,26 +347,28 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
           {/* Alert overlay */}
           <AlertOverlay isAlertMode={alertMode} />
 
-          {/* Flight Path Animations (legacy) */}
-          <FlightPathAnimations
-            sites={sites}
-            selectedSite={null}
-            containerWidth={containerDimensions.width}
-            containerHeight={containerDimensions.height}
-          />
+          {/* Flight Path Animations (legacy) - reduce on mobile */}
+          {shouldUseComponent('AnimationLibrary') && (
+            <FlightPathAnimations
+              sites={sites}
+              selectedSite={null}
+              containerWidth={containerDimensions.width}
+              containerHeight={containerDimensions.height}
+            />
+          )}
         </>
       )}
 
-      {/* Tactical scanning overlay */}
-      {isMapLoaded && (
+      {/* Tactical scanning overlay - responsive animation */}
+      {isMapLoaded && features.animations && !shouldReduceMotion && (
         <motion.div
           className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-30 pointer-events-none"
-          animate={{ y: [0, 800] }}
+          animate={{ y: [0, containerDimensions.height || 800] }}
           transition={{ 
-            duration: 4,
+            duration: animationSettings.duration / 100, // Convert to seconds, adjust for scanning speed
             repeat: Infinity,
-            ease: "linear",
-            repeatDelay: 2
+            ease: animationSettings.easing,
+            repeatDelay: isMobile ? 3 : 2 // Slower on mobile to save battery
           }}
         />
       )}

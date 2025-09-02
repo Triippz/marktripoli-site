@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMissionControl } from '../../store/missionControl';
+import { useResponsiveStore } from '../../store/missionControlV2';
 import TypewriterText from './TypewriterText';
 import Dossier from '../dossier/Dossier';
 import CommandInput from './CommandInput';
 import CareerEngagementSequences from '../engagement/CareerEngagementSequences';
+
+// Lazy load mobile overlay
+const MobileTerminalOverlay = lazy(() => import('./MobileTerminalOverlay'));
 
 function Terminal() {
   const { 
@@ -20,6 +24,12 @@ function Terminal() {
     soundEnabled,
     unlockEasterEgg
   } = useMissionControl();
+
+  const { 
+    isMobile, 
+    getAnimationSettings, 
+    shouldReduceMotion 
+  } = useResponsiveStore();
 
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [showEngagementSequence, setShowEngagementSequence] = useState(false);
@@ -164,6 +174,18 @@ function Terminal() {
 
   if (!selectedSite) return null;
 
+  // Use mobile overlay for mobile devices
+  if (isMobile) {
+    return (
+      <Suspense fallback={<div className="fixed inset-0 bg-black z-50" />}>
+        <MobileTerminalOverlay />
+      </Suspense>
+    );
+  }
+
+  // Desktop/tablet layout
+  const animationSettings = getAnimationSettings();
+
   return (
     <AnimatePresence>
       <motion.div
@@ -171,18 +193,21 @@ function Terminal() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ 
+          duration: shouldReduceMotion ? 0 : animationSettings.duration / 1000
+        }}
         onClick={(e) => e.target === e.currentTarget && handleClose()}
       >
         <motion.div
           className="bg-gray-900 border border-green-500/30 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
-          initial={{ scale: 0.8, opacity: 0 }}
+          initial={shouldReduceMotion ? { opacity: 1 } : { scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.8, opacity: 0 }}
-          transition={{ 
+          exit={shouldReduceMotion ? { opacity: 0 } : { scale: 0.8, opacity: 0 }}
+          transition={shouldReduceMotion ? { duration: 0 } : { 
             type: "spring",
             stiffness: 300,
-            damping: 30
+            damping: 30,
+            duration: animationSettings.duration / 1000
           }}
         >
           {/* Terminal Header */}

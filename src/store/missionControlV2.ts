@@ -6,9 +6,10 @@ import { createUserSlice, type UserSlice } from './slices/userSlice';
 import { createTelemetrySlice, type TelemetrySlice } from './slices/telemetrySlice';
 import { createUISlice, type UISlice } from './slices/uiSlice';
 import { createDataSlice, type DataSlice } from './slices/dataSlice';
+import { createResponsiveSlice, type ResponsiveSlice } from './slices/responsiveSlice';
 
 // Combined store type
-export type MissionControlStore = MapSlice & TerminalSlice & UserSlice & TelemetrySlice & UISlice & DataSlice;
+export type MissionControlStore = MapSlice & TerminalSlice & UserSlice & TelemetrySlice & UISlice & DataSlice & ResponsiveSlice;
 
 // Create the combined store
 export const useMissionControlV2 = create<MissionControlStore>()(
@@ -20,6 +21,7 @@ export const useMissionControlV2 = create<MissionControlStore>()(
       ...createTelemetrySlice(...a),
       ...createUISlice(...a),
       ...createDataSlice(...a),
+      ...createResponsiveSlice(...a),
     }),
     {
       name: 'mission-control-store',
@@ -39,6 +41,13 @@ export const useMissionControlV2 = create<MissionControlStore>()(
         briefingConfig: state.briefingConfig,
         skillCategories: state.skillCategories,
         executiveBriefing: state.executiveBriefing,
+        
+        // Responsive preferences
+        features: state.features,
+        mobileState: {
+          swipeGesturesEnabled: state.mobileState.swipeGesturesEnabled,
+          simplifiedUI: state.mobileState.simplifiedUI
+        },
       }),
     }
   )
@@ -91,6 +100,27 @@ export const useUIStore = () => useMissionControlV2(state => ({
   toggleSound: state.toggleSound,
   toggleHUD: state.toggleHUD,
   setTheme: state.setTheme,
+}));
+
+export const useResponsiveStore = () => useMissionControlV2(state => ({
+  screenSize: state.screenSize,
+  orientation: state.orientation,
+  capabilities: state.capabilities,
+  features: state.features,
+  mobileState: state.mobileState,
+  isMobile: state.isMobile,
+  isTablet: state.isTablet,
+  isDesktop: state.isDesktop,
+  shouldReduceMotion: state.shouldReduceMotion,
+  updateResponsiveState: state.updateResponsiveState,
+  toggleMobileBottomSheet: state.toggleMobileBottomSheet,
+  setKeyboardVisible: state.setKeyboardVisible,
+  updatePerformanceMetrics: state.updatePerformanceMetrics,
+  toggleFeature: state.toggleFeature,
+  optimizeForDevice: state.optimizeForDevice,
+  getOptimalBreakpoint: state.getOptimalBreakpoint,
+  shouldUseComponent: state.shouldUseComponent,
+  getAnimationSettings: state.getAnimationSettings,
 }));
 
 // Memoized selector to prevent infinite re-renders

@@ -8,6 +8,9 @@ import { missionAudio } from './utils/audioSystem';
 import SEO from './components/SEO';
 import { debugLog, criticalLog } from './utils/debugLogger';
 
+// Providers
+import { ResponsiveProvider } from './providers/ResponsiveProvider';
+
 // Base Components
 import BootSequence from './components/boot/BootSequence';
 import MapboxScene from './components/map/MapboxScene';
@@ -29,6 +32,7 @@ import StatusIndicators from './components/hud/StatusIndicators';
 // Styles
 import './App.css';
 import './styles/tactical-enhancements.css';
+import './styles/responsive-performance.css';
 
 
 function MissionControlInterface() {
@@ -211,23 +215,25 @@ function App() {
   return (
     <div>
       <Router>
-        <GlobalKeyboardHandler />
-        <EnhancedErrorBoundary
-          enableTelemetry={true}
-          context="MISSION_CONTROL_APP"
-          maxRetries={3}
-          retryDelay={2000}
-          onError={(error) => {
-            criticalLog.error('[App] Mission Control error boundary triggered:', error);
-          }}
-        >
-          <Routes>
-            <Route path="/" element={<MissionControlInterface />} />
-            <Route path="/brief" element={<ExecutiveBrief />} />
-            <Route path="/briefing" element={<ExecutiveBrief />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </EnhancedErrorBoundary>
+        <ResponsiveProvider>
+          <GlobalKeyboardHandler />
+          <EnhancedErrorBoundary
+            enableTelemetry={true}
+            context="MISSION_CONTROL_APP"
+            maxRetries={3}
+            retryDelay={2000}
+            onError={(error) => {
+              criticalLog.error('[App] Mission Control error boundary triggered:', error);
+            }}
+          >
+            <Routes>
+              <Route path="/" element={<MissionControlInterface />} />
+              <Route path="/brief" element={<ExecutiveBrief />} />
+              <Route path="/briefing" element={<ExecutiveBrief />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </EnhancedErrorBoundary>
+        </ResponsiveProvider>
       </Router>
     </div>
   );
