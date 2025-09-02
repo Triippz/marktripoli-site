@@ -206,7 +206,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
 
       // Enhanced tactical error display
       return (
-        <div className="min-h-screen bg-black flex items-start justify-center p-4 py-8">
+        <div className="min-h-screen bg-black flex items-start justify-center p-4 py-8 overflow-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.9, rotateX: -10 }}
             animate={{ opacity: 1, scale: 1, rotateX: 0 }}

@@ -1,4 +1,4 @@
-import {Map} from 'mapbox-gl';
+import * as mapboxgl from 'mapbox-gl';
 import { TerminalCommand, TerminalState, TerminalCommandResult } from '../types';
 import { getGeofences, goToGeofence } from '../../../utils/easterEggs/mapEasterEggs';
 import { createDefaultFS, resolvePath, isDir, listDir, readFile } from '../../../utils/fauxFS';
@@ -10,7 +10,7 @@ export class CommandProcessor {
 
   constructor(
     private careerData: CareerMapData | null = null,
-    private map: Map | null = null
+    private map: mapboxgl.Map | null = null
   ) {
     this.initializeCommands();
   }
