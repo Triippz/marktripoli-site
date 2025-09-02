@@ -15,16 +15,16 @@ interface MapboxOptions {
 
 interface UseMapboxReturn {
   map: mapboxgl.Map | null;
-  mapContainer: React.RefObject<HTMLDivElement>;
+  mapContainer: React.RefObject<HTMLDivElement | null>;
   isLoaded: boolean;
   error: Error | null;
   flyTo: (options: { center: [number, number]; zoom?: number; pitch?: number; bearing?: number; duration?: number }) => void;
-  fitBounds: (bounds: mapboxgl.LngLatBounds, options?: mapboxgl.FitBoundsOptions) => void;
+  fitBounds: (bounds: mapboxgl.LngLatBounds, options?: any) => void;
   resetView: () => void;
 }
 
-const generateTacticalGrid = () => {
-  const features = [];
+const generateTacticalGrid = (): GeoJSON.FeatureCollection<GeoJSON.LineString> => {
+  const features: GeoJSON.Feature<GeoJSON.LineString>[] = [];
   
   // Generate latitude lines
   for (let lat = -80; lat <= 80; lat += 10) {
@@ -59,6 +59,7 @@ const generateTacticalGrid = () => {
 export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const errorRef = useRef<Error | null>(null);
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -126,22 +127,22 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
             setIsLoaded(true);
             
             // Add tactical overlay (idempotent)
-            const overlayData = {
-              type: 'Feature' as const,
+            const overlayData: GeoJSON.Feature<GeoJSON.Polygon> = {
+              type: 'Feature',
               properties: {},
               geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
               }
             };
 
             const existingOverlaySource = mapRef.current.getSource('tactical-overlay') as mapboxgl.GeoJSONSource | undefined;
-            if (existingOverlaySource && (existingOverlaySource as any).setData) {
-              (existingOverlaySource as any).setData(overlayData as any);
+            if (existingOverlaySource?.setData) {
+              existingOverlaySource.setData(overlayData);
             } else {
               mapRef.current.addSource('tactical-overlay', {
                 type: 'geojson',
-                data: overlayData as any
+                data: overlayData
               });
             }
 
@@ -165,12 +166,12 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
             // Add tactical grid
             const gridData = generateTacticalGrid();
             const existingGridSource = mapRef.current.getSource('tactical-grid') as mapboxgl.GeoJSONSource | undefined;
-            if (existingGridSource && (existingGridSource as any).setData) {
-              (existingGridSource as any).setData(gridData as any);
+            if (existingGridSource?.setData) {
+              existingGridSource.setData(gridData);
             } else {
               mapRef.current.addSource('tactical-grid', {
                 type: 'geojson',
-                data: gridData as any
+                data: gridData
               });
             }
 
@@ -226,10 +227,12 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
 
           } catch (loadError) {
             console.error('[useMapbox] Map load configuration failed:', loadError);
-            errorRef.current = loadError instanceof Error ? loadError : new Error('Map load failed');
+            const error = loadError instanceof Error ? loadError : new Error('Map load failed');
+            errorRef.current = error;
+            setError(error);
             addMapTelemetry({
               source: 'MAP',
-              message: `Map load failed: ${loadError instanceof Error ? loadError.message : 'Unknown error'}`,
+              message: `Map load failed: ${error.message}`,
               level: 'error'
             });
             throw loadError;
@@ -239,6 +242,7 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
         mapInstance.on('error', (e) => {
           console.error('[useMapbox] Map error event:', e.error);
           errorRef.current = e.error;
+          setError(e.error);
           addMapTelemetry({
             source: 'MAP',
             message: `Map error: ${e.error.message}`,
@@ -248,10 +252,12 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
 
       } catch (error) {
         console.error('[useMapbox] Failed to create map instance:', error);
-        errorRef.current = error instanceof Error ? error : new Error('Map initialization failed');
+        const errorObj = error instanceof Error ? error : new Error('Map initialization failed');
+        errorRef.current = errorObj;
+        setError(errorObj);
         addMapTelemetry({
           source: 'MAP',
-          message: `Map initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          message: `Map initialization failed: ${errorObj.message}`,
           level: 'error'
         });
         throw error;
@@ -302,7 +308,7 @@ export function useMapbox(options: MapboxOptions = {}): UseMapboxReturn {
     });
   }, []);
 
-  const fitBounds = useCallback((bounds: mapboxgl.LngLatBounds, fitOptions?: mapboxgl.FitBoundsOptions) => {
+  const fitBounds = useCallback((bounds: mapboxgl.LngLatBounds, fitOptions?: any) => {
     if (!mapRef.current) return;
     
     mapRef.current.fitBounds(bounds, {
