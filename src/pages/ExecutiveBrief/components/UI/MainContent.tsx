@@ -1,4 +1,4 @@
-import { Header, ContactCard, StrengthsCard, Timeline, TechStacks } from './';
+import { Header, ContactCard, StrengthsCard, Timeline, TechStacks, ExperienceCard, EducationCard } from './';
 import type { Resume, Profile } from '../../types/resume';
 
 interface MainContentProps {
@@ -56,6 +56,12 @@ export function MainContent({
           <Timeline work={resume.work} />
         </div>
       )}
+
+      {/* Experience & Education */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <ExperienceCard resume={resume} />
+        <EducationCard resume={resume} />
+      </div>
 
       {/* Tech Stacks */}
       <TechStacks stacks={stacks} />

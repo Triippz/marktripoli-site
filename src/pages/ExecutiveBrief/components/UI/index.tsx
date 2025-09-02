@@ -8,4 +8,6 @@ export { Navigation } from './Navigation';
 export { LoadingState } from './LoadingState';
 export { ErrorState } from './ErrorState';
 export { MainContent } from './MainContent';
+export { ExperienceCard } from './ExperienceCard';
+export { EducationCard } from './EducationCard';
 export type * from '../../types/resume';

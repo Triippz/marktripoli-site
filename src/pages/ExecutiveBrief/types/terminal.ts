@@ -1,4 +1,5 @@
 import type { FSNode } from '../../../utils/fauxFS';
+import type { EasterEggType } from './easterEggs';
 
 export interface TerminalState {
   isOpen: boolean;
@@ -28,7 +29,7 @@ export interface TerminalProps {
   resume?: any;
   onTriggerAlert?: (duration?: number) => void;
   onUnlockEasterEgg?: (id: string) => void;
-  onTriggerEgg?: (name: string) => boolean;
+  onTriggerEgg?: (type: EasterEggType) => boolean;
 }
 
 export type TerminalCommand = {
@@ -44,5 +45,5 @@ export interface TerminalContext {
   resume?: any;
   onTriggerAlert?: (duration?: number) => void;
   onUnlockEasterEgg?: (id: string) => void;
-  onTriggerEgg?: (name: string) => boolean;
+  onTriggerEgg?: (type: EasterEggType) => boolean;
 }

@@ -1,5 +1,6 @@
 import { resolvePath as fsResolve, isDir as fsIsDir, listDir as fsList, readFile as fsRead } from '../../../utils/fauxFS';
 import type { TerminalCommand } from '../types/terminal';
+import type { EasterEggType } from '../types/easterEggs';
 
 export const terminalCommands: TerminalCommand[] = [
   {
@@ -56,15 +57,21 @@ export const terminalCommands: TerminalCommand[] = [
         actions.appendLine('Usage: trigger <name>');
         return;
       }
-      const success = onTriggerEgg?.(name) ?? false;
-      actions.appendLine(success ? `Triggered: ${name}` : `Unknown egg: ${name}`);
+      
+      const validEggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking'];
+      if (validEggs.includes(name as EasterEggType)) {
+        const success = onTriggerEgg?.(name as EasterEggType) ?? false;
+        actions.appendLine(success ? `Triggered: ${name}` : `Unknown egg: ${name}`);
+      } else {
+        actions.appendLine(`Unknown egg: ${name}`);
+      }
     }
   },
   {
     name: 'scan',
     description: 'Scan all easter egg effects',
     handler: (_, { actions, onTriggerEgg }) => {
-      const eggs = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking'];
+      const eggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking'];
       eggs.forEach((egg, i) => {
         setTimeout(() => onTriggerEgg?.(egg), i * 250);
       });
@@ -79,7 +86,7 @@ export const terminalCommands: TerminalCommand[] = [
         actions.appendLine('Insufficient clearance. Use login.');
         return;
       }
-      const eggs = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking'];
+      const eggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking'];
       eggs.forEach((egg, i) => {
         setTimeout(() => onTriggerEgg?.(egg), i * 180);
       });
