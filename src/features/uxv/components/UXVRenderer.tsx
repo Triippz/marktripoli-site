@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { UXVPosition, UXVProjectile, UXVExplosion } from '../types';
+import { UXVPosition, UXVProjectile, UXVLaser, UXVExplosion, WeaponType } from '../types';
 
 interface UXVRendererProps {
   map: mapboxgl.Map;
@@ -7,7 +7,10 @@ interface UXVRendererProps {
   target: UXVPosition | null;
   trail: UXVPosition[];
   projectiles: UXVProjectile[];
+  lasers: UXVLaser[];
   explosions: UXVExplosion[];
+  charging: boolean;
+  chargePower: number;
   onExplosionsChange: (explosions: UXVExplosion[]) => void;
 }
 
@@ -17,7 +20,10 @@ const UXVRenderer: React.FC<UXVRendererProps> = ({
   target,
   trail,
   projectiles,
+  lasers,
   explosions,
+  charging,
+  chargePower,
   onExplosionsChange
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -53,37 +59,169 @@ const UXVRenderer: React.FC<UXVRendererProps> = ({
       ctx.save();
       ctx.translate(pt.x, pt.y);
       
-      // UXV body (tactical triangle)
-      ctx.fillStyle = 'rgba(69,255,176,0.9)';
-      ctx.strokeStyle = 'rgba(69,255,176,0.9)';
-      ctx.lineWidth = 2;
+      // Rotation based on movement or time for idle animation
+      const time = performance.now() * 0.001;
+      const rotationAngle = target ? 0 : time * 0.5; // Slow rotation when idle
+      ctx.rotate(rotationAngle);
       
+      // Charging glow effect
+      if (charging) {
+        const glowSize = 20 + chargePower * 15;
+        const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, glowSize);
+        grd.addColorStop(0, `rgba(255, 100, 255, ${chargePower * 0.3})`);
+        grd.addColorStop(1, 'rgba(255, 100, 255, 0)');
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(0, 0, glowSize, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Main mothership body (UFO-like)
+      const gradient = ctx.createLinearGradient(0, -12, 0, 12);
+      gradient.addColorStop(0, 'rgba(69, 255, 176, 0.9)');
+      gradient.addColorStop(0.5, 'rgba(200, 255, 200, 0.7)');
+      gradient.addColorStop(1, 'rgba(69, 255, 176, 0.9)');
+      
+      // Main hull
+      ctx.fillStyle = gradient;
       ctx.beginPath();
-      ctx.moveTo(0, -10);
-      ctx.lineTo(6, 10);
-      ctx.lineTo(-6, 10);
-      ctx.closePath();
+      ctx.ellipse(0, 0, 14, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Top dome
+      ctx.fillStyle = 'rgba(150, 255, 180, 0.8)';
+      ctx.beginPath();
+      ctx.ellipse(0, -2, 8, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Engine glow effects
+      for (let i = 0; i < 3; i++) {
+        const angle = (i * 120) * Math.PI / 180;
+        const x = Math.cos(angle) * 10;
+        const y = Math.sin(angle) * 6;
+        
+        ctx.fillStyle = `rgba(0, 255, 255, ${0.6 + Math.sin(time * 4 + i) * 0.3})`;
+        ctx.beginPath();
+        ctx.arc(x, y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Outer glow
+      const outerGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, 25);
+      outerGlow.addColorStop(0, 'rgba(69, 255, 176, 0.1)');
+      outerGlow.addColorStop(1, 'rgba(69, 255, 176, 0)');
+      ctx.fillStyle = outerGlow;
+      ctx.beginPath();
+      ctx.arc(0, 0, 25, 0, Math.PI * 2);
       ctx.fill();
       
       ctx.restore();
     };
 
-    const drawExplosion = (pt: { x: number; y: number }, age: number) => {
+    const drawExplosion = (pt: { x: number; y: number }, age: number, type?: WeaponType) => {
       if (!ctx) return;
       
-      const r = Math.min(60, age * 120);
+      let r = Math.min(60, age * 120);
+      let colors: string[];
+      
+      switch (type) {
+        case 'laser':
+          colors = ['rgba(255, 100, 255, 0.9)', 'rgba(255, 0, 255, 0.5)', 'rgba(128, 0, 255, 0)'];
+          break;
+        case 'pulse':
+          colors = ['rgba(0, 255, 255, 0.9)', 'rgba(0, 200, 255, 0.5)', 'rgba(0, 100, 255, 0)'];
+          r = Math.min(40, age * 80); // Smaller explosion
+          break;
+        case 'orbital':
+          colors = ['rgba(255, 255, 100, 0.9)', 'rgba(255, 100, 0, 0.7)', 'rgba(255, 0, 0, 0)'];
+          r = Math.min(120, age * 200); // Larger explosion
+          break;
+        default:
+          colors = ['rgba(255, 200, 80, 0.9)', 'rgba(255, 80, 60, 0.5)', 'rgba(255, 0, 0, 0)'];
+      }
+      
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       
       const grd = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, r);
-      grd.addColorStop(0, 'rgba(255,200,80,0.9)');
-      grd.addColorStop(0.6, 'rgba(255,80,60,0.5)');
-      grd.addColorStop(1, 'rgba(255,0,0,0)');
+      grd.addColorStop(0, colors[0]);
+      grd.addColorStop(0.6, colors[1]);
+      grd.addColorStop(1, colors[2]);
       
       ctx.fillStyle = grd;
       ctx.beginPath();
       ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
       ctx.fill();
+      
+      // Additional effects for orbital strike
+      if (type === 'orbital') {
+        const shockwave = Math.min(150, age * 300);
+        ctx.strokeStyle = `rgba(255, 255, 0, ${0.8 - age * 0.8})`;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, shockwave, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      
+      ctx.restore();
+    };
+
+    const drawLaser = (start: { x: number; y: number }, end: { x: number; y: number }, progress: number, type: WeaponType, power: number = 1) => {
+      if (!ctx) return;
+      
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      
+      let colors: string[];
+      let width = 3 * power;
+      
+      switch (type) {
+        case 'laser':
+          colors = ['rgba(255, 100, 255, 0.9)', 'rgba(255, 0, 255, 0.6)'];
+          break;
+        case 'pulse':
+          colors = ['rgba(0, 255, 255, 0.9)', 'rgba(0, 200, 255, 0.6)'];
+          width = 2 * power;
+          break;
+        case 'orbital':
+          colors = ['rgba(255, 255, 100, 0.9)', 'rgba(255, 200, 0, 0.8)'];
+          width = 6 * power;
+          break;
+        default:
+          colors = ['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.6)'];
+      }
+      
+      // Draw outer glow
+      ctx.strokeStyle = colors[1];
+      ctx.lineWidth = width + 4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+      
+      // Draw main beam
+      ctx.strokeStyle = colors[0];
+      ctx.lineWidth = width;
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+      
+      // Add energy pulses along the beam for certain types
+      if (type === 'pulse' || type === 'orbital') {
+        const time = performance.now() * 0.01;
+        for (let i = 0; i < 5; i++) {
+          const t = (i / 5 + time) % 1;
+          const pulseX = start.x + (end.x - start.x) * t;
+          const pulseY = start.y + (end.y - start.y) * t;
+          
+          ctx.fillStyle = colors[0];
+          ctx.beginPath();
+          ctx.arc(pulseX, pulseY, width * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
       
       ctx.restore();
     };
@@ -163,6 +301,15 @@ const UXVRenderer: React.FC<UXVRendererProps> = ({
         ctx.restore();
       });
 
+      // Laser beams
+      lasers.forEach((laser) => {
+        const t = Math.min(1, (now - laser.start) / laser.dur);
+        const startPt = map.project({ lng: laser.sx, lat: laser.sy } as any);
+        const endPt = map.project({ lng: laser.ex, lat: laser.ey } as any);
+        
+        drawLaser(startPt, endPt, t, laser.type, laser.power || 1);
+      });
+
       // Draw UXV
       drawUXV(p);
 
@@ -184,8 +331,9 @@ const UXVRenderer: React.FC<UXVRendererProps> = ({
         const pt = map.project({ lng: ex.lng, lat: ex.lat } as any);
         const age = (now - ex.start) / 1000;
         
-        if (age < 1.0) {
-          drawExplosion(pt, age);
+        const maxAge = ex.type === 'orbital' ? 2.0 : 1.0;
+        if (age < maxAge) {
+          drawExplosion(pt, age, ex.type);
           remaining.push(ex);
         }
       }
@@ -206,7 +354,7 @@ const UXVRenderer: React.FC<UXVRendererProps> = ({
         canvas.parentNode.removeChild(canvas);
       }
     };
-  }, [map, pos, target, trail, projectiles, explosions, onExplosionsChange]);
+  }, [map, pos, target, trail, projectiles, lasers, explosions, charging, chargePower, onExplosionsChange]);
 
   return null;
 };

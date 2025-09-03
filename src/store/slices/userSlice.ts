@@ -12,6 +12,7 @@ export interface UserSlice {
   visitSite: (siteId: string) => void;
   unlockEasterEgg: (id: string) => void;
   calculateRank: () => UserRank;
+  setUserName: (name: string) => void;
 }
 
 export const createUserSlice: StateCreator<
@@ -70,5 +71,14 @@ export const createUserSlice: StateCreator<
     } else {
       return { level: 1, title: 'Analyst', badge: '★' };
     }
+  },
+  
+  setUserName: (name) => {
+    try { 
+      localStorage.setItem('mc-user', name); 
+    } catch {}
+    set((state) => ({ 
+      userRank: { ...state.userRank, username: name } 
+    }));
   },
 });

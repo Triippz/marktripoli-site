@@ -1,4 +1,5 @@
 import ButtonGroup from './ButtonGroup';
+import MobileBurgerMenu from './MobileBurgerMenu';
 import { useState, useRef, useEffect } from 'react';
 import { useMissionControl } from '../../store/missionControl';
 
@@ -31,7 +32,8 @@ export default function StatusIndicators({ soundEnabled, toggleSound, onContactC
       
       {/* Main content */}
       <div className="relative z-10 flex items-center justify-between w-full">
-        <div className="flex items-center" style={{ gap: '2rem' }}>
+        {/* Desktop Status Indicators */}
+        <div className="hidden md:flex items-center" style={{ gap: '2rem' }}>
           {/* STATUS indicator */}
           <div className="flex items-center" style={{gap: '0.75rem'}}>
             <span className="holo-text text-sm font-bold tracking-wider">STATUS:</span>
@@ -48,13 +50,31 @@ export default function StatusIndicators({ soundEnabled, toggleSound, onContactC
           </div>
         </div>
 
+        {/* Mobile Status Indicators - Compact */}
+        <div className="flex md:hidden items-center gap-3">
+          <div className={`status-dot ${alertActive ? 'error' : 'active'}`} title="System Status" />
+          <div className="status-dot active" title="Link Status" />
+        </div>
+
         {/* Right-aligned controls */}
         <div className="ml-4 flex items-center gap-2 relative" ref={menuRef}>
-          <ButtonGroup 
-            soundEnabled={soundEnabled}
-            toggleSound={toggleSound}
-            onContactClick={onContactClick}
-          />
+          {/* Desktop Navigation */}
+          <div className="hidden md:block">
+            <ButtonGroup 
+              soundEnabled={soundEnabled}
+              toggleSound={toggleSound}
+              onContactClick={onContactClick}
+            />
+          </div>
+          
+          {/* Mobile Navigation */}
+          <div className="block md:hidden">
+            <MobileBurgerMenu
+              soundEnabled={soundEnabled}
+              toggleSound={toggleSound}
+              onContactClick={onContactClick}
+            />
+          </div>
           {/* User icon */}
           <button
             onClick={() => setOpen(v => !v)}
@@ -111,7 +131,7 @@ export default function StatusIndicators({ soundEnabled, toggleSound, onContactC
         className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center"
         aria-hidden
       >
-        <div className="classified-stamp">
+        <div className="classified-stamp scale-50 sm:scale-75 md:scale-100">
           <span className="classified-stamp-text" data-text="CLASSIFIED">CLASSIFIED</span>
         </div>
       </div>

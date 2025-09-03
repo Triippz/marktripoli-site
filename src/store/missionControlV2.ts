@@ -6,9 +6,10 @@ import { createUserSlice, type UserSlice } from './slices/userSlice';
 import { createTelemetrySlice, type TelemetrySlice } from './slices/telemetrySlice';
 import { createUISlice, type UISlice } from './slices/uiSlice';
 import { createDataSlice, type DataSlice } from './slices/dataSlice';
+import { createResponsiveSlice, type ResponsiveSlice } from './slices/responsiveSlice';
 
 // Combined store type
-export type MissionControlStore = MapSlice & TerminalSlice & UserSlice & TelemetrySlice & UISlice & DataSlice;
+export type MissionControlStore = MapSlice & TerminalSlice & UserSlice & TelemetrySlice & UISlice & DataSlice & ResponsiveSlice;
 
 // Create the combined store
 export const useMissionControlV2 = create<MissionControlStore>()(
@@ -20,6 +21,7 @@ export const useMissionControlV2 = create<MissionControlStore>()(
       ...createTelemetrySlice(...a),
       ...createUISlice(...a),
       ...createDataSlice(...a),
+      ...createResponsiveSlice(...a),
     }),
     {
       name: 'mission-control-store',
@@ -39,6 +41,13 @@ export const useMissionControlV2 = create<MissionControlStore>()(
         briefingConfig: state.briefingConfig,
         skillCategories: state.skillCategories,
         executiveBriefing: state.executiveBriefing,
+        
+        // Responsive preferences
+        features: state.features,
+        mobileState: {
+          swipeGesturesEnabled: state.mobileState.swipeGesturesEnabled,
+          simplifiedUI: state.mobileState.simplifiedUI
+        },
       }),
     }
   )
@@ -75,6 +84,7 @@ export const useUserStore = () => useMissionControlV2(state => ({
   visitSite: state.visitSite,
   unlockEasterEgg: state.unlockEasterEgg,
   calculateRank: state.calculateRank,
+  setUserName: state.setUserName,
 }));
 
 export const useTelemetryStore = () => useMissionControlV2(state => ({
@@ -88,10 +98,56 @@ export const useUIStore = () => useMissionControlV2(state => ({
   soundEnabled: state.soundEnabled,
   hudVisible: state.hudVisible,
   theme: state.theme,
+  bootCompleted: state.bootCompleted,
+  alertActive: state.alertActive,
   toggleSound: state.toggleSound,
   toggleHUD: state.toggleHUD,
   setTheme: state.setTheme,
+  setBootCompleted: state.setBootCompleted,
+  triggerAlert: state.triggerAlert,
 }));
+
+// Memoized selector to prevent infinite re-renders  
+let cachedResponsiveSelector: any = null;
+const responsiveStoreSelector = (state: any) => {
+  if (!cachedResponsiveSelector) {
+    cachedResponsiveSelector = {
+      screenSize: state.screenSize,
+      orientation: state.orientation,
+      capabilities: state.capabilities,
+      features: state.features,
+      mobileState: state.mobileState,
+      isMobile: state.screenSize === 'mobile',
+      isTablet: state.screenSize === 'tablet',
+      isDesktop: state.screenSize === 'desktop' || state.screenSize === 'ultrawide',
+      shouldReduceMotion: state.capabilities?.reducedMotion || false,
+      updateResponsiveState: state.updateResponsiveState,
+      toggleMobileBottomSheet: state.toggleMobileBottomSheet,
+      setKeyboardVisible: state.setKeyboardVisible,
+      updatePerformanceMetrics: state.updatePerformanceMetrics,
+      toggleFeature: state.toggleFeature,
+      optimizeForDevice: state.optimizeForDevice,
+      getOptimalBreakpoint: state.getOptimalBreakpoint,
+      shouldUseComponent: state.shouldUseComponent,
+      getAnimationSettings: state.getAnimationSettings,
+    };
+  }
+  
+  // Update only the values that may have changed
+  cachedResponsiveSelector.screenSize = state.screenSize;
+  cachedResponsiveSelector.orientation = state.orientation;
+  cachedResponsiveSelector.capabilities = state.capabilities;
+  cachedResponsiveSelector.features = state.features;
+  cachedResponsiveSelector.mobileState = state.mobileState;
+  cachedResponsiveSelector.isMobile = state.screenSize === 'mobile';
+  cachedResponsiveSelector.isTablet = state.screenSize === 'tablet';
+  cachedResponsiveSelector.isDesktop = state.screenSize === 'desktop' || state.screenSize === 'ultrawide';
+  cachedResponsiveSelector.shouldReduceMotion = state.capabilities?.reducedMotion || false;
+  
+  return cachedResponsiveSelector;
+};
+
+export const useResponsiveStore = () => useMissionControlV2(responsiveStoreSelector);
 
 // Memoized selector to prevent infinite re-renders
 const dataStoreSelector = (state: any) => ({

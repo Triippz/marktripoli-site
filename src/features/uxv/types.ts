@@ -3,6 +3,9 @@ export interface UXVPosition {
   lat: number;
 }
 
+export type WeaponType = 'projectile' | 'laser' | 'pulse' | 'orbital';
+export type PatrolMode = 'none' | 'circle' | 'figure8' | 'random' | 'zigzag';
+
 export interface UXVProjectile {
   id: string;
   sx: number;
@@ -11,6 +14,20 @@ export interface UXVProjectile {
   ey: number;
   start: number;
   dur: number;
+  type?: WeaponType;
+}
+
+export interface UXVLaser {
+  id: string;
+  sx: number;
+  sy: number;
+  ex: number;
+  ey: number;
+  start: number;
+  dur: number;
+  type: WeaponType;
+  charging?: boolean;
+  power?: number;
 }
 
 export interface UXVExplosion {
@@ -18,6 +35,7 @@ export interface UXVExplosion {
   lng: number;
   lat: number;
   start: number;
+  type?: WeaponType;
 }
 
 export interface UXVContextMenu {
@@ -39,10 +57,18 @@ export interface UXVState {
   follow: boolean;
   explosions: UXVExplosion[];
   projectiles: UXVProjectile[];
+  lasers: UXVLaser[];
   preview: UXVPosition | null;
   panelOpen: boolean;
   panelPos: { left: number; top: number } | null;
   contextMenu: UXVContextMenu | null;
+  weaponType: WeaponType;
+  patrolMode: PatrolMode;
+  patrolWaypoints: UXVPosition[];
+  currentWaypointIndex: number;
+  altitude: number;
+  charging: boolean;
+  chargePower: number;
 }
 
 export interface UXVControls {
@@ -50,10 +76,16 @@ export interface UXVControls {
   stopUXV: () => void;
   setTarget: (target: UXVPosition) => void;
   dropPayload: () => void;
+  fireLaser: (target: UXVPosition, power?: number) => void;
+  startCharging: () => void;
+  stopCharging: () => void;
   returnToBase: () => void;
   setSpeed: (speed: number) => void;
   setTrailMax: (max: number) => void;
   setFollow: (follow: boolean) => void;
+  setWeaponType: (weapon: WeaponType) => void;
+  setPatrolMode: (mode: PatrolMode) => void;
+  setAltitude: (altitude: number) => void;
   openPanel: () => void;
   closePanel: () => void;
   showContextMenu: (menu: UXVContextMenu) => void;

@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTwitter, faLinkedin, faGithub } from '@fortawesome/free-brands-svg-icons';
 import { faEnvelope, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useResponsive } from '../../hooks/useResponsive';
 
 interface SocialLinksOverlayProps {
   isOpen: boolean;
@@ -9,6 +11,24 @@ interface SocialLinksOverlayProps {
 }
 
 export default function SocialLinksOverlay({ isOpen, onClose }: SocialLinksOverlayProps) {
+  const { isMobile } = useResponsive();
+
+  // Handle escape key press
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
   const socialLinks = [
     {
       name: 'Twitter',
@@ -40,14 +60,28 @@ export default function SocialLinksOverlay({ isOpen, onClose }: SocialLinksOverl
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          className={`fixed bg-black bg-opacity-75 flex items-center justify-center z-[70] overflow-y-auto ${
+            isMobile 
+              ? 'inset-0 pt-20 pb-4 px-4' // Account for mobile navbar height
+              : 'inset-0 p-4'
+          }`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
+          onClick={(e) => {
+            // Only close if clicking the backdrop, not the modal content
+            if (e.target === e.currentTarget) {
+              onClose();
+            }
+          }}
+          style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <motion.div
-            className="mission-panel max-w-md mx-4 relative"
+            className={`mission-panel relative my-auto ${
+              isMobile 
+                ? 'w-[90vw] max-w-sm mx-auto p-6 max-h-[calc(100vh-6rem)] overflow-y-auto' 
+                : 'max-w-md mx-4 p-8 max-h-[80vh] overflow-y-auto'
+            }`}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
@@ -55,15 +89,25 @@ export default function SocialLinksOverlay({ isOpen, onClose }: SocialLinksOverl
           >
             {/* Close Button */}
             <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-green-400 hover:text-green-300 transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onClose();
+              }}
+              className={`absolute top-4 right-4 text-green-400 hover:text-green-300 transition-colors z-10 ${
+                isMobile ? 'p-3 min-w-[44px] min-h-[44px] flex items-center justify-center' : 'p-2'
+              }`}
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+              aria-label="Close dialog"
             >
-              <FontAwesomeIcon icon={faTimes} size="lg" />
+              <FontAwesomeIcon icon={faTimes} size={isMobile ? "xl" : "lg"} />
             </button>
 
             {/* Header */}
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-mono text-green-400 mb-2 mc-text-glow">
+            <div className={`text-center ${isMobile ? 'mb-4' : 'mb-6'}`}>
+              <h2 className={`font-mono text-green-400 mb-2 mc-text-glow ${
+                isMobile ? 'text-xl' : 'text-2xl'
+              }`}>
                 ESTABLISH COMMS
               </h2>
               <p className="text-green-300 font-mono text-sm">
@@ -72,7 +116,9 @@ export default function SocialLinksOverlay({ isOpen, onClose }: SocialLinksOverl
             </div>
 
             {/* Social Links Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className={`grid gap-4 ${
+              isMobile ? 'grid-cols-1' : 'grid-cols-2'
+            }`}>
               {socialLinks.map((link, index) => (
                 <motion.a
                   key={link.name}
@@ -80,18 +126,25 @@ export default function SocialLinksOverlay({ isOpen, onClose }: SocialLinksOverl
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`
-                    tactical-glass p-4 text-center rounded-lg transition-all duration-300
+                    tactical-glass text-center rounded-lg transition-all duration-300
                     hover:border-green-400/50 hover:shadow-lg hover:shadow-green-400/20
-                    ${link.color}
+                    ${link.color} ${isMobile ? 'p-6 min-h-[80px]' : 'p-4'}
                   `}
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  <FontAwesomeIcon icon={link.icon} size="2x" className="mb-2" />
-                  <div className="font-mono text-xs uppercase tracking-wider">
+                  <FontAwesomeIcon 
+                    icon={link.icon} 
+                    size={isMobile ? "2x" : "2x"} 
+                    className="mb-2" 
+                  />
+                  <div className={`font-mono uppercase tracking-wider ${
+                    isMobile ? 'text-sm' : 'text-xs'
+                  }`}>
                     {link.name}
                   </div>
                 </motion.a>
@@ -99,7 +152,9 @@ export default function SocialLinksOverlay({ isOpen, onClose }: SocialLinksOverl
             </div>
 
             {/* Footer */}
-            <div className="text-center mt-6 text-green-400/70 font-mono text-xs">
+            <div className={`text-center text-green-400/70 font-mono text-xs ${
+              isMobile ? 'mt-4' : 'mt-6'
+            }`}>
               /// SECURE CHANNELS READY ///
             </div>
           </motion.div>

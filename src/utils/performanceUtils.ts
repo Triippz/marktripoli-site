@@ -275,9 +275,13 @@ export class PerformanceOptimizer {
 
 // Critical resource hints
 export function addCriticalResourceHints() {
+  // Only preload in production builds, skip in development
+  if (import.meta.env.DEV) {
+    return;
+  }
+
   const criticalResources = [
-    { href: '/src/main.tsx', as: 'script', type: 'module' },
-    { href: '/src/App.css', as: 'style' }
+    { href: '/src/main.tsx', as: 'script', type: 'module' }
   ];
 
   PerformanceOptimizer.preloadCriticalResources(criticalResources);

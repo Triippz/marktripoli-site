@@ -8,6 +8,8 @@ import { missionAudio } from './utils/audioSystem';
 import SEO from './components/SEO';
 import { debugLog, criticalLog } from './utils/debugLogger';
 
+// Note: ResponsiveProvider temporarily disabled to fix infinite loops
+
 // Base Components
 import BootSequence from './components/boot/BootSequence';
 import MapboxScene from './components/map/MapboxScene';
@@ -29,6 +31,7 @@ import StatusIndicators from './components/hud/StatusIndicators';
 // Styles
 import './App.css';
 import './styles/tactical-enhancements.css';
+import './styles/responsive-performance.css';
 
 
 function MissionControlInterface() {

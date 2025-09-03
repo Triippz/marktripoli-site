@@ -13,6 +13,9 @@ export function HelpOverlay({ isOpen, onClose }: HelpOverlayProps) {
       role="dialog" 
       aria-modal="true" 
       aria-label="Hidden Controls"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       <div className="mission-panel p-6 md:p-8 max-w-lg w-[90%]">
         <div className="holo-text font-mono text-lg mb-3">Hidden Controls</div>

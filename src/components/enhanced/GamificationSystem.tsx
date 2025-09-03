@@ -147,7 +147,7 @@ function AchievementNotification({ achievement, onClose }: AchievementNotificati
   return (
     <motion.div
       className={`
-        fixed top-20 right-4 z-50 p-4 rounded-lg border-2 font-mono
+        fixed top-24 right-4 z-50 p-4 rounded-lg border-2 font-mono
         min-w-80 max-w-sm backdrop-blur-sm
         ${rarityColors[achievement.rarity]}
       `}

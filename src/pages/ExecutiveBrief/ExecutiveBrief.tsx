@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import SEO from '../../components/SEO';
 import { useMissionControl } from '../../store/missionControl';
 import { createDefaultFS } from '../../utils/fauxFS';
@@ -25,12 +25,13 @@ import {
 function ExecutiveBriefContent() {
   const { unlockEasterEgg } = useMissionControl() as any;
   const { resume, profile, error, loading } = useResumeData();
-  
+
   // UI state
   const [glitchTitle, setGlitchTitle] = useState(false);
   const [termOpen, setTermOpen] = useState(false);
   const [alertMode, setAlertMode] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [showHelpFab, setShowHelpFab] = useState(false);
 
   // Derived data
   const metadata = useResumeMetadata(resume, profile);
@@ -39,10 +40,25 @@ function ExecutiveBriefContent() {
   const fsRoot = useMemo(() => createDefaultFS(), []);
   const easterEggs = useEasterEggs();
 
+  // Direct keyboard listener for FAB reveal
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+        setShowHelpFab(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
   // Keyboard controls
   useKeyboardControls({
     onToggleTerminal: () => setTermOpen(prev => !prev),
-    onToggleHelp: () => setHelpOpen(prev => !prev),
+    onToggleHelp: () => {
+      setShowHelpFab(true); // Show FAB when help is accessed via keyboard
+      setHelpOpen(prev => !prev);
+    },
     onGlitchTitle: () => {
       setGlitchTitle(true);
       setTimeout(() => setGlitchTitle(false), 3000);
@@ -78,6 +94,28 @@ function ExecutiveBriefContent() {
 
       <HelpOverlay isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
       <Navigation />
+      
+      {/* Help Button - Only visible after first "?" keypress */}
+      {showHelpFab && (
+        <button
+          className="w-12 h-12 rounded-full 
+                     tactical-button bg-black/90 backdrop-blur-sm 
+                     border border-green-500/50 flex items-center justify-center
+                     text-green-400 hover:text-green-300 hover:border-green-400/70
+                     transition-all duration-200 touch-manipulation shadow-lg shadow-green-500/20"
+          onClick={() => setHelpOpen(true)}
+          aria-label="Show hidden controls"
+          style={{ 
+            position: 'fixed',
+            bottom: '1.5rem',
+            right: '1.5rem',
+            WebkitTapHighlightColor: 'transparent',
+            zIndex: 60
+          }}
+        >
+          <span className="text-lg font-bold">?</span>
+        </button>
+      )}
       
       <MainContent
         metadata={metadata}
