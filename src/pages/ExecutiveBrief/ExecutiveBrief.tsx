@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import SEO from '../../components/SEO';
 import { useMissionControl } from '../../store/missionControl';
 import { createDefaultFS } from '../../utils/fauxFS';
+import { useResponsive } from '../../hooks/useResponsive';
 
 // Module imports
 import { ResumeDataProvider, useResumeData } from './providers';
@@ -25,6 +26,7 @@ import {
 function ExecutiveBriefContent() {
   const { unlockEasterEgg } = useMissionControl() as any;
   const { resume, profile, error, loading } = useResumeData();
+  const { isMobile, isTablet } = useResponsive();
   
   // UI state
   const [glitchTitle, setGlitchTitle] = useState(false);
@@ -78,6 +80,22 @@ function ExecutiveBriefContent() {
 
       <HelpOverlay isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
       <Navigation />
+      
+      {/* Mobile Help Button */}
+      {(isMobile || isTablet) && (
+        <button
+          className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full 
+                     tactical-button bg-black/80 backdrop-blur-sm 
+                     border border-green-500/30 flex items-center justify-center
+                     text-green-400 hover:text-green-300 hover:border-green-400/50
+                     transition-all duration-200 touch-manipulation"
+          onClick={() => setHelpOpen(true)}
+          aria-label="Show hidden controls"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+        >
+          <span className="text-lg font-bold">?</span>
+        </button>
+      )}
       
       <MainContent
         metadata={metadata}
