@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { CareerMarker } from '../../../types/careerData';
 import { resumeDataService } from '../../../services/resumeDataService';
+import { useResponsive } from '../../../hooks/useResponsive';
 
 interface CareerDetailsDialogProps {
   marker: CareerMarker;
@@ -8,16 +11,42 @@ interface CareerDetailsDialogProps {
 }
 
 const CareerDetailsDialog: React.FC<CareerDetailsDialogProps> = ({ marker, onClose }) => {
+  const { isMobile } = useResponsive();
+
+  // Handle escape key press
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
+
   return (
-    <div className="absolute inset-0 flex items-center justify-center z-[110]">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/60"
-        onClick={onClose}
-      />
-      
+    <div 
+      className={`fixed bg-black bg-opacity-75 z-[110] overflow-y-auto ${
+        isMobile 
+          ? 'inset-0 pt-20 pb-4 px-4 flex items-start' // Account for mobile navbar height
+          : 'inset-0 p-4 flex items-center justify-center'
+      }`}
+      onClick={(e) => {
+        // Only close if clicking the backdrop, not the modal content
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       {/* Dialog content */}
-      <div className="relative tactical-glass bg-black/70 border border-green-500/30 rounded-lg p-5 w-[90vw] max-w-2xl mx-auto">
+      <div className={`relative tactical-glass bg-black/70 border border-green-500/30 rounded-lg ${
+        isMobile 
+          ? 'w-full max-h-[calc(100vh-8rem)] overflow-y-auto p-4 my-auto'
+          : 'w-[90vw] max-w-2xl mx-auto p-5 my-8'
+      }`} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
             {marker.logo && (
@@ -36,9 +65,18 @@ const CareerDetailsDialog: React.FC<CareerDetailsDialogProps> = ({ marker, onClo
           </div>
           <button
             onClick={onClose}
-            className="tactical-button text-xs px-2 py-1"
+            className={`tactical-button transition-colors ${
+              isMobile 
+                ? 'p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-green-400 hover:text-green-300' 
+                : 'text-xs px-2 py-1'
+            }`}
+            aria-label="Close dialog"
           >
-            Close
+            {isMobile ? (
+              <FontAwesomeIcon icon={faTimes} size="lg" />
+            ) : (
+              'Close'
+            )}
           </button>
         </div>
 
