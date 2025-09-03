@@ -3,21 +3,28 @@ import { UFOFlyby, UFOBeam } from './UFOEffects';
 import { PawPrintEffect } from './PawPrintEffect';
 import { MountainEffect } from './MountainEffect';
 import { ScanlinesOverlay, AlertOverlay } from './OverlayEffects';
-import { useEasterEggs } from '../../hooks/useEasterEggs';
+import CrayonSelector from './CrayonSelector';
+import type { EasterEggState, EasterEggActions } from '../../types/easterEggs';
 
 interface EasterEggSystemProps {
   alertMode?: boolean;
+  easterEggs: EasterEggState & EasterEggActions;
 }
 
-export function EasterEggSystem({ alertMode = false }: EasterEggSystemProps) {
+export function EasterEggSystem({ alertMode = false, easterEggs }: EasterEggSystemProps) {
   const {
     showMatrix,
     ufos,
     pawPrints, 
     mountains,
     scanlines,
-    beamOn
-  } = useEasterEggs();
+    beamOn,
+    showCrayonSelector,
+    selectedFlavor,
+    tastedFlavors,
+    selectCrayonFlavor,
+    closeCrayonSelector
+  } = easterEggs;
 
   return (
     <>
@@ -35,6 +42,15 @@ export function EasterEggSystem({ alertMode = false }: EasterEggSystemProps) {
       <PawPrintEffect pawPrints={pawPrints} />
       <MountainEffect mountains={mountains} />
       
+      {/* Crayon Selector */}
+      <CrayonSelector 
+        isOpen={showCrayonSelector}
+        selectedFlavor={selectedFlavor}
+        tastedFlavors={tastedFlavors}
+        onSelectFlavor={selectCrayonFlavor}
+        onClose={closeCrayonSelector}
+      />
+      
       {/* Alert Overlay */}
       <AlertOverlay active={alertMode} />
     </>
@@ -50,6 +66,7 @@ export {
   MountainEffect,
   ScanlinesOverlay,
   AlertOverlay,
+  CrayonSelector,
 };
 
 // Export hooks and types

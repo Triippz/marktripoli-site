@@ -19,10 +19,15 @@ How to trigger
   - Toggles CRT scanlines overlay with a soft flicker.
 - B — UFO Beam
   - A hovering saucer appears with a tractor‑beam spotlight over the header.
+- C — Marine Corps Chow
+  - Opens tactical crayon nutrition selector with 9 savage flavor descriptions.
+  - Features: MRE-styled interface, bite marks on tasted crayons, achievement system.
+  - Commands: `crayon`, `mre`, `chow`, `oorah`, `semper fi`, `taste test`.
 - ` (backtick) or Ctrl/Cmd+Alt+T — Secret Terminal
   - Open a hidden terminal overlay. Type 'help' to see commands.
   - 'login' then password 'legion' for admin. 3 wrong attempts => alert mode.
   - 'eggs', 'trigger <name>', 'scan', 'unlock-all' to play with effects.
+  - Marine chow: 'crayon', 'crayola', 'mre', 'chow', 'lunch', 'oorah', 'semper fi', 'taste test'.
   - Map Terminal (same hotkeys on map, supports Cmd on macOS): 'regions', 'goto <key>', 'zoom <n>', 'center <lng> <lat>', 'scan'.
   - Achievements persist (unlockedEasterEggs/localStorage) and show in the 🏆 panel.
 

@@ -22,7 +22,20 @@ export interface Mountain {
   delay: number;
 }
 
-export interface EasterEggState {
+export interface CrayonFlavor {
+  color: string;
+  name: string;
+  description: string;
+  hex: string;
+}
+
+export interface CrayonState {
+  showCrayonSelector: boolean;
+  selectedFlavor: CrayonFlavor | null;
+  tastedFlavors: string[];
+}
+
+export interface EasterEggState extends CrayonState {
   showMatrix: boolean;
   ufos: UFOEntity[];
   pawPrints: PawPrint[];
@@ -42,7 +55,8 @@ export type EasterEggType =
   | 'neon'
   | 'scanlines'
   | 'beam'
-  | 'hiking';
+  | 'hiking'
+  | 'crayon';
 
 export interface EasterEggActions {
   triggerMatrix: () => void;
@@ -53,6 +67,9 @@ export interface EasterEggActions {
   triggerScanlines: () => void;
   triggerBeam: () => void;
   triggerHiking: () => void;
+  triggerCrayon: () => void;
+  selectCrayonFlavor: (flavor: CrayonFlavor) => void;
+  closeCrayonSelector: () => void;
   triggerHelp: () => void;
   triggerEgg: (type: EasterEggType) => boolean;
 }

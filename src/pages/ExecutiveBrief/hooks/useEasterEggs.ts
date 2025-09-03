@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useMissionControl } from '../../../store/missionControl';
-import type { EasterEggState, EasterEggActions, EasterEggType, UFOEntity, PawPrint, Mountain } from '../types/easterEggs';
+import type { EasterEggState, EasterEggActions, EasterEggType, UFOEntity, PawPrint, Mountain, CrayonFlavor } from '../types/easterEggs';
 
 export function useEasterEggs(): EasterEggState & EasterEggActions {
   const { } = useMissionControl() as any;
@@ -14,6 +14,13 @@ export function useEasterEggs(): EasterEggState & EasterEggActions {
   const [scanlines, setScanlines] = useState(false);
   const [beamOn, setBeamOn] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  
+  // Crayon state
+  const [showCrayonSelector, setShowCrayonSelector] = useState(false);
+  const [selectedFlavor, setSelectedFlavor] = useState<CrayonFlavor | null>(null);
+  const [tastedFlavors, setTastedFlavors] = useState<string[]>(() => 
+    JSON.parse(localStorage.getItem('mc-crayon-flavors') || '[]')
+  );
 
   const triggerMatrix = useCallback(() => {
     setShowMatrix(v => !v);
@@ -94,6 +101,27 @@ export function useEasterEggs(): EasterEggState & EasterEggActions {
     setHelpOpen(v => !v);
   }, []);
 
+  // Crayon functions
+  const triggerCrayon = useCallback(() => {
+    setShowCrayonSelector(true);
+  }, []);
+
+  const selectCrayonFlavor = useCallback((flavor: CrayonFlavor) => {
+    setSelectedFlavor(flavor);
+    
+    // Add to tasted flavors if not already tasted
+    if (!tastedFlavors.includes(flavor.color)) {
+      const newTastedFlavors = [...tastedFlavors, flavor.color];
+      setTastedFlavors(newTastedFlavors);
+      localStorage.setItem('mc-crayon-flavors', JSON.stringify(newTastedFlavors));
+    }
+  }, [tastedFlavors]);
+
+  const closeCrayonSelector = useCallback(() => {
+    setShowCrayonSelector(false);
+    setSelectedFlavor(null);
+  }, []);
+
   const triggerEgg = useCallback((type: EasterEggType): boolean => {
     switch (type) {
       case 'matrix': triggerMatrix(); return true;
@@ -104,9 +132,10 @@ export function useEasterEggs(): EasterEggState & EasterEggActions {
       case 'scanlines': triggerScanlines(); return true;
       case 'beam': triggerBeam(); return true;
       case 'hiking': triggerHiking(); return true;
+      case 'crayon': triggerCrayon(); return true;
       default: return false;
     }
-  }, [triggerMatrix, triggerUFO, triggerPaws, triggerGlitch, triggerNeon, triggerScanlines, triggerBeam, triggerHiking]);
+  }, [triggerMatrix, triggerUFO, triggerPaws, triggerGlitch, triggerNeon, triggerScanlines, triggerBeam, triggerHiking, triggerCrayon]);
 
   // Keyboard listeners
   useEffect(() => {
@@ -115,6 +144,16 @@ export function useEasterEggs(): EasterEggState & EasterEggActions {
     
     const onKey = (e: KeyboardEvent) => {
       const key = e.key;
+      
+      // Don't trigger easter eggs when typing in input fields or terminal
+      const target = e.target as HTMLElement;
+      const isTyping = target.tagName === 'INPUT' || 
+                      target.tagName === 'TEXTAREA' || 
+                      target.isContentEditable;
+      
+      if (isTyping) {
+        return; // Don't trigger easter eggs while typing
+      }
       
       // Individual key triggers
       switch (key.toLowerCase()) {
@@ -125,6 +164,7 @@ export function useEasterEggs(): EasterEggState & EasterEggActions {
         case 'h': triggerHiking(); break;
         case 'v': triggerScanlines(); break;
         case 'b': triggerBeam(); break;
+        case 'c': triggerCrayon(); break;
       }
       
       // Help overlay
@@ -147,7 +187,7 @@ export function useEasterEggs(): EasterEggState & EasterEggActions {
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [helpOpen, triggerUFO, triggerPaws, triggerGlitch, triggerNeon, triggerHiking, triggerScanlines, triggerBeam, triggerHelp, triggerMatrix]);
+  }, [helpOpen, triggerUFO, triggerPaws, triggerGlitch, triggerNeon, triggerHiking, triggerScanlines, triggerBeam, triggerCrayon, triggerHelp, triggerMatrix]);
 
   return {
     // State
@@ -160,6 +200,9 @@ export function useEasterEggs(): EasterEggState & EasterEggActions {
     scanlines,
     beamOn,
     helpOpen,
+    showCrayonSelector,
+    selectedFlavor,
+    tastedFlavors,
     // Actions
     triggerMatrix,
     triggerUFO,
@@ -169,6 +212,9 @@ export function useEasterEggs(): EasterEggState & EasterEggActions {
     triggerScanlines,
     triggerBeam,
     triggerHiking,
+    triggerCrayon,
+    selectCrayonFlavor,
+    closeCrayonSelector,
     triggerHelp,
     triggerEgg,
   };

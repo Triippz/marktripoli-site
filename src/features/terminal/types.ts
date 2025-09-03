@@ -37,7 +37,8 @@ export interface TerminalAction {
     | 'uxv_follow'
     | 'play_sound'
     | 'unlock_achievement'
-    | 'trigger_alert';
+    | 'trigger_alert'
+    | 'trigger_easter_egg';
   payload?: any;
 }
 
