@@ -77,9 +77,7 @@ const CareerSystem: React.FC<CareerSystemProps> = ({
 
       {/* Mission legend - hide on mobile */}
       {careerData && (
-        <div className="absolute right-4 z-60 top-20 md:top-24 hidden md:block">
-          <MissionLegend careerData={careerData} />
-        </div>
+        <MissionLegend careerData={careerData} className="absolute right-4 z-60 top-20 md:top-24 hidden md:block" />
       )}
 
       {/* Career details dialog */}
