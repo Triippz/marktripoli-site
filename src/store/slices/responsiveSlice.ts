@@ -270,7 +270,7 @@ export const createResponsiveSlice: StateCreator<ResponsiveSlice> = (set, get) =
       case 'desktop':
       case 'ultrawide':
       default:
-        return { duration: 400, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', reduce: false };
+        return { duration: 400, easing: 'easeOut', reduce: false };
     }
   }
 });

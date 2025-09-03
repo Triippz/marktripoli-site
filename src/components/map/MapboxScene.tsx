@@ -245,7 +245,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
   // Get responsive CSS classes and animation settings
   const animationSettings = isMobile 
     ? { duration: 200, easing: 'easeOut', reduce: false }
-    : { duration: 400, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', reduce: capabilities.reducedMotion };
+    : { duration: 400, easing: 'easeOut', reduce: capabilities.reducedMotion };
   const mapCursorClass = isMobile 
     ? "cursor-default touch-manipulation" 
     : capabilities.hover 
