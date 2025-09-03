@@ -98,6 +98,24 @@ const CareerDetailsDialog: React.FC<CareerDetailsDialogProps> = ({ marker, onClo
           </div>
         </div>
 
+        {/* Marine Corps Easter Egg */}
+        {(marker.name?.toLowerCase().includes('marine') || marker.name?.toLowerCase().includes('corps')) && (
+          <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded tactical-glass">
+            <div className="text-center text-yellow-400 font-mono text-sm mb-2">
+              🎵 SPECIAL RECOGNITION 🎵
+            </div>
+            <div className="text-center text-white font-mono text-sm mb-1">
+              "They wrote a song about me!"
+            </div>
+            <div className="text-center text-gray-300 font-mono text-xs italic">
+              "From the Halls of Montezuma to the shores of Tripoli..."
+            </div>
+            <div className="text-center text-red-400 font-mono text-xs mt-2">
+              Coincidence? I think not. 🦅
+            </div>
+          </div>
+        )}
+
         {/* Summary */}
         {marker.summary && (
           <div className="text-sm text-gray-200 font-mono mb-4">{marker.summary}</div>
