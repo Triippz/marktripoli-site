@@ -173,8 +173,18 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
       }).setHTML(`
         <div class="career-popup-content" style="--marker-color: ${resumeDataService.getCategoryStyle(careerMarker.type).color}">
           <div class="popup-header">
-            <div class="company-name">${careerMarker.name}</div>
-            <div class="mission-codename">${careerMarker.codename}</div>
+            <div class="popup-header-top">
+              ${careerMarker.logo ? 
+                `<div class="popup-logo">
+                   <img src="${careerMarker.logo}" alt="${careerMarker.name}" />
+                 </div>` : 
+                `<div class="popup-logo-fallback"></div>`
+              }
+              <div class="popup-header-text">
+                <div class="company-name">${careerMarker.name}</div>
+                <div class="mission-codename">${careerMarker.codename}</div>
+              </div>
+            </div>
           </div>
           <div class="popup-body">
             <div class="position">${careerMarker.position}</div>
@@ -195,13 +205,49 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
         const style = document.createElement('style');
         style.id = headerStyleId;
         style.textContent = `
+        .tactical-popup.career-popup .popup-header-top {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+        .tactical-popup.career-popup .popup-logo {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          border: 2px solid var(--marker-color, #00ff00);
+          background: rgba(0, 0, 0, 0.8);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .tactical-popup.career-popup .popup-logo img {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          object-fit: contain;
+        }
+        .tactical-popup.career-popup .popup-logo-fallback {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: var(--marker-color, #00ff00);
+          border: 2px solid var(--marker-color, #00ff00);
+          box-shadow: 0 0 6px var(--marker-glow, rgba(0,255,0,0.6));
+          flex-shrink: 0;
+        }
+        .tactical-popup.career-popup .popup-header-text {
+          flex: 1;
+          min-width: 0;
+        }
         .tactical-popup.career-popup .popup-header .company-name {
           color: #ffffff;
           font-weight: bold;
           font-size: 13px;
           margin-bottom: 2px;
         }
-        .tactical-popup.career-popup .popup-header .mission-codename { font-size: 10px; margin-bottom: 8px; }
+        .tactical-popup.career-popup .popup-header .mission-codename { font-size: 10px; margin-bottom: 0; }
         .tactical-popup.career-popup .popup-body .position {
           color: #cccccc;
           margin-bottom: 4px;
