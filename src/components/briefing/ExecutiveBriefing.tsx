@@ -5,6 +5,7 @@ import { useMissionControl } from '../../store/missionControl';
 import { useDataStore } from '../../store/missionControlV2';
 // import { transformResumeToMissionControlData, generateExecutiveBriefing } from '../../services/resumeDataTransformer';
 import sitesData from '../../data/sites.json';
+import BackendEngineerDisclaimer from '../BackendEngineerDisclaimer';
 // TODO: Add react-helmet-async for SEO metadata
 // import { Helmet } from 'react-helmet-async';
 
@@ -14,12 +15,19 @@ function ExecutiveBriefing() {
   const [showPDFExport, setShowPDFExport] = useState(false);
   const [resumeData, setResumeData] = useState<any>(null);
   const [loadingResume, setLoadingResume] = useState(false);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
   const { unlockEasterEgg } = useMissionControl();
   // const { sites } = useDataStore(); // TODO: Implement dynamic sites in briefing
 
   // Load resume data and unlock easter egg
   useEffect(() => {
     unlockEasterEgg('executive_briefing');
+    
+    // Show disclaimer if not dismissed before
+    const disclaimerDismissed = localStorage.getItem('backend-disclaimer-dismissed');
+    if (!disclaimerDismissed) {
+      setShowDisclaimer(true);
+    }
     
     // Try to load resume data (fallback to static if not available)
     setLoadingResume(true);
@@ -157,8 +165,18 @@ END:VCARD`;
     }
   }, []);
 
+  const handleDisclaimerClose = () => {
+    setShowDisclaimer(false);
+    localStorage.setItem('backend-disclaimer-dismissed', 'true');
+  };
+
   return (
     <div className="min-h-screen bg-black text-white font-mono print:bg-white print:text-black">
+      <BackendEngineerDisclaimer 
+        isOpen={showDisclaimer}
+        onClose={handleDisclaimerClose}
+      />
+      
       {/* Top Bar with Contact Info */}
       <div className="border-b border-green-500/30 p-6 print:p-4">
         <div className="flex justify-between items-center">
