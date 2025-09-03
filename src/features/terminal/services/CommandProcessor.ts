@@ -22,7 +22,8 @@ export class CommandProcessor {
       execute: () => ({
         output: [
           'Commands: help, clear, login, regions, companies, goto <key>, goto hq <company>, hq <company>, zoom <n>, center <lng> <lat>, scan, close',
-          'Linux-ish: pwd, ls, whoami, uname -a, date, echo <txt>, cat <file>, man <cmd>, sudo su'
+          'Linux-ish: pwd, ls, whoami, uname -a, date, echo <txt>, cat <file>, man <cmd>, sudo su',
+          'Marine chow: crayon, mre, chow, oorah, semper fi, taste test'
         ]
       })
     });
@@ -174,6 +175,110 @@ export class CommandProcessor {
         output: ['PROBE: Complete the phrase to calibrate sensors. "_____ the _____"'],
         newState: { puzzleStage: 1 }
       })
+    });
+
+    // Marine Corps crayon commands
+    this.registerCommand({
+      name: 'crayon',
+      execute: () => ({
+        output: ['Lunch is served, Devil Dog! 🖍️'],
+        actions: [{ type: 'trigger_easter_egg', payload: 'crayon' }]
+      })
+    });
+
+    this.registerCommand({
+      name: 'crayola',
+      execute: () => ({
+        output: ['64-count variety pack deployed!'],
+        actions: [{ type: 'trigger_easter_egg', payload: 'crayon' }]
+      })
+    });
+
+    this.registerCommand({
+      name: 'mre',
+      execute: () => ({
+        output: [
+          'MRE Contents:',
+          '• Main course: Mystery meat (probably)',
+          '• Side dish: Jalapeño cheese (expired 2019)',
+          '• Dessert: 64-count crayon variety pack 🖍️',
+          '• Accessory: Spoon (handle missing)',
+          '',
+          'Lunch is ready, Marine!'
+        ],
+        actions: [{ type: 'trigger_easter_egg', payload: 'crayon' }]
+      })
+    });
+
+    this.registerCommand({
+      name: 'chow',
+      execute: () => ({
+        output: [
+          'CHOW HALL MENU - TODAY ONLY',
+          '═══════════════════════════════',
+          'Main Course: Whatever Gunny found in the freezer',
+          'Sides: MRE jalapeño cheese (the good stuff)',
+          'Beverages: Coffee (brewed since Desert Storm)',
+          'Dessert: Premium crayon selection 🖍️',
+          '',
+          'Semper Fidelis! Semper Hungry!'
+        ],
+        actions: [{ type: 'trigger_easter_egg', payload: 'crayon' }]
+      })
+    });
+
+    this.registerCommand({
+      name: 'lunch',
+      execute: () => ({
+        output: ['Today\'s special: Wax-based nutrition! 🖍️'],
+        actions: [{ type: 'trigger_easter_egg', payload: 'crayon' }]
+      })
+    });
+
+    this.registerCommand({
+      name: 'oorah',
+      execute: () => ({
+        output: ['OORAH! Ready for chow, Marine? 🖍️'],
+        actions: [{ type: 'trigger_easter_egg', payload: 'crayon' }]
+      })
+    });
+
+    this.registerCommand({
+      name: 'semper',
+      execute: (args) => {
+        if (args[0] && args[0].toLowerCase() === 'fi') {
+          return {
+            output: ['Semper Fi, Marine! Time for some tactical nutrition! 🖍️'],
+            actions: [{ type: 'trigger_easter_egg', payload: 'crayon' }]
+          };
+        }
+        return {
+          output: ['Semper what, Marine? (Try: semper fi)']
+        };
+      }
+    });
+
+    this.registerCommand({
+      name: 'taste',
+      execute: (args) => {
+        if (args[0] && args[0].toLowerCase() === 'test') {
+          return {
+            output: [
+              'FIELD TASTE TEST PROTOCOL INITIATED',
+              '═══════════════════════════════════════',
+              'Marine Corps Regulation 64.1: Crayon Quality Assurance',
+              'All Marines must conduct thorough taste testing',
+              'for tactical nutrition assessment.',
+              '',
+              'Opening crayon selector... 🖍️'
+            ],
+            actions: [{ type: 'trigger_easter_egg', payload: 'crayon' }]
+          };
+        }
+        return {
+          output: ['Usage: taste test (for comprehensive crayon evaluation)']
+        };
+      }
     });
   }
 

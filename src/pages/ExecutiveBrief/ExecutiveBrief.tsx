@@ -97,7 +97,7 @@ function ExecutiveBriefContent() {
         onClose={handleDisclaimerClose}
       />
       
-      <EasterEggSystem alertMode={alertMode} />
+      <EasterEggSystem alertMode={alertMode} easterEggs={easterEggs} />
       
       <Terminal
         isOpen={termOpen}

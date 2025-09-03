@@ -10,7 +10,8 @@ export const terminalCommands: TerminalCommand[] = [
       actions.appendLine('Commands: help, clear, login, eggs, trigger <name>, scan, unlock-all, exit');
       actions.appendLine('Linux-ish: pwd, ls, whoami, uname -a, date, echo <txt>, cat <file>, man <cmd>, sudo su');
       actions.appendLine('Map link: companies, goto hq <company>, hq <company>');
-      actions.appendLine("Eggs: matrix, ufo, paws, glitch, neon, scanlines, beam, hiking");
+      actions.appendLine("Eggs: matrix, ufo, paws, glitch, neon, scanlines, beam, hiking, crayon");
+      actions.appendLine("Marine chow: crayon, mre, chow, oorah, semper fi, taste test");
     }
   },
   {
@@ -44,7 +45,7 @@ export const terminalCommands: TerminalCommand[] = [
     name: 'eggs',
     description: 'List available easter eggs',
     handler: (_, { actions }) => {
-      actions.appendLine('Available (screen): matrix, ufo, paws, glitch, neon, scanlines, beam, hiking.');
+      actions.appendLine('Available (screen): matrix, ufo, paws, glitch, neon, scanlines, beam, hiking, crayon.');
       actions.appendLine('Map (idle/geofence): ping, streak, aurora, ring, radar, sand, stars, neonSweep.');
     }
   },
@@ -58,7 +59,7 @@ export const terminalCommands: TerminalCommand[] = [
         return;
       }
       
-      const validEggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking'];
+      const validEggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking', 'crayon'];
       if (validEggs.includes(name as EasterEggType)) {
         const success = onTriggerEgg?.(name as EasterEggType) ?? false;
         actions.appendLine(success ? `Triggered: ${name}` : `Unknown egg: ${name}`);
@@ -71,7 +72,7 @@ export const terminalCommands: TerminalCommand[] = [
     name: 'scan',
     description: 'Scan all easter egg effects',
     handler: (_, { actions, onTriggerEgg }) => {
-      const eggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking'];
+      const eggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking', 'crayon'];
       eggs.forEach((egg, i) => {
         setTimeout(() => onTriggerEgg?.(egg), i * 250);
       });
@@ -86,7 +87,7 @@ export const terminalCommands: TerminalCommand[] = [
         actions.appendLine('Insufficient clearance. Use login.');
         return;
       }
-      const eggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking'];
+      const eggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking', 'crayon'];
       eggs.forEach((egg, i) => {
         setTimeout(() => onTriggerEgg?.(egg), i * 180);
       });
@@ -256,6 +257,99 @@ export const terminalCommands: TerminalCommand[] = [
         actions.appendLine('sudo: Authentication failure');
       } else {
         actions.appendLine('sudo: permission denied');
+      }
+    }
+  },
+  
+  // Marine Corps Crayon Commands
+  {
+    name: 'crayon',
+    description: 'Open tactical nutrition selector',
+    handler: (_, { actions, onTriggerEgg }) => {
+      actions.appendLine('Lunch is served, Devil Dog! 🖍️');
+      onTriggerEgg?.('crayon');
+    }
+  },
+  {
+    name: 'crayola',
+    description: 'Deploy 64-count variety pack',
+    handler: (_, { actions, onTriggerEgg }) => {
+      actions.appendLine('64-count variety pack deployed!');
+      onTriggerEgg?.('crayon');
+    }
+  },
+  {
+    name: 'mre',
+    description: 'Display MRE contents',
+    handler: (_, { actions, onTriggerEgg }) => {
+      actions.appendLine('MRE Contents:');
+      actions.appendLine('• Main course: Mystery meat (probably)');
+      actions.appendLine('• Side dish: Jalapeño cheese (expired 2019)');
+      actions.appendLine('• Dessert: 64-count crayon variety pack 🖍️');
+      actions.appendLine('• Accessory: Spoon (handle missing)');
+      actions.appendLine('');
+      actions.appendLine('Lunch is ready, Marine!');
+      onTriggerEgg?.('crayon');
+    }
+  },
+  {
+    name: 'chow',
+    description: 'Display chow hall menu',
+    handler: (_, { actions, onTriggerEgg }) => {
+      actions.appendLine('CHOW HALL MENU - TODAY ONLY');
+      actions.appendLine('═══════════════════════════════');
+      actions.appendLine('Main Course: Whatever Gunny found in the freezer');
+      actions.appendLine('Sides: MRE jalapeño cheese (the good stuff)');
+      actions.appendLine('Beverages: Coffee (brewed since Desert Storm)');
+      actions.appendLine('Dessert: Premium crayon selection 🖍️');
+      actions.appendLine('');
+      actions.appendLine('Semper Fidelis! Semper Hungry!');
+      onTriggerEgg?.('crayon');
+    }
+  },
+  {
+    name: 'lunch',
+    description: 'Today\'s lunch special',
+    handler: (_, { actions, onTriggerEgg }) => {
+      actions.appendLine('Today\'s special: Wax-based nutrition! 🖍️');
+      onTriggerEgg?.('crayon');
+    }
+  },
+  {
+    name: 'oorah',
+    description: 'Marine Corps motivational cry',
+    handler: (_, { actions, onTriggerEgg }) => {
+      actions.appendLine('OORAH! Ready for chow, Marine? 🖍️');
+      onTriggerEgg?.('crayon');
+    }
+  },
+  {
+    name: 'semper',
+    description: 'Semper Fidelis',
+    handler: (args, { actions, onTriggerEgg }) => {
+      if (args[0] && args[0].toLowerCase() === 'fi') {
+        actions.appendLine('Semper Fi, Marine! Time for some tactical nutrition! 🖍️');
+        onTriggerEgg?.('crayon');
+      } else {
+        actions.appendLine('Semper what, Marine? (Try: semper fi)');
+      }
+    }
+  },
+  {
+    name: 'taste',
+    description: 'Conduct taste test protocol',
+    handler: (args, { actions, onTriggerEgg }) => {
+      if (args[0] && args[0].toLowerCase() === 'test') {
+        actions.appendLine('FIELD TASTE TEST PROTOCOL INITIATED');
+        actions.appendLine('═══════════════════════════════════════');
+        actions.appendLine('Marine Corps Regulation 64.1: Crayon Quality Assurance');
+        actions.appendLine('All Marines must conduct thorough taste testing');
+        actions.appendLine('for tactical nutrition assessment.');
+        actions.appendLine('');
+        actions.appendLine('Opening crayon selector... 🖍️');
+        onTriggerEgg?.('crayon');
+      } else {
+        actions.appendLine('Usage: taste test (for comprehensive crayon evaluation)');
       }
     }
   }

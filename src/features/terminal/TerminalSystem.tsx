@@ -204,6 +204,11 @@ const TerminalSystem: React.FC<TerminalSystemProps> = ({
       case 'uxv_follow':
         if (typeof action.payload?.follow === 'boolean') uxv.setFollow(action.payload.follow);
         break;
+      
+      case 'trigger_easter_egg':
+        // Pass to parent component to handle (ExecutiveBrief has the easter egg system)
+        // The onAction callback will handle this at the parent level
+        break;
     }
   };
 
