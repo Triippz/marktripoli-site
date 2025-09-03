@@ -84,14 +84,20 @@ function ExecutiveBriefContent() {
       {/* Mobile Help Button */}
       {(isMobile || isTablet) && (
         <button
-          className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full 
-                     tactical-button bg-black/80 backdrop-blur-sm 
-                     border border-green-500/30 flex items-center justify-center
-                     text-green-400 hover:text-green-300 hover:border-green-400/50
-                     transition-all duration-200 touch-manipulation"
+          className="w-12 h-12 rounded-full 
+                     tactical-button bg-black/90 backdrop-blur-sm 
+                     border border-green-500/50 flex items-center justify-center
+                     text-green-400 hover:text-green-300 hover:border-green-400/70
+                     transition-all duration-200 touch-manipulation shadow-lg shadow-green-500/20"
           onClick={() => setHelpOpen(true)}
           aria-label="Show hidden controls"
-          style={{ WebkitTapHighlightColor: 'transparent' }}
+          style={{ 
+            position: 'fixed',
+            bottom: '1.5rem',
+            right: '1.5rem',
+            WebkitTapHighlightColor: 'transparent',
+            zIndex: 60
+          }}
         >
           <span className="text-lg font-bold">?</span>
         </button>
