@@ -244,7 +244,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
 
   // Get responsive CSS classes and animation settings
   const animationSettings = isMobile 
-    ? { duration: 200, easing: 'ease-out', reduce: false }
+    ? { duration: 200, easing: 'easeOut', reduce: false }
     : { duration: 400, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', reduce: capabilities.reducedMotion };
   const mapCursorClass = isMobile 
     ? "cursor-default touch-manipulation" 
@@ -321,12 +321,14 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
           {/* Tactical indicators - adapt to screen size */}
           <TacticalIndicators zoomLevel={zoomLevel} />
 
-          {/* Career data display - responsive layout */}
-          <CareerDataDisplay
-            markerCount={0} // Will be updated by career system
-            selectedMarker={null} // Will be updated by career system  
-            onResetView={resetView}
-          />
+          {/* Career data display - responsive layout - hide on mobile */}
+          {!isMobile && (
+            <CareerDataDisplay
+              markerCount={0} // Will be updated by career system
+              selectedMarker={null} // Will be updated by career system  
+              onResetView={resetView}
+            />
+          )}
 
           {/* Alert overlay */}
           <AlertOverlay isAlertMode={alertMode} />

@@ -1,18 +1,30 @@
 import { motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import type { TelemetryEntry } from '../../types';
+import { useResponsive } from '../../hooks/useResponsive';
 
 interface LiveTelemetryProps {
   telemetryLogs: TelemetryEntry[];
 }
 
 export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
+  // Responsive state
+  const { isMobile } = useResponsive();
+  
   // Internal history buffer so the card keeps prior messages locally
   const [history, setHistory] = useState<TelemetryEntry[]>(telemetryLogs || []);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [pinToBottom, setPinToBottom] = useState(true);
   type PanelMode = 'expanded' | 'collapsed' | 'hidden';
-  const [mode, setMode] = useState<PanelMode>('expanded');
+  // Default to collapsed on mobile, expanded on desktop
+  const [mode, setMode] = useState<PanelMode>('collapsed'); // Start collapsed for all, then adjust
+
+  // Set initial state based on device type after mount
+  useEffect(() => {
+    if (!isMobile && mode === 'collapsed') {
+      setMode('expanded');
+    }
+  }, [isMobile]); // Remove mode from dependencies to prevent infinite loop
 
   // Merge incoming logs into local history (dedupe by timestamp+message+level)
   useEffect(() => {
@@ -77,14 +89,24 @@ export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
   };
 
   const logStyle = getLogStyle(latestLog?.level);
-  const heightClass = mode === 'collapsed' ? 'h-20' : 'h-48';
+  // Mobile gets smaller heights, desktop gets larger
+  const heightClass = mode === 'collapsed' 
+    ? (isMobile ? 'h-16' : 'h-20')
+    : (isMobile ? 'h-48' : 'h-48'); // Reduce mobile expanded height to fit screen
 
   // Fully hidden state: show a tiny restore button only
   if (mode === 'hidden') {
     return (
       <button
-        onClick={() => setMode('expanded')}
-        className="fixed bottom-4 right-4 z-60 bg-gray-900/85 border border-green-500/40 text-green-300 font-mono text-xs px-3 py-1 rounded-full shadow backdrop-blur-sm hover:border-green-400/70 hover:text-green-200"
+        onClick={() => {
+          const newMode = isMobile ? 'collapsed' : 'expanded';
+          setMode(newMode);
+        }}
+        className="fixed z-60 bg-gray-900/85 border border-green-500/40 text-green-300 font-mono text-xs px-3 py-1 rounded-full shadow backdrop-blur-sm hover:border-green-400/70 hover:text-green-200"
+        style={{
+          bottom: isMobile ? '5rem' : '1rem',
+          right: '1rem'
+        }}
         title="Show telemetry"
       >
         📡 Telemetry
@@ -94,12 +116,14 @@ export default function LiveTelemetry({ telemetryLogs }: LiveTelemetryProps) {
 
   return (
     <motion.div 
-      className="floating-card"
+      className={`floating-card ${isMobile ? 'w-[calc(100vw-2rem)] max-w-sm' : ''}`}
       style={{ 
         position: 'fixed', 
-        bottom: '1rem', 
-        right: '1rem', 
-        zIndex: 60 
+        bottom: isMobile ? '5rem' : '1rem', // Move up on mobile to avoid zoom controls
+        right: '1rem',
+        left: isMobile ? '1rem' : 'auto',
+        zIndex: 60,
+        maxHeight: isMobile ? 'calc(100vh - 10rem)' : 'auto' // Ensure it doesn't go above viewport
       }}
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}

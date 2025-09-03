@@ -1,5 +1,6 @@
 import { Header, ContactCard, StrengthsCard, Timeline, TechStacks, ExperienceCard, EducationCard, ProjectsCard, LeadershipSection, TechnicalCraftSection, CollapsibleCard } from './';
 import type { Resume, Profile } from '../../types/resume';
+import { useResponsive } from '../../../../hooks/useResponsive';
 
 interface MainContentProps {
   metadata: {
@@ -30,8 +31,12 @@ export function MainContent({
   strengths, 
   glitchTitle 
 }: MainContentProps) {
+  const { isMobile } = useResponsive();
+  
   return (
-    <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 pb-16">
+    <div className={`max-w-5xl mx-auto px-4 md:px-8 pb-16 ${
+      isMobile ? 'pt-4' : 'py-8' // Reduced top padding on mobile since sticky nav handles spacing
+    }`}>
       {/* Header Section */}
       <Header
         name={metadata.name}

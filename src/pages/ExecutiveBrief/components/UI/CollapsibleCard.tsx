@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useResponsive } from '../../../../hooks/useResponsive';
 
 interface CollapsibleCardProps {
   title: string;
@@ -16,6 +17,7 @@ export function CollapsibleCard({
   className = "mission-panel p-6 md:p-8 mb-6",
   children 
 }: CollapsibleCardProps) {
+  const { isMobile } = useResponsive();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   useEffect(() => {
@@ -34,8 +36,21 @@ export function CollapsibleCard({
   return (
     <div className={className}>
       <div 
-        className="flex items-center justify-between cursor-pointer mb-3 group"
+        className={`flex items-center justify-between cursor-pointer mb-3 group ${
+          isMobile ? 'py-3 touch-manipulation min-h-[44px]' : ''
+        }`}
         onClick={handleToggle}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleToggle();
+          }
+        }}
+        style={{
+          WebkitTapHighlightColor: 'transparent' // Remove iOS tap highlight
+        }}
       >
         <div className="holo-text font-mono text-lg">{title}</div>
         <motion.div

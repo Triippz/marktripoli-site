@@ -264,9 +264,9 @@ export const createResponsiveSlice: StateCreator<ResponsiveSlice> = (set, get) =
     
     switch (state.screenSize) {
       case 'mobile':
-        return { duration: 200, easing: 'ease-out', reduce: false };
+        return { duration: 200, easing: 'easeOut', reduce: false };
       case 'tablet':
-        return { duration: 300, easing: 'ease-in-out', reduce: false };
+        return { duration: 300, easing: 'easeInOut', reduce: false };
       case 'desktop':
       case 'ultrawide':
       default:

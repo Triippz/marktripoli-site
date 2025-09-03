@@ -287,9 +287,9 @@ function AchievementSystem() {
     <>
       {/* Achievement Notifications */}
       <AnimatePresence>
-        {notifications.map(achievement => (
+        {notifications.map((achievement, index) => (
           <AchievementNotification
-            key={achievement.id}
+            key={`${achievement.id}-${index}`}
             achievement={achievement}
             onClose={() => removeNotification(achievement.id)}
           />

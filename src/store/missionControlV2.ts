@@ -108,26 +108,44 @@ export const useUIStore = () => useMissionControlV2(state => ({
 }));
 
 // Memoized selector to prevent infinite re-renders  
-const responsiveStoreSelector = (state: any) => ({
-  screenSize: state.screenSize,
-  orientation: state.orientation,
-  capabilities: state.capabilities,
-  features: state.features,
-  mobileState: state.mobileState,
-  isMobile: state.isMobile,
-  isTablet: state.isTablet,
-  isDesktop: state.isDesktop,
-  shouldReduceMotion: state.shouldReduceMotion,
-  updateResponsiveState: state.updateResponsiveState,
-  toggleMobileBottomSheet: state.toggleMobileBottomSheet,
-  setKeyboardVisible: state.setKeyboardVisible,
-  updatePerformanceMetrics: state.updatePerformanceMetrics,
-  toggleFeature: state.toggleFeature,
-  optimizeForDevice: state.optimizeForDevice,
-  getOptimalBreakpoint: state.getOptimalBreakpoint,
-  shouldUseComponent: state.shouldUseComponent,
-  getAnimationSettings: state.getAnimationSettings,
-});
+let cachedResponsiveSelector: any = null;
+const responsiveStoreSelector = (state: any) => {
+  if (!cachedResponsiveSelector) {
+    cachedResponsiveSelector = {
+      screenSize: state.screenSize,
+      orientation: state.orientation,
+      capabilities: state.capabilities,
+      features: state.features,
+      mobileState: state.mobileState,
+      isMobile: state.screenSize === 'mobile',
+      isTablet: state.screenSize === 'tablet',
+      isDesktop: state.screenSize === 'desktop' || state.screenSize === 'ultrawide',
+      shouldReduceMotion: state.capabilities?.reducedMotion || false,
+      updateResponsiveState: state.updateResponsiveState,
+      toggleMobileBottomSheet: state.toggleMobileBottomSheet,
+      setKeyboardVisible: state.setKeyboardVisible,
+      updatePerformanceMetrics: state.updatePerformanceMetrics,
+      toggleFeature: state.toggleFeature,
+      optimizeForDevice: state.optimizeForDevice,
+      getOptimalBreakpoint: state.getOptimalBreakpoint,
+      shouldUseComponent: state.shouldUseComponent,
+      getAnimationSettings: state.getAnimationSettings,
+    };
+  }
+  
+  // Update only the values that may have changed
+  cachedResponsiveSelector.screenSize = state.screenSize;
+  cachedResponsiveSelector.orientation = state.orientation;
+  cachedResponsiveSelector.capabilities = state.capabilities;
+  cachedResponsiveSelector.features = state.features;
+  cachedResponsiveSelector.mobileState = state.mobileState;
+  cachedResponsiveSelector.isMobile = state.screenSize === 'mobile';
+  cachedResponsiveSelector.isTablet = state.screenSize === 'tablet';
+  cachedResponsiveSelector.isDesktop = state.screenSize === 'desktop' || state.screenSize === 'ultrawide';
+  cachedResponsiveSelector.shouldReduceMotion = state.capabilities?.reducedMotion || false;
+  
+  return cachedResponsiveSelector;
+};
 
 export const useResponsiveStore = () => useMissionControlV2(responsiveStoreSelector);
 
