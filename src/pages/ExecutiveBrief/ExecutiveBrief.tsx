@@ -1,8 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import SEO from '../../components/SEO';
 import { useMissionControl } from '../../store/missionControl';
 import { createDefaultFS } from '../../utils/fauxFS';
-import { useResponsive } from '../../hooks/useResponsive';
 
 // Module imports
 import { ResumeDataProvider, useResumeData } from './providers';
@@ -26,13 +25,13 @@ import {
 function ExecutiveBriefContent() {
   const { unlockEasterEgg } = useMissionControl() as any;
   const { resume, profile, error, loading } = useResumeData();
-  const { isMobile, isTablet } = useResponsive();
-  
+
   // UI state
   const [glitchTitle, setGlitchTitle] = useState(false);
   const [termOpen, setTermOpen] = useState(false);
   const [alertMode, setAlertMode] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [showHelpFab, setShowHelpFab] = useState(false);
 
   // Derived data
   const metadata = useResumeMetadata(resume, profile);
@@ -41,10 +40,25 @@ function ExecutiveBriefContent() {
   const fsRoot = useMemo(() => createDefaultFS(), []);
   const easterEggs = useEasterEggs();
 
+  // Direct keyboard listener for FAB reveal
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+        setShowHelpFab(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
   // Keyboard controls
   useKeyboardControls({
     onToggleTerminal: () => setTermOpen(prev => !prev),
-    onToggleHelp: () => setHelpOpen(prev => !prev),
+    onToggleHelp: () => {
+      setShowHelpFab(true); // Show FAB when help is accessed via keyboard
+      setHelpOpen(prev => !prev);
+    },
     onGlitchTitle: () => {
       setGlitchTitle(true);
       setTimeout(() => setGlitchTitle(false), 3000);
@@ -81,8 +95,8 @@ function ExecutiveBriefContent() {
       <HelpOverlay isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
       <Navigation />
       
-      {/* Mobile Help Button */}
-      {(isMobile || isTablet) && (
+      {/* Help Button - Only visible after first "?" keypress */}
+      {showHelpFab && (
         <button
           className="w-12 h-12 rounded-full 
                      tactical-button bg-black/90 backdrop-blur-sm 
