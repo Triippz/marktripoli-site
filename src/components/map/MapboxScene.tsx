@@ -27,7 +27,6 @@ import {
 import { CareerDataDisplay } from './panels';
 
 // Other components
-import FlightPathAnimations from './FlightPathAnimations';
 
 // Styles
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -288,6 +287,7 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
             isMapLoaded={isMapLoaded}
             isUXVActive={uxvState.active}
             onUXVTarget={uxvState.setTarget}
+            containerDimensions={containerDimensions}
           />
 
           {/* Terminal System - always render but adapts to screen size */}
@@ -333,15 +333,6 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
           {/* Alert overlay */}
           <AlertOverlay isAlertMode={alertMode} />
 
-          {/* Flight Path Animations (legacy) - reduce on mobile */}
-          {enableAnimations && (
-            <FlightPathAnimations
-              sites={sites}
-              selectedSite={null}
-              containerWidth={containerDimensions.width}
-              containerHeight={containerDimensions.height}
-            />
-          )}
         </>
       )}
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { UXVPosition } from '../types';
+import { UXVPosition, WeaponType, PatrolMode } from '../types';
 import { missionAudio } from '../../../utils/audioSystem';
 
 interface UXVControlPanelProps {
@@ -9,6 +9,11 @@ interface UXVControlPanelProps {
   speed: number;
   trailMax: number;
   follow: boolean;
+  weaponType: WeaponType;
+  patrolMode: PatrolMode;
+  altitude: number;
+  charging: boolean;
+  chargePower: number;
   panelPos: { left: number; top: number } | null;
   containerDimensions: { width: number; height: number };
   panelRef: React.RefObject<HTMLDivElement>;
@@ -19,6 +24,11 @@ interface UXVControlPanelProps {
   onSetSpeed: (speed: number) => void;
   onSetTrailMax: (max: number) => void;
   onSetFollow: (follow: boolean) => void;
+  onSetWeaponType: (weapon: WeaponType) => void;
+  onSetPatrolMode: (mode: PatrolMode) => void;
+  onSetAltitude: (altitude: number) => void;
+  onStartCharging: () => void;
+  onStopCharging: () => void;
   onDropPayload: () => void;
   onStop: () => void;
   onReturnToBase: () => void;
@@ -32,6 +42,11 @@ const UXVControlPanel: React.FC<UXVControlPanelProps> = ({
   speed,
   trailMax,
   follow,
+  weaponType,
+  patrolMode,
+  altitude,
+  charging,
+  chargePower,
   panelPos,
   containerDimensions,
   panelRef,
@@ -42,6 +57,11 @@ const UXVControlPanel: React.FC<UXVControlPanelProps> = ({
   onSetSpeed,
   onSetTrailMax,
   onSetFollow,
+  onSetWeaponType,
+  onSetPatrolMode,
+  onSetAltitude,
+  onStartCharging,
+  onStopCharging,
   onDropPayload,
   onStop,
   onReturnToBase,
@@ -141,6 +161,37 @@ const UXVControlPanel: React.FC<UXVControlPanelProps> = ({
         {/* Controls */}
         <div className="space-y-2">
 
+          {/* Weapon Type Selector */}
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-mono text-gray-300">Weapon:</label>
+            <select 
+              value={weaponType} 
+              onChange={(e) => onSetWeaponType(e.target.value as WeaponType)}
+              className="bg-black border border-green-500 text-green-400 text-xs px-1"
+            >
+              <option value="projectile">Projectile</option>
+              <option value="laser">Laser</option>
+              <option value="pulse">Pulse</option>
+              <option value="orbital">Orbital Strike</option>
+            </select>
+          </div>
+
+          {/* Patrol Mode Selector */}
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-mono text-gray-300">Patrol:</label>
+            <select 
+              value={patrolMode} 
+              onChange={(e) => onSetPatrolMode(e.target.value as PatrolMode)}
+              className="bg-black border border-green-500 text-green-400 text-xs px-1"
+            >
+              <option value="none">Manual</option>
+              <option value="circle">Circle Earth</option>
+              <option value="figure8">Figure-8</option>
+              <option value="random">Random</option>
+              <option value="zigzag">Zigzag</option>
+            </select>
+          </div>
+
           {/* Speed control */}
           <div className="flex items-center justify-between">
             <label className="text-xs font-mono text-gray-300">
@@ -152,6 +203,20 @@ const UXVControlPanel: React.FC<UXVControlPanelProps> = ({
               max="10000"
               value={speed} 
               onChange={(e) => onSetSpeed(parseInt(e.target.value))} 
+            />
+          </div>
+
+          {/* Altitude control */}
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-mono text-gray-300">
+              Alt: {altitude}m
+            </label>
+            <input 
+              type="range" 
+              min="100" 
+              max="5000"
+              value={altitude} 
+              onChange={(e) => onSetAltitude(parseInt(e.target.value))} 
             />
           </div>
 
@@ -186,6 +251,21 @@ const UXVControlPanel: React.FC<UXVControlPanelProps> = ({
             />
           </div>
 
+          {/* Charging Power Display (for laser weapons) */}
+          {weaponType !== 'projectile' && (
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-mono text-gray-300">
+                Power: {Math.round(chargePower * 100)}%
+              </label>
+              <div className="w-16 h-2 bg-gray-800 border border-green-500">
+                <div 
+                  className="h-full bg-gradient-to-r from-green-400 to-red-400 transition-all duration-100"
+                  style={{ width: `${Math.min(100, chargePower * 50)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Follow checkbox */}
           <div className="flex items-center gap-2">
             <label className="text-xs font-mono text-gray-300 flex items-center gap-1">
@@ -198,14 +278,37 @@ const UXVControlPanel: React.FC<UXVControlPanelProps> = ({
             </label>
           </div>
 
-          {/* Action buttons */}
+          {/* Weapon Action buttons */}
+          <div className="grid grid-cols-2 gap-1">
+            {weaponType !== 'projectile' ? (
+              <>
+                <button 
+                  className={`tactical-button text-xs px-2 py-1 ${charging ? 'bg-red-900' : ''}`}
+                  onMouseDown={onStartCharging}
+                  onMouseUp={onStopCharging}
+                  onMouseLeave={onStopCharging}
+                >
+                  {charging ? 'Charging...' : 'Hold to Charge'}
+                </button>
+                <button 
+                  className="tactical-button text-xs px-2 py-1" 
+                  onClick={onDropPayload}
+                >
+                  Fire {weaponType}
+                </button>
+              </>
+            ) : (
+              <button 
+                className="tactical-button text-xs px-2 py-1 col-span-2" 
+                onClick={onDropPayload}
+              >
+                Launch Projectile
+              </button>
+            )}
+          </div>
+
+          {/* Navigation buttons */}
           <div className="flex items-center gap-2">
-            <button 
-              className="tactical-button text-xs px-2 py-1" 
-              onClick={onDropPayload}
-            >
-              Drop
-            </button>
             <button 
               className="tactical-button text-xs px-2 py-1" 
               onClick={onStop}

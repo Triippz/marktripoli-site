@@ -4,20 +4,24 @@ import { useCareerMarkers } from './hooks/useCareerMarkers';
 import CareerMarkerRenderer from './components/CareerMarkerRenderer';
 import CareerDetailsDialog from './components/CareerDetailsDialog';
 import MissionLegend from './components/MissionLegend';
+import CareerDroneAnimation from './components/CareerDroneAnimation';
 import { CareerMarker } from '../../types/careerData';
+import { useResponsive } from '../../hooks/useResponsive';
 
 interface CareerSystemProps {
   map: Map | null;
   isMapLoaded: boolean;
   isUXVActive?: boolean;
   onUXVTarget?: (position: { lng: number; lat: number }) => void;
+  containerDimensions?: { width: number; height: number };
 }
 
 const CareerSystem: React.FC<CareerSystemProps> = ({
   map,
   isMapLoaded,
   isUXVActive = false,
-  onUXVTarget
+  onUXVTarget,
+  containerDimensions = { width: 800, height: 600 }
 }) => {
   const {
     selectedMarker,
@@ -28,6 +32,8 @@ const CareerSystem: React.FC<CareerSystemProps> = ({
     clearSelection,
     flyToMarker
   } = useCareerMarkers();
+
+  const { capabilities } = useResponsive();
 
   const handleMarkerClick = (marker: CareerMarker) => {
     selectMarker(marker);
@@ -78,6 +84,15 @@ const CareerSystem: React.FC<CareerSystemProps> = ({
       {/* Mission legend - hide on mobile */}
       {careerData && (
         <MissionLegend careerData={careerData} className="absolute right-4 z-60 top-20 md:top-24 hidden md:block" />
+      )}
+
+      {/* Career drone animation - only on desktop with animations enabled */}
+      {careerData && map && !capabilities.reducedMotion && (
+        <CareerDroneAnimation
+          map={map}
+          careerData={careerData}
+          containerDimensions={containerDimensions}
+        />
       )}
 
       {/* Career details dialog */}
