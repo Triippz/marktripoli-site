@@ -1,0 +1,210 @@
+import { useEffect, useRef } from 'react';
+import { UXVPosition, UXVProjectile, UXVLaser, UXVExplosion, PatrolMode } from '../types';
+import { missionAudio } from '../../../utils/audioSystem';
+
+interface UseUXVMovementProps {
+  active: boolean;
+  pos: UXVPosition | null;
+  target: UXVPosition | null;
+  speed: number;
+  follow: boolean;
+  trailMax: number;
+  projectiles: UXVProjectile[];
+  lasers: UXVLaser[];
+  patrolMode: PatrolMode;
+  patrolWaypoints: UXVPosition[];
+  currentWaypointIndex: number;
+  charging: boolean;
+  chargePower: number;
+  setPos: (pos: UXVPosition) => void;
+  setTarget: (target: UXVPosition | null) => void;
+  setTrail: (trail: UXVPosition[] | ((prev: UXVPosition[]) => UXVPosition[])) => void;
+  setProjectiles: (projectiles: UXVProjectile[] | ((prev: UXVProjectile[]) => UXVProjectile[])) => void;
+  setLasers: (lasers: UXVLaser[] | ((prev: UXVLaser[]) => UXVLaser[])) => void;
+  setExplosions: (explosions: UXVExplosion[] | ((prev: UXVExplosion[]) => UXVExplosion[])) => void;
+  setCurrentWaypointIndex: (index: number) => void;
+  setChargePower: (power: number) => void;
+  map?: mapboxgl.Map | null;
+}
+
+export function useUXVMovement({
+  active,
+  pos,
+  target,
+  speed,
+  follow,
+  trailMax,
+  projectiles,
+  lasers,
+  patrolMode,
+  patrolWaypoints,
+  currentWaypointIndex,
+  charging,
+  chargePower,
+  setPos,
+  setTarget,
+  setTrail,
+  setProjectiles,
+  setLasers,
+  setExplosions,
+  setCurrentWaypointIndex,
+  setChargePower,
+  map
+}: UseUXVMovementProps) {
+  const animationRef = useRef<number>(0);
+  const lastTimeRef = useRef<number>(performance.now());
+  const lastTrailRef = useRef<number>(performance.now());
+
+  useEffect(() => {
+    if (!active) {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = 0;
+      }
+      return;
+    }
+
+    let last = performance.now();
+    let lastTrail = last;
+    
+    const step = () => {
+      const now = performance.now();
+      const dt = (now - last) / 1000;
+      last = now;
+
+      // Handle charging
+      if (charging) {
+        setChargePower(prev => Math.min(2, prev + dt * 2)); // Charge up to 2x power in 1 second
+      }
+
+      // Update UXV position - handle patrol mode and regular targets
+      if (pos) {
+        let currentTarget = target;
+        
+        // If in patrol mode and no manual target, use patrol waypoints
+        if (patrolMode !== 'none' && !target && patrolWaypoints.length > 0) {
+          currentTarget = patrolWaypoints[currentWaypointIndex % patrolWaypoints.length];
+        }
+        
+        if (currentTarget) {
+          const dLng = currentTarget.lng - pos.lng;
+          const dLat = currentTarget.lat - pos.lat;
+          const dist = Math.sqrt(dLng * dLng + dLat * dLat);
+          
+          if (dist < 0.0008) {
+            // Reached target
+            setPos(currentTarget);
+            
+            if (patrolMode !== 'none' && !target && patrolWaypoints.length > 0) {
+              // Move to next patrol waypoint
+              setCurrentWaypointIndex((currentWaypointIndex + 1) % patrolWaypoints.length);
+            } else {
+              setTarget(null);
+            }
+          } else {
+            // Move towards target
+            const degPerSec = speed / 111000; // approx degrees/sec
+            const stepSize = Math.min(dist, degPerSec * Math.max(0.001, dt));
+            const nx = pos.lng + (dLng / dist) * stepSize;
+            const ny = pos.lat + (dLat / dist) * stepSize;
+          
+          setPos({ lng: nx, lat: ny });
+
+          // Update trail
+          if (now - lastTrail > 120) {
+            setTrail(prev => {
+              const arr = prev.slice();
+              const lastPt = arr[arr.length - 1];
+              const moved = !lastPt || Math.hypot((lastPt.lng - nx), (lastPt.lat - ny)) > 0.0001;
+              
+              if (moved) {
+                arr.push({ lng: nx, lat: ny });
+                if (arr.length > trailMax) {
+                  arr.splice(0, arr.length - trailMax);
+                }
+              }
+              
+              return arr;
+            });
+            lastTrail = now;
+          }
+
+          // Follow camera
+          if (follow && map) {
+            try {
+              map.easeTo({ center: [nx, ny], duration: 280, essential: false });
+            } catch {}
+          }
+        }
+      }
+
+      // Update projectiles and spawn explosions
+      if (projectiles.length > 0) {
+        setProjectiles(prev => {
+          const remain: UXVProjectile[] = [];
+          
+          prev.forEach(p => {
+            const t = (now - p.start) / p.dur;
+            if (t >= 1) {
+              // Projectile hit, create explosion
+              setExplosions(ex => [...ex, {
+                id: p.id,
+                lng: p.ex,
+                lat: p.ey,
+                start: now,
+                type: p.type
+              }]);
+              try {
+                missionAudio.playEffect('alert');
+              } catch {}
+            } else {
+              remain.push(p);
+            }
+          });
+          
+          return remain;
+        });
+      }
+
+      // Update lasers and spawn explosions
+      if (lasers.length > 0) {
+        setLasers(prev => {
+          const remain: UXVLaser[] = [];
+          
+          prev.forEach(l => {
+            const t = (now - l.start) / l.dur;
+            if (t >= 1) {
+              // Laser finished, create explosion based on type
+              const explosionType = l.type === 'orbital' ? 'orbital' : l.type;
+              setExplosions(ex => [...ex, {
+                id: l.id,
+                lng: l.ex,
+                lat: l.ey,
+                start: now,
+                type: explosionType
+              }]);
+              try {
+                missionAudio.playEffect(l.type === 'orbital' ? 'sweep' : 'alert');
+              } catch {}
+            } else {
+              remain.push(l);
+            }
+          });
+          
+          return remain;
+        });
+      }
+
+      animationRef.current = requestAnimationFrame(step);
+    };
+
+    animationRef.current = requestAnimationFrame(step);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = 0;
+      }
+    };
+  }, [active, pos, target, speed, follow, trailMax, projectiles, lasers, patrolMode, patrolWaypoints, currentWaypointIndex, charging, chargePower, setPos, setTarget, setTrail, setProjectiles, setLasers, setExplosions, setCurrentWaypointIndex, setChargePower, map]);
+}
