@@ -48,29 +48,6 @@ const TacticalCrosshair: React.FC<TacticalCrosshairProps> = ({
         }}
       />
       
-      {/* Coordinates box */}
-      {(() => {
-        const offset = 14;
-        const boxWidth = 170;
-        const boxHeight = 44;
-        const left = Math.min(cursorPoint.x + offset, containerDimensions.width - boxWidth - 6);
-        const top = Math.min(cursorPoint.y + offset, containerDimensions.height - boxHeight - 6);
-        
-        return (
-          <div
-            className="absolute bg-gray-900/90 border border-green-500/30 rounded p-2 backdrop-blur-sm"
-            style={{ 
-              left: `${Math.max(6, left)}px`, 
-              top: `${Math.max(6, top)}px`, 
-              width: `${boxWidth}px` 
-            }}
-          >
-            <div className="text-green-500 text-[10px] font-mono mb-1">COORDINATES</div>
-            <div className="text-white text-[10px] font-mono">LAT: {currentCoords.lat}°</div>
-            <div className="text-white text-[10px] font-mono">LNG: {currentCoords.lng}°</div>
-          </div>
-        );
-      })()}
     </div>
   );
 };

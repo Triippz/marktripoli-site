@@ -198,7 +198,7 @@ export function TacticalAlert({ children, level, isVisible, onClose }: TacticalA
   return (
     <motion.div
       className={`
-        fixed top-4 right-4 z-50 p-4 rounded border-2 font-mono
+        fixed top-20 right-4 z-50 p-4 rounded border-2 font-mono
         ${colors[level]}
       `}
       initial={{ x: 400, opacity: 0 }}

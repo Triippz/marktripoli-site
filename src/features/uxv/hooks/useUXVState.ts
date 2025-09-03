@@ -104,7 +104,7 @@ export function useUXVState(): UXVState & UXVControls {
   }, [base]);
 
   const setSpeedInternal = useCallback((newSpeed: number) => {
-    setSpeed(Math.min(1500, Math.max(50, newSpeed)));
+    setSpeed(Math.min(10000, Math.max(50, newSpeed)));
   }, []);
 
   const setTrailMax = useCallback((max: number) => {

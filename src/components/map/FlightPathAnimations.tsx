@@ -200,7 +200,7 @@ function FlightPathAnimations({ sites, selectedSite, containerWidth, containerHe
       {/* Flight Path Legend */}
       {showCareerProgression && (
         <motion.div
-          className="absolute top-4 left-1/2 -translate-x-1/2 tactical-panel p-3"
+          className="absolute top-20 left-1/2 -translate-x-1/2 tactical-panel p-3"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}

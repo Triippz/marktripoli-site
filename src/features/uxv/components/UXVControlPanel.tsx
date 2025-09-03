@@ -140,25 +140,6 @@ const UXVControlPanel: React.FC<UXVControlPanelProps> = ({
 
         {/* Controls */}
         <div className="space-y-2">
-          {/* Target input */}
-          <div className="flex items-center gap-2">
-            <input 
-              id="uxv-lng" 
-              className="bg-gray-800 border border-green-500/30 rounded px-2 py-1 text-xs font-mono w-28" 
-              placeholder="lng" 
-            />
-            <input 
-              id="uxv-lat" 
-              className="bg-gray-800 border border-green-500/30 rounded px-2 py-1 text-xs font-mono w-28" 
-              placeholder="lat" 
-            />
-            <button 
-              className="tactical-button text-xs px-2 py-1" 
-              onClick={handleSetTarget}
-            >
-              Set Target
-            </button>
-          </div>
 
           {/* Speed control */}
           <div className="flex items-center justify-between">
@@ -168,7 +149,7 @@ const UXVControlPanel: React.FC<UXVControlPanelProps> = ({
             <input 
               type="range" 
               min="50" 
-              max="1500" 
+              max="10000"
               value={speed} 
               onChange={(e) => onSetSpeed(parseInt(e.target.value))} 
             />

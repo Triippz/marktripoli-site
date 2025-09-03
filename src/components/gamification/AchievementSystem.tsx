@@ -142,7 +142,7 @@ function AchievementNotification({ achievement, onClose }: AchievementNotificati
       initial={{ x: 300, opacity: 0, scale: 0.8 }}
       animate={{ x: 0, opacity: 1, scale: 1 }}
       exit={{ x: 300, opacity: 0, scale: 0.8 }}
-      className={`fixed top-20 right-4 z-50 tactical-panel p-4 min-w-80 ${getRarityColor(achievement.rarity)} shadow-2xl ${getRarityGlow(achievement.rarity)}`}
+      className={`fixed top-24 right-4 z-50 tactical-panel p-4 min-w-80 ${getRarityColor(achievement.rarity)} shadow-2xl ${getRarityGlow(achievement.rarity)}`}
     >
       {/* Header */}
       <div className="flex justify-between items-start mb-2">

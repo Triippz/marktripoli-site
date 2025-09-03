@@ -53,7 +53,7 @@ const CareerSystem: React.FC<CareerSystemProps> = ({
   // Show error state
   if (error) {
     return (
-      <div className="absolute top-4 right-4 z-60">
+      <div className="absolute top-20 right-4 z-60">
         <div className="bg-red-900/90 border border-red-500/30 rounded-lg p-3 backdrop-blur-sm">
           <div className="text-red-500 text-xs font-mono mb-1">CAREER DATA ERROR</div>
           <div className="text-red-400 text-xs">{error}</div>

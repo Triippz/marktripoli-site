@@ -84,6 +84,17 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
         padding: 12px;
         border-radius: 6px;
         min-width: 200px;
+        max-width: 280px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+      @media (max-width: 768px) {
+        .tactical-popup.career-popup .career-popup-content {
+          max-width: 200px;
+          min-width: 160px;
+          padding: 8px;
+          font-size: 10px;
+        }
       }
     `;
     document.head.appendChild(style);
@@ -109,7 +120,7 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
     markerElement.style.cssText = `
       width: 32px;
       height: 32px;
-      cursor: none;
+      cursor: pointer;
       --marker-color: ${categoryStyle.color};
       --marker-glow: ${categoryStyle.glowColor};
     `;
@@ -225,8 +236,26 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
         .tactical-popup.career-popup .popup-logo img {
           width: 20px;
           height: 20px;
+          max-width: 20px;
+          max-height: 20px;
           border-radius: 50%;
           object-fit: contain;
+        }
+        @media (max-width: 768px) {
+          .tactical-popup.career-popup .popup-logo img {
+            width: 16px;
+            height: 16px;
+            max-width: 16px;
+            max-height: 16px;
+          }
+          .tactical-popup.career-popup .popup-logo {
+            width: 20px;
+            height: 20px;
+          }
+          .tactical-popup.career-popup .popup-logo-fallback {
+            width: 20px;
+            height: 20px;
+          }
         }
         .tactical-popup.career-popup .popup-logo-fallback {
           width: 28px;
@@ -246,11 +275,38 @@ const CareerMarkerRenderer: React.FC<CareerMarkerRendererProps> = ({
           font-weight: bold;
           font-size: 13px;
           margin-bottom: 2px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        @media (max-width: 768px) {
+          .tactical-popup.career-popup .popup-header .company-name {
+            font-size: 11px;
+          }
+          .tactical-popup.career-popup .popup-header .mission-codename {
+            font-size: 9px;
+          }
+          .tactical-popup.career-popup .popup-body .position {
+            font-size: 10px;
+          }
+          .tactical-popup.career-popup .popup-body .date-range {
+            font-size: 9px;
+          }
+          .tactical-popup.career-popup .popup-body .location,
+          .tactical-popup.career-popup .popup-body .coordinates {
+            font-size: 8px;
+          }
+          .tactical-popup.career-popup .popup-footer .category {
+            font-size: 8px;
+          }
         }
         .tactical-popup.career-popup .popup-header .mission-codename { font-size: 10px; margin-bottom: 0; }
         .tactical-popup.career-popup .popup-body .position {
           color: #cccccc;
           margin-bottom: 4px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         .tactical-popup.career-popup .popup-body .date-range { font-size: 10px; margin-bottom: 2px; }
         .tactical-popup.career-popup .popup-body .location,
