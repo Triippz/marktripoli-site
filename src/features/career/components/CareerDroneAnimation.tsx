@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CareerMarker, CareerMapData } from '../../../types/careerData';
 import { missionAudio } from '../../../utils/audioSystem';
+import DroneIcon from '../../../components/DroneIcon';
 
 interface DronePath {
   from: CareerMarker;
@@ -21,30 +22,36 @@ const CareerDroneAnimation: React.FC<CareerDroneAnimationProps> = ({
   careerData,
   containerDimensions
 }) => {
-  const [activePaths, setActivePaths] = useState<DronePath[]>([]);
+  const [allPaths, setAllPaths] = useState<DronePath[]>([]);
+  const [currentPath, setCurrentPath] = useState<DronePath | null>(null);
   const [showCareerTour, setShowCareerTour] = useState(false);
-  const [currentDronePosition, setCurrentDronePosition] = useState<{ x: number; y: number } | null>(null);
   const [currentPathIndex, setCurrentPathIndex] = useState(0);
-  const [droneRotation, setDroneRotation] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [completedPaths, setCompletedPaths] = useState<DronePath[]>([]);
+  const [visitedLocations, setVisitedLocations] = useState<CareerMarker[]>([]);
+  const [mapVersion, setMapVersion] = useState(0);
+  const [isAnimatingDrone, setIsAnimatingDrone] = useState(false);
+  const [lockedFromPosition, setLockedFromPosition] = useState<{ x: number; y: number } | null>(null);
+  const [lockedToPosition, setLockedToPosition] = useState<{ x: number; y: number } | null>(null);
 
   // Convert lat/lng to screen coordinates using map projection
   const projectToScreen = useCallback((lat: number, lng: number) => {
     if (!map) return { x: 0, y: 0 };
     const projected = map.project([lng, lat]);
     return { 
-      x: Math.min(containerDimensions.width - 50, Math.max(50, projected.x)), 
-      y: Math.min(containerDimensions.height - 50, Math.max(50, projected.y)) 
+      x: projected.x, 
+      y: projected.y 
     };
-  }, [map, containerDimensions]);
+  }, [map, mapVersion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Generate drone paths for career progression (chronological order)
   const generateCareerPaths = useCallback(() => {
     if (!careerData?.markers) return [];
 
-    // Sort markers by start date (chronological career progression)
-    const jobMarkers = careerData.markers
-      .filter(marker => marker.type === 'job')
+    // Sort ALL career markers by start date (chronological career progression)
+    // Include military, education, work, and projects for complete timeline
+    const allCareerMarkers = careerData.markers
+      .filter(marker => ['work', 'military', 'education', 'project'].includes(marker.type))
       .sort((a, b) => {
         const dateA = new Date(a.startDate || '1900-01-01').getTime();
         const dateB = new Date(b.startDate || '1900-01-01').getTime();
@@ -53,12 +60,12 @@ const CareerDroneAnimation: React.FC<CareerDroneAnimationProps> = ({
 
     const paths: DronePath[] = [];
     
-    for (let i = 0; i < jobMarkers.length - 1; i++) {
+    for (let i = 0; i < allCareerMarkers.length - 1; i++) {
       paths.push({
-        from: jobMarkers[i],
-        to: jobMarkers[i + 1],
-        duration: 4000, // 4 seconds per hop
-        delay: i * 4500 // Small gap between hops
+        from: allCareerMarkers[i],
+        to: allCareerMarkers[i + 1],
+        duration: 4000, // 4 seconds travel time
+        delay: i * 6500 // Travel (4s) + Pause (2s) + Gap (0.5s) = 6.5s per segment
       });
     }
 
@@ -85,10 +92,16 @@ const CareerDroneAnimation: React.FC<CareerDroneAnimationProps> = ({
       });
     }
 
-    setActivePaths(paths);
+    setAllPaths(paths);
+    setCurrentPath(paths[0] || null);
     setShowCareerTour(true);
     setCurrentPathIndex(0);
     setIsAnimating(true);
+    setCompletedPaths([]); // Reset trail
+    setVisitedLocations([]); // Reset markers
+    setIsAnimatingDrone(false); // Reset animation lock
+    setLockedFromPosition(null);
+    setLockedToPosition(null);
 
     // Play launch sound
     try {
@@ -98,15 +111,41 @@ const CareerDroneAnimation: React.FC<CareerDroneAnimationProps> = ({
     }
 
     // Clear animation after completion
-    const totalDuration = paths.length * 4500 + 2000; // Extra time for final hover
+    const totalDuration = paths.length * 6500 + 3000; // Updated for new timing with pauses
     setTimeout(() => {
-      setActivePaths([]);
+      setAllPaths([]);
+      setCurrentPath(null);
       setShowCareerTour(false);
-      setCurrentDronePosition(null);
       setCurrentPathIndex(0);
       setIsAnimating(false);
+      setCompletedPaths([]);
+      setVisitedLocations([]);
+      setIsAnimatingDrone(false);
+      setLockedFromPosition(null);
+      setLockedToPosition(null);
     }, totalDuration);
   }, [generateCareerPaths, isAnimating, map]);
+
+  // Update positions when map moves or zooms
+  useEffect(() => {
+    if (!map) return;
+    
+    const updatePositions = () => {
+      setMapVersion(v => v + 1); // Force re-render of all position calculations
+    };
+    
+    map.on('move', updatePositions);
+    map.on('zoom', updatePositions);
+    map.on('moveend', updatePositions);
+    map.on('zoomend', updatePositions);
+    
+    return () => {
+      map.off('move', updatePositions);
+      map.off('zoom', updatePositions);
+      map.off('moveend', updatePositions);
+      map.off('zoomend', updatePositions);
+    };
+  }, [map]);
 
   // Auto-trigger career tour
   useEffect(() => {
@@ -132,121 +171,249 @@ const CareerDroneAnimation: React.FC<CareerDroneAnimationProps> = ({
 
   return (
     <div className="absolute inset-0 pointer-events-none z-50">
-      {/* Drone Paths */}
-      <AnimatePresence>
-        {activePaths.map((path, index) => {
-          const from = projectToScreen(path.from.location.lat, path.from.location.lng);
-          const to = projectToScreen(path.to.location.lat, path.to.location.lng);
+      {/* Animated Dotted Trail - behind the drone */}
+      <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 45 }}>
+        {/* Completed trails - static dotted lines */}
+        {completedPaths.map((completedPath, trailIndex) => {
+          const from = projectToScreen(completedPath.from.location.lat, completedPath.from.location.lng);
+          const to = projectToScreen(completedPath.to.location.lat, completedPath.to.location.lng);
           
-          const distance = Math.sqrt(
-            Math.pow(to.x - from.x, 2) + Math.pow(to.y - from.y, 2)
+          return (
+            <motion.line
+              key={`trail-${trailIndex}`}
+              x1={from.x}
+              y1={from.y}
+              x2={to.x}
+              y2={to.y}
+              stroke="#45ffb0"
+              strokeWidth="2"
+              strokeDasharray="6,4"
+              strokeOpacity="0.7"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.7 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            />
           );
+        })}
+        
+        {/* Currently animating trail - grows behind drone */}
+        {currentPath && (() => {
+          const from = projectToScreen(currentPath.from.location.lat, currentPath.from.location.lng);
+          const to = projectToScreen(currentPath.to.location.lat, currentPath.to.location.lng);
+          const distance = Math.sqrt(Math.pow(to.x - from.x, 2) + Math.pow(to.y - from.y, 2));
+          const dashLength = distance + 13; // Length for dash pattern
           
+          return (
+            <motion.line
+              key={`current-trail-${currentPathIndex}`}
+              x1={from.x}
+              y1={from.y}
+              x2={to.x}
+              y2={to.y}
+              stroke="#45ffb0"
+              strokeWidth="3"
+              strokeDasharray="8,5"
+              strokeOpacity="0.9"
+              initial={{ strokeDashoffset: dashLength }}
+              animate={{ strokeDashoffset: 0 }}
+              transition={{ 
+                duration: currentPath.duration / 1000,
+                ease: "easeInOut",
+                delay: 0.5
+              }}
+            />
+          );
+        })()}
+
+        {/* Location markers - circles at each visited career stop */}
+        {visitedLocations.map((location, markerIndex) => {
+          const position = projectToScreen(location.location.lat, location.location.lng);
+          
+          return (
+            <g key={`marker-${location.id}`}>
+              {/* Outer pulsing circle */}
+              <motion.circle
+                cx={position.x}
+                cy={position.y}
+                r="8"
+                fill="none"
+                stroke="#45ffb0"
+                strokeWidth="2"
+                strokeOpacity="0.6"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ 
+                  scale: [0, 1, 1.2, 1], 
+                  opacity: [0, 0.6, 0.4, 0.6] 
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  delay: markerIndex * 0.2
+                }}
+              />
+              
+              {/* Inner solid circle */}
+              <motion.circle
+                cx={position.x}
+                cy={position.y}
+                r="4"
+                fill="#45ffb0"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ 
+                  duration: 0.5,
+                  delay: 0.3 
+                }}
+              />
+              
+              {/* Location label */}
+              <motion.text
+                x={position.x}
+                y={position.y - 15}
+                fill="#45ffb0"
+                fontSize="10"
+                fontFamily="monospace"
+                textAnchor="middle"
+                initial={{ opacity: 0, y: position.y - 10 }}
+                animate={{ opacity: 0.8, y: position.y - 15 }}
+                transition={{ 
+                  duration: 0.5,
+                  delay: 0.5 
+                }}
+              >
+                {location.name.length > 20 ? 
+                  location.name.substring(0, 17) + '...' : 
+                  location.name
+                }
+              </motion.text>
+            </g>
+          );
+        })}
+      </svg>
+
+      {/* Single Drone */}
+      <AnimatePresence>
+        {currentPath && (() => {
+          // Use locked positions during animation, otherwise use current positions
+          const currentFrom = projectToScreen(currentPath.from.location.lat, currentPath.from.location.lng);
+          const currentTo = projectToScreen(currentPath.to.location.lat, currentPath.to.location.lng);
+          
+          const from = isAnimatingDrone && lockedFromPosition ? lockedFromPosition : currentFrom;
+          const to = isAnimatingDrone && lockedToPosition ? lockedToPosition : currentTo;
           const pathRotation = calculateRotation(from, to);
 
           return (
-            <React.Fragment key={`${index}-${path.delay}`}>
-              {/* Glowing trail */}
-              <motion.div
-                className="absolute"
-                style={{
-                  left: from.x,
-                  top: from.y,
-                  width: distance,
-                  height: 3,
-                  transformOrigin: '0 50%',
-                  transform: `rotate(${pathRotation - 90}deg)`,
-                }}
-                initial={{ scaleX: 0, opacity: 0 }}
-                animate={{ 
-                  scaleX: 1, 
-                  opacity: [0, 0.8, 0.8, 0],
-                }}
-                transition={{
-                  delay: path.delay / 1000,
-                  duration: path.duration / 1000,
-                  opacity: {
-                    times: [0, 0.1, 0.8, 1],
-                    duration: path.duration / 1000
-                  }
-                }}
-              >
-                <div className="w-full h-full bg-gradient-to-r from-transparent via-green-400 to-transparent opacity-60 shadow-[0_0_8px_rgba(0,255,0,0.6)]" />
-              </motion.div>
-              
-              {/* Drone */}
+            <React.Fragment key={`drone-${currentPathIndex}`}>
+              {/* Single Drone */}
               <motion.div
                 className="absolute w-8 h-8 flex items-center justify-center z-60"
-                style={{ left: from.x - 16, top: from.y - 16 }}
-                initial={{ scale: 0, opacity: 0 }}
+                initial={{ 
+                  left: from.x - 16, 
+                  top: from.y - 16,
+                  scale: 0, 
+                  opacity: 0,
+                  rotate: 0
+                }}
                 animate={{ 
-                  x: to.x - from.x,
-                  y: to.y - from.y,
-                  scale: [0, 1, 1, 0.8],
+                  left: [from.x - 16, to.x - 16, to.x - 16],
+                  top: [from.y - 16, to.y - 16, to.y - 16],
+                  scale: [0, 1, 1.2, 1],
                   opacity: [0, 1, 1, 1],
-                  rotate: pathRotation
+                  rotate: [0, pathRotation, pathRotation, pathRotation]
                 }}
                 transition={{
-                  delay: path.delay / 1000,
-                  duration: path.duration / 1000,
+                  duration: (currentPath.duration + 2000) / 1000, // 4s travel + 2s pause
                   ease: "easeInOut",
-                  scale: { times: [0, 0.1, 0.9, 1] }
+                  times: [0, 0.62, 0.75, 1], // 0-62% travel, 62-75% hover/pulse, 75-100% settle
+                  left: { times: [0, 0.62, 0.75, 1] },
+                  top: { times: [0, 0.62, 0.75, 1] },
+                  scale: { times: [0, 0.62, 0.75, 1] },
+                  opacity: { times: [0, 0.05, 0.75, 1] },
+                  rotate: { times: [0, 0.62, 0.75, 1] }
                 }}
                 onAnimationStart={() => {
-                  if (index === currentPathIndex) {
-                    setCurrentDronePosition(from);
-                    setDroneRotation(pathRotation);
+                  // Lock positions to prevent jitter during animation
+                  setIsAnimatingDrone(true);
+                  setLockedFromPosition(currentFrom);
+                  setLockedToPosition(currentTo);
+                  
+                  // Add starting location to visited if it's the first path
+                  if (currentPathIndex === 0) {
+                    setVisitedLocations(prev => [...prev, currentPath.from]);
+                  }
+                  
+                  // Follow the drone with the camera
+                  if (map) {
+                    map.flyTo({
+                      center: [currentPath.from.location.lng, currentPath.from.location.lat],
+                      zoom: 7,
+                      duration: 1500,
+                      essential: true
+                    });
                   }
                 }}
                 onAnimationComplete={() => {
-                  if (index === currentPathIndex) {
-                    setCurrentDronePosition(to);
+                  // Unlock positions after animation completes
+                  setIsAnimatingDrone(false);
+                  setLockedFromPosition(null);
+                  setLockedToPosition(null);
+                  
+                  // Add completed path to trail and destination to visited locations
+                  setCompletedPaths(prev => [...prev, currentPath]);
+                  setVisitedLocations(prev => [...prev, currentPath.to]);
+                  
+                  // Move to next path or end tour
+                  if (currentPathIndex < allPaths.length - 1) {
                     setCurrentPathIndex(prev => prev + 1);
+                    setCurrentPath(allPaths[currentPathIndex + 1]);
+                  } else {
+                    // Tour complete
+                    setCurrentPath(null);
+                  }
+                  
+                  // Follow to the destination
+                  if (map) {
+                    map.flyTo({
+                      center: [currentPath.to.location.lng, currentPath.to.location.lat],
+                      zoom: 7,
+                      duration: 1500,
+                      essential: true
+                    });
                   }
                 }}
               >
-                {/* Drone body */}
-                <div className="relative">
-                  {/* Main drone icon */}
-                  <div className="text-2xl drop-shadow-[0_0_8px_rgba(69,255,176,0.8)]">
-                    🚁
-                  </div>
-                  {/* Pulsing glow effect */}
-                  <motion.div
-                    className="absolute inset-0 rounded-full bg-green-400/20"
-                    animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.1, 0.3] }}
-                    transition={{ duration: 1, repeat: Infinity }}
-                  />
-                </div>
+                <DroneIcon 
+                  size={32} 
+                  className="drop-shadow-[0_0_8px_rgba(69,255,176,0.8)]"
+                />
               </motion.div>
 
               {/* Transition info popup */}
-              {index < activePaths.length && (
-                <motion.div
-                  className="absolute bg-gray-900/95 border border-green-500/30 rounded-lg p-3 backdrop-blur-sm pointer-events-none"
-                  style={{
-                    left: Math.min(to.x + 20, containerDimensions.width - 250),
-                    top: Math.max(to.y - 40, 20),
-                  }}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ delay: path.delay / 1000 + 1 }}
-                >
-                  <div className="text-green-400 text-xs font-mono mb-1">
-                    CAREER TRANSITION
-                  </div>
-                  <div className="text-white text-xs font-mono">
-                    {path.from.name} → {path.to.name}
-                  </div>
-                  <div className="text-gray-400 text-[10px] font-mono">
-                    {path.to.startDate ? new Date(path.to.startDate).getFullYear() : ''}
-                  </div>
-                </motion.div>
-              )}
+              <motion.div
+                className="absolute bg-gray-900/95 border border-green-500/30 rounded-lg p-3 backdrop-blur-sm pointer-events-none"
+                style={{
+                  left: Math.min(to.x + 20, containerDimensions.width - 250),
+                  top: Math.max(to.y - 40, 20),
+                }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ delay: 1 }}
+              >
+                <div className="text-green-400 text-xs font-mono mb-1">
+                  CAREER TRANSITION
+                </div>
+                <div className="text-white text-xs font-mono">
+                  {currentPath.from.name} → {currentPath.to.name}
+                </div>
+                <div className="text-gray-400 text-[10px] font-mono">
+                  {currentPath.to.startDate ? new Date(currentPath.to.startDate).getFullYear() : ''}
+                </div>
+              </motion.div>
             </React.Fragment>
           );
-        })}
+        })()}
       </AnimatePresence>
 
       {/* Career Tour Legend */}
@@ -259,7 +426,7 @@ const CareerDroneAnimation: React.FC<CareerDroneAnimationProps> = ({
         >
           <div className="text-center">
             <div className="text-green-400 font-mono text-sm mb-2 flex items-center justify-center gap-2">
-              <span>🚁</span>
+              <DroneIcon size={24} />
               <span>CAREER DRONE TOUR</span>
             </div>
             <div className="text-gray-400 text-xs font-mono">
@@ -273,7 +440,7 @@ const CareerDroneAnimation: React.FC<CareerDroneAnimationProps> = ({
                 className="h-full bg-green-500 rounded-full"
                 initial={{ width: '0%' }}
                 animate={{ width: '100%' }}
-                transition={{ duration: activePaths.length * 4.5, ease: 'linear' }}
+                transition={{ duration: allPaths.length * 6.5, ease: 'linear' }}
               />
             </motion.div>
           </div>
@@ -292,7 +459,7 @@ const CareerDroneAnimation: React.FC<CareerDroneAnimationProps> = ({
         whileTap={{ scale: 0.95 }}
       >
         <div className="flex items-center space-x-2">
-          <span className="text-lg">🚁</span>
+          <DroneIcon size={20} />
           <div className="text-left">
             <div className="text-green-400 text-xs font-mono leading-none">DRONE</div>
             <div className="text-white text-xs font-mono leading-none">TOUR</div>

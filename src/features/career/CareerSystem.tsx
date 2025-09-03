@@ -4,7 +4,6 @@ import { useCareerMarkers } from './hooks/useCareerMarkers';
 import CareerMarkerRenderer from './components/CareerMarkerRenderer';
 import CareerDetailsDialog from './components/CareerDetailsDialog';
 import MissionLegend from './components/MissionLegend';
-import CareerDroneAnimation from './components/CareerDroneAnimation';
 import { CareerMarker } from '../../types/careerData';
 import { useResponsive } from '../../hooks/useResponsive';
 
@@ -86,14 +85,6 @@ const CareerSystem: React.FC<CareerSystemProps> = ({
         <MissionLegend careerData={careerData} className="absolute right-4 z-60 top-20 md:top-24 hidden md:block" />
       )}
 
-      {/* Career drone animation - only on desktop with animations enabled */}
-      {careerData && map && !capabilities.reducedMotion && (
-        <CareerDroneAnimation
-          map={map}
-          careerData={careerData}
-          containerDimensions={containerDimensions}
-        />
-      )}
 
       {/* Career details dialog */}
       {selectedMarker && (
