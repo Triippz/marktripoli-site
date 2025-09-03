@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import SEO from '../../components/SEO';
 import { useMissionControl } from '../../store/missionControl';
 import { createDefaultFS } from '../../utils/fauxFS';
+import BackendEngineerDisclaimer from '../../components/BackendEngineerDisclaimer';
 
 // Module imports
 import { ResumeDataProvider, useResumeData } from './providers';
@@ -32,6 +33,7 @@ function ExecutiveBriefContent() {
   const [alertMode, setAlertMode] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [showHelpFab, setShowHelpFab] = useState(false);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
 
   // Derived data
   const metadata = useResumeMetadata(resume, profile);
@@ -52,6 +54,14 @@ function ExecutiveBriefContent() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
+  // Show disclaimer on first load
+  useEffect(() => {
+    const disclaimerDismissed = localStorage.getItem('backend-disclaimer-dismissed');
+    if (!disclaimerDismissed) {
+      setShowDisclaimer(true);
+    }
+  }, []);
+
   // Keyboard controls
   useKeyboardControls({
     onToggleTerminal: () => setTermOpen(prev => !prev),
@@ -66,6 +76,11 @@ function ExecutiveBriefContent() {
     helpOpen
   });
 
+  const handleDisclaimerClose = () => {
+    setShowDisclaimer(false);
+    localStorage.setItem('backend-disclaimer-dismissed', 'true');
+  };
+
   // State rendering
   if (error) return <ErrorState error={error} />;
   if (loading) return <LoadingState />;
@@ -75,6 +90,11 @@ function ExecutiveBriefContent() {
       <SEO 
         title="Executive Briefing — Mark Tripoli"
         description="Interactive resume and career briefing with Mission Control theme"
+      />
+      
+      <BackendEngineerDisclaimer 
+        isOpen={showDisclaimer}
+        onClose={handleDisclaimerClose}
       />
       
       <EasterEggSystem alertMode={alertMode} />
