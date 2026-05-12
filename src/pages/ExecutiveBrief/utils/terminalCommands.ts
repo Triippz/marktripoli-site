@@ -7,10 +7,10 @@ export const terminalCommands: TerminalCommand[] = [
     name: 'help',
     description: 'Show available commands',
     handler: (_, { actions }) => {
-      actions.appendLine('Commands: help, clear, login, eggs, trigger <name>, scan, unlock-all, exit');
+      actions.appendLine('Commands: help, clear, login, eggs, trigger <name>, scan, unlock-all, atlas, mesh, exit');
       actions.appendLine('Linux-ish: pwd, ls, whoami, uname -a, date, echo <txt>, cat <file>, man <cmd>, sudo su');
       actions.appendLine('Map link: companies, goto hq <company>, hq <company>');
-      actions.appendLine("Eggs: matrix, ufo, paws, glitch, neon, scanlines, beam, hiking, crayon");
+      actions.appendLine("Eggs: matrix, ufo, paws, glitch, neon, scanlines, beam, hiking, crayon, atlas");
       actions.appendLine("Marine chow: crayon, mre, chow, oorah, semper fi, taste test");
     }
   },
@@ -45,7 +45,7 @@ export const terminalCommands: TerminalCommand[] = [
     name: 'eggs',
     description: 'List available easter eggs',
     handler: (_, { actions }) => {
-      actions.appendLine('Available (screen): matrix, ufo, paws, glitch, neon, scanlines, beam, hiking, crayon.');
+      actions.appendLine('Available (screen): matrix, ufo, paws, glitch, neon, scanlines, beam, hiking, crayon, atlas.');
       actions.appendLine('Map (idle/geofence): ping, streak, aurora, ring, radar, sand, stars, neonSweep.');
     }
   },
@@ -59,7 +59,7 @@ export const terminalCommands: TerminalCommand[] = [
         return;
       }
       
-      const validEggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking', 'crayon'];
+      const validEggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking', 'crayon', 'atlas'];
       if (validEggs.includes(name as EasterEggType)) {
         const success = onTriggerEgg?.(name as EasterEggType) ?? false;
         actions.appendLine(success ? `Triggered: ${name}` : `Unknown egg: ${name}`);
@@ -72,7 +72,7 @@ export const terminalCommands: TerminalCommand[] = [
     name: 'scan',
     description: 'Scan all easter egg effects',
     handler: (_, { actions, onTriggerEgg }) => {
-      const eggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking', 'crayon'];
+      const eggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking', 'crayon', 'atlas'];
       eggs.forEach((egg, i) => {
         setTimeout(() => onTriggerEgg?.(egg), i * 250);
       });
@@ -87,7 +87,7 @@ export const terminalCommands: TerminalCommand[] = [
         actions.appendLine('Insufficient clearance. Use login.');
         return;
       }
-      const eggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking', 'crayon'];
+      const eggs: EasterEggType[] = ['matrix', 'ufo', 'paws', 'glitch', 'neon', 'scanlines', 'beam', 'hiking', 'crayon', 'atlas'];
       eggs.forEach((egg, i) => {
         setTimeout(() => onTriggerEgg?.(egg), i * 180);
       });
@@ -130,6 +130,24 @@ export const terminalCommands: TerminalCommand[] = [
         return;
       }
       navigateToMap(query, actions);
+    }
+  },
+  {
+    name: 'atlas',
+    description: 'Boot Atlas C2 platform',
+    handler: (_, { actions }) => {
+      import('../../../features/mesh/meshBootSequence').then(({ streamBootSequence }) => {
+        streamBootSequence((line) => actions.appendLine(line));
+      });
+    }
+  },
+  {
+    name: 'mesh',
+    description: 'Boot Atlas mesh network',
+    handler: (_, { actions }) => {
+      import('../../../features/mesh/meshBootSequence').then(({ streamBootSequence }) => {
+        streamBootSequence((line) => actions.appendLine(line));
+      });
     }
   },
   {

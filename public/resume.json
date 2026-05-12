@@ -10,16 +10,16 @@
       "countryCode": "US"
     },
     "x_strengths": [
+      "Systems architecture & distributed systems",
       "Technical strategy & vision",
-      "Org design & performance",
-      "Platform & developer experience",
-      "Reliability & SLOs",
+      "Platform & SDK engineering",
+      "Decentralized / mesh / P2P systems",
+      "Pragmatic AI/LLM integration",
+      "Scalability & performance engineering",
       "Secure SDLC & compliance",
-      "Program delivery & OKRs",
-      "Scalability & performance",
-      "Executive communication"
+      "Technical leadership & mentorship"
     ],
-    "summary": "Engineering Lead and Manager scaling teams and delivering secure, distributed platforms—from early-stage startups to large tech firms. Architected and led development of IL5/IL6 compliant systems and developer platforms, achieving >50% build-time reductions, FedRAMP readiness, and high-user SLA compliance.",
+    "summary": "Staff Software Engineer who architects and builds distributed systems, decentralized platforms, and high-throughput infrastructure. Currently building Atlas—a decentralized platform (SDK + infrastructure) for building mission applications, with mesh networking, multi-transport, DIDs, and an autonomous agent runtime for cloud and edge—and AOK (Adyton Operations Kit) at Adyton. Pragmatic about AI/LLM adoption—uses it aggressively to accelerate POCs, automate toil, and return engineering time to hard problems, while maintaining that production systems need architectural determinism, human oversight, and real software discipline. Track record of designing systems that scale—from notification pipelines processing 1M+ messages in minutes to build orchestration platforms serving thousands of developers daily. Equally comfortable writing Rust, Go, or Python as leading technical vision across teams. Career spans defense tech, big tech, startups, and a decade of railroad and military operations.",
     "profiles": [
       {
         "network": "LinkedIn",
@@ -39,18 +39,53 @@
   },
   "work": [
     {
+      "name": "Adyton",
+      "position": "Staff Software Engineer",
+      "location": "Remote",
+      "startDate": "2025-10",
+      "summary": "Staff Software Engineer building Atlas and AOK (Adyton Operations Kit). Atlas is a decentralized platform—SDK and infrastructure—for building mission applications. It provides mesh networking, multi-transport (BLE, WiFi, LoRa, satellite), decentralized identity (DIDs), offline-first architecture, and an autonomous agent runtime for cloud and edge, giving identities and authorization to sensors, effectors, phones, and agents. The Atlas Mission App is a Flutter implementation with Rust gateways and other deployables built on the platform. Building self-sovereign infrastructure including a Signal SVR2-inspired identity backup service using AWS Nitro Enclaves, OPRF, and Noise NK for zero-knowledge PIN-gated recovery of BIP39 cryptographic identities. AOK is Adyton's operational suite, featuring a NATS JetStream-based async notification platform processing 1M+ notifications in under 10 minutes via Twilio, WhatsApp, and Email, with muster-message ask-and-respond patterns and webhook delivery tracking.",
+      "highlights": [
+        "Architecting Atlas: a decentralized platform (SDK + infrastructure) for building mission applications, with mesh networking and multi-transport (BLE, WiFi, LoRa, satellite).",
+        "Implementing decentralized identity (DIDs) with authorization for sensors, effectors, mobile devices, and agents across Atlas.",
+        "Building an autonomous agent runtime for cloud and edge—identity-bound agents with decentralized authorization, deployable on-demand.",
+        "Designed and built self-sovereign identity backup service (Go) inspired by Signal's SVR2—OPRF-based zero-knowledge PIN recovery of BIP39 entropy via AWS Nitro Enclaves, Noise NK tunnels, and Ristretto255.",
+        "Building AOK (Adyton Operations Kit) with NATS JetStream-based async notification platform handling 1M+ bursty notifications in <10 minutes across Twilio, WhatsApp, and Email.",
+        "Designing muster message product feature within AOK for ask-and-respond patterns with webhook delivery status ingestion.",
+        "Leveraging AI/LLM tooling to accelerate delivery and automate engineering toil while enforcing architectural determinism and human oversight for production systems."
+      ],
+      "x_languages": ["Rust", "Dart", "Python"],
+      "x_frameworks": ["Flutter", "Django"],
+      "x_technologies": [
+        "NATS JetStream", "Twilio", "DIDs", "Mesh Networking",
+        "BLE", "LoRa", "Edge Computing",
+        "AWS Nitro Enclaves", "OPRF", "Noise NK", "BIP39"
+      ],
+      "x_skills": [
+        "Distributed Systems", "Decentralized Identity", "Mesh Networking",
+        "Edge Computing", "Systems Architecture", "Platform Engineering"
+      ],
+      "x_logo": "/logos/adyton.png",
+      "x_location": {
+        "city": "New York",
+        "region": "NY",
+        "countryCode": "US",
+        "geo": { "lat": 40.7128, "lon": -74.0060 }
+      }
+    },
+    {
       "name": "Picogrid",
-      "position": "Engineering Manager",
+      "position": "Engineering Manager / Legion Lead SWE",
       "location": "Remote",
       "startDate": "2024-09",
-      "summary": "Lead engineering and technical direction for Legion—the modular data integration layer connecting sensors, third-party C2s, and analytics across defense and commercial environments. Architected integrations, pipelines, and a FedRAMP/IL5–IL6-aligned SDLC that enabled classified deployments and unlocked interoperability with partner systems. Partner closely with field and BD to translate mission needs into product vision and roadmap, shipping self-serve integrations that drive revenue and accelerate adoption. Built the engineering organization from seed stage by creating hiring pipelines, designing onboarding frameworks, and mentoring engineers, while instilling a culture of high performance, technical rigor, and mission focus.",
+      "endDate": "2025-10",
+      "summary": "Architected and led development of Legion—a modular data integration platform connecting sensors, third-party C2s, and analytics across defense and commercial environments. Designed the integration pipeline architecture (Go, NATS JetStream, MQTT, TimescaleDB) and built the self-service integration framework that enabled rapid partner onboarding. Established a FedRAMP/IL5–IL6-aligned SDLC that unlocked classified deployments. Grew the engineering team from 4 to 15 while staying hands-on in architecture and code review.",
       "highlights": [
-        "Created and communicated a unifying technical vision for Legion; credited with >$15M in new contracts, including a $9.3M award.",
-        "Scaled engineering org from 4 → 15 across software, solutions, and security engineering.",
-        "Established secure SDLC practices aligned with FedRAMP, IL5/IL6, and NIST 800-53/171.",
-        "Partnered with BD to translate DoD field requirements into roadmap priorities (e.g., TAK Server-as-a-Service, ATAK plugins).",
-        "Built self-service integration framework for rapid onboarding of integrations.",
-      "Directed FedRAMP SSP & continuous monitoring compliance workstreams."
+        "Architected Legion's integration pipeline (Go, NATS JetStream, MQTT, TimescaleDB) connecting sensors, C2s, and analytics platforms.",
+        "Built self-service integration framework enabling rapid onboarding of new data sources and partner systems.",
+        "Technical vision credited with >$15M in new contracts, including a $9.3M award.",
+        "Designed and shipped TAK Server-as-a-Service and ATAK plugin integrations for DoD field operations.",
+        "Established secure SDLC (FedRAMP, IL5/IL6, NIST 800-53/171) enabling classified deployments.",
+        "Scaled engineering org 4 → 15 across software, solutions, and security engineering."
       ],
       "x_languages": ["Go", "TypeScript", "Python"],
       "x_frameworks": ["Gin", "FastAPI", "React"],
@@ -66,19 +101,13 @@
         "Docker"
       ],
       "x_skills": [
-        "Leadership",
-        "Project Management",
+        "Systems Architecture",
         "Technical Strategy",
-        "People Management",
-        "Org Design",
-        "Hiring",
-        "Mentorship",
-        "Roadmapping",
-        "Stakeholder Management",
-        "Cross-Functional Collaboration",
+        "Platform Engineering",
+        "Technical Leadership",
         "Security & Compliance",
-        "Program Management",
-        "Change Management"
+        "Mentorship",
+        "Distributed Systems"
       ],
       "x_logo": "/logos/picogrid.png",
       "x_location": {
@@ -298,6 +327,24 @@
   ],
   "projects": [
     {
+      "name": "Atlas — Decentralized Mission Platform",
+      "description": "Decentralized platform (SDK + infrastructure) for building mission applications. Provides mesh networking, multi-transport (BLE, WiFi, LoRa, satellite), decentralized identity (DIDs), offline-first design, and an autonomous agent runtime for cloud and edge. The Atlas Mission App is a Flutter implementation with Rust gateways and other deployables built on the platform.",
+      "highlights": ["Platform SDK + infrastructure", "Mesh networking", "Decentralized Identity (DIDs)", "Multi-transport (BLE/WiFi/LoRa/Satellite)", "Offline-first", "Autonomous agent runtime (cloud + edge)", "Flutter mission app + Rust gateways"],
+      "keywords": ["Platform", "SDK", "Mesh Networking", "Decentralized", "Edge Computing", "DefenseTech"]
+    },
+    {
+      "name": "AOK — Adyton Operations Kit",
+      "description": "Adyton's operational suite featuring a NATS JetStream-based async notification platform handling 1M+ bursty notifications in under 10 minutes to Twilio, WhatsApp, and Email, with muster-message ask-and-respond patterns for app and non-app users.",
+      "highlights": ["Muster messages", "1M+ notifications in <10min", "NATS JetStream", "Twilio / WhatsApp / Email", "Webhook delivery tracking"],
+      "keywords": ["AOK", "Messaging", "NATS", "High Throughput", "Notifications", "Muster"]
+    },
+    {
+      "name": "Atlas Principal Storage — Self-Sovereign Identity Backup",
+      "description": "Signal SVR2-inspired identity backup service built in Go for Atlas. Allows users to securely back up BIP39 cryptographic identity entropy to AWS Nitro Enclaves with PIN-gated zero-knowledge recovery. Uses OPRF (Ristretto255, RFC 9497) so the enclave never learns the PIN, Noise NK end-to-end tunnels with remote attestation, and NitroTPM seal/unseal for enclave state persistence.",
+      "highlights": ["AWS Nitro Enclaves", "OPRF (Ristretto255)", "Noise NK + attestation", "BIP39 entropy backup", "Zero-knowledge PIN recovery", "Go"],
+      "keywords": ["SSI", "Cryptography", "Nitro Enclaves", "OPRF", "Identity", "DefenseTech"]
+    },
+    {
       "name": "Legion",
       "description": "Redesigned and Reenvisioned Picogrid's Legion into a modular data integration layer that provides an open series of APIs for developers or companies to easily integrate their end-effects or software systems with Picogrid's data layer to easily integrate with various other software systems. I also rebuild Picogrid's Legion C2 capabilities to provide a mechanism to provide a unified common operating picture for Picogrid's C2-based customers.",
       "highlights": [
@@ -382,53 +429,64 @@
   "certificates": [],
   "skills": [
     {
-      "name": "Leadership & Management",
-      "keywords": [
-        "Leadership",
-        "Hiring",
-        "Mentorship",
-        "Org design",
-        "Performance management",
-        "Career ladders",
-        "Headcount planning",
-        "Hiring pipelines",
-        "Change management",
-        "Conflict resolution",
-        "Technical Strategy",
-        "Roadmap Alignment",
-        "Product Management"
-      ]
-    },
-    {
       "name": "Architecture & Systems",
       "keywords": [
         "Systems Architecture",
         "Distributed Systems",
+        "Decentralized / P2P / Mesh",
         "Microservices",
-        "Edge Computing"
+        "Edge Computing",
+        "Event-Driven Architecture",
+        "Offline-First Design"
       ]
     },
     {
       "name": "Programming",
       "keywords": [
-        "Java",
-        "Python",
+        "Rust",
         "Go",
-        "TypeScript"
+        "Python",
+        "Java",
+        "TypeScript",
+        "Dart"
       ]
     },
     {
       "name": "Frameworks & Libraries",
       "keywords": [
+        "Flutter",
+        "Django",
+        "FastAPI",
+        "Gin",
         "Spring Boot",
         "React",
         "React Native",
-        "NestJS",
-        "Express",
-        "Gin",
-        "Django",
-        "FastAPI",
         "Dropwizard"
+      ]
+    },
+    {
+      "name": "AI/LLM Engineering (Pragmatic)",
+      "keywords": [
+        "LLM-accelerated development",
+        "Agentic systems (edge-deployed, identity-bound)",
+        "AI-assisted automation & toil reduction",
+        "Rapid POC delivery via AI tooling",
+        "Architectural determinism over AI magic",
+        "Human-in-the-loop for production systems",
+        "Prompt engineering & agent orchestration"
+      ]
+    },
+    {
+      "name": "Technical Leadership",
+      "keywords": [
+        "Technical vision",
+        "Architectural decisions",
+        "RFCs/ADRs",
+        "Trade-off analysis",
+        "Platform thinking",
+        "Cross-team alignment",
+        "Mentorship",
+        "Technical due diligence"
       ]
     },
     {
@@ -447,27 +505,6 @@
         "MQTT",
         "Elasticsearch",
         "CI/CD"
-      ]
-    },
-    {
-      "name": "Compliance",
-      "keywords": [
-        "FedRAMP/IL5/IL6 Deployments",
-        "NIST 800-53",
-        "NIST 800-171",
-        "NIST 800-207"
-      ]
-    },
-    {
-      "name": "Technical Leadership",
-      "keywords": [
-        "Technical vision",
-        "Architectural decisions",
-        "RFCs/ADRs",
-        "Trade-off analysis",
-        "Platform thinking",
-        "Cross-team alignment",
-        "Technical due diligence"
       ]
     },
     {
@@ -495,25 +532,14 @@
       ]
     },
     {
-      "name": "Security Leadership",
+      "name": "Security & Compliance",
       "keywords": [
         "Secure SDLC",
         "Threat modeling",
         "Supply-chain security/SBOM",
-        "Secrets management",
-        "Vulnerability management",
+        "FedRAMP/IL5/IL6",
+        "NIST 800-53/171",
         "Audit readiness"
-      ]
-    },
-    {
-      "name": "Program & Delivery",
-      "keywords": [
-        "Quarterly planning",
-        "OKRs/KPIs",
-        "Risk management",
-        "Release management",
-        "Dependency management",
-        "Stakeholder communication"
       ]
     },
     {
@@ -551,19 +577,28 @@
     {
       "name": "Communication & Influence",
       "keywords": [
-        "Executive communication",
-        "Strategy docs",
-        "PR/FAQ",
-        "Facilitation",
-        "Customer escalations"
+        "Technical writing (RFCs/ADRs)",
+        "Architecture presentations",
+        "Cross-team alignment",
+        "Stakeholder communication"
       ]
     }
   ],
   "interests": [
     {
+      "name": "Decentralized Systems",
+      "keywords": [
+        "Mesh networking",
+        "DIDs / Verifiable Credentials",
+        "CRDTs",
+        "P2P protocols"
+      ]
+    },
+    {
       "name": "Edge Computing",
       "keywords": [
         "Jetson Orin",
+        "Edge AI / autonomous agents",
         "Ruggedized hardware"
       ]
     },
@@ -571,7 +606,8 @@
       "name": "Defense Tech",
       "keywords": [
         "C2 Systems",
-        "Sensor Integration"
+        "Sensor integration",
+        "Multi-transport comms"
       ]
     }
   ],

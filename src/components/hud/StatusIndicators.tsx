@@ -126,15 +126,7 @@ export default function StatusIndicators({ soundEnabled, toggleSound, onContactC
         </div>
       </div>
 
-      {/* Centered CLASSIFIED stamp */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center"
-        aria-hidden
-      >
-        <div className="classified-stamp scale-50 sm:scale-75 md:scale-100">
-          <span className="classified-stamp-text" data-text="CLASSIFIED">CLASSIFIED</span>
-        </div>
-      </div>
+      {/* CLASSIFIED stamp removed */}
       
       {/* Tiny toast for sign out */}
       {showSignOutToast && (

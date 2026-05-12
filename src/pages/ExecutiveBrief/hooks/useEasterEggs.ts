@@ -101,6 +101,14 @@ export function useEasterEggs(): EasterEggState & EasterEggActions {
     setHelpOpen(v => !v);
   }, []);
 
+  const triggerAtlas = useCallback(() => {
+    import('../../../features/mesh/meshBootSequence').then(({ streamBootSequence }) => {
+      // Atlas boot sequence streams lines — use a no-op appendLine since terminal
+      // may not be open; callers that want terminal output should use the atlas command.
+      streamBootSequence(() => {});
+    });
+  }, []);
+
   // Crayon functions
   const triggerCrayon = useCallback(() => {
     setShowCrayonSelector(true);
@@ -133,9 +141,10 @@ export function useEasterEggs(): EasterEggState & EasterEggActions {
       case 'beam': triggerBeam(); return true;
       case 'hiking': triggerHiking(); return true;
       case 'crayon': triggerCrayon(); return true;
+      case 'atlas': triggerAtlas(); return true;
       default: return false;
     }
-  }, [triggerMatrix, triggerUFO, triggerPaws, triggerGlitch, triggerNeon, triggerScanlines, triggerBeam, triggerHiking, triggerCrayon]);
+  }, [triggerMatrix, triggerUFO, triggerPaws, triggerGlitch, triggerNeon, triggerScanlines, triggerBeam, triggerHiking, triggerCrayon, triggerAtlas]);
 
   // Keyboard listeners
   useEffect(() => {
@@ -165,6 +174,7 @@ export function useEasterEggs(): EasterEggState & EasterEggActions {
         case 'v': triggerScanlines(); break;
         case 'b': triggerBeam(); break;
         case 'c': triggerCrayon(); break;
+        case 'm': triggerAtlas(); break;
       }
       
       // Help overlay
@@ -187,7 +197,7 @@ export function useEasterEggs(): EasterEggState & EasterEggActions {
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [helpOpen, triggerUFO, triggerPaws, triggerGlitch, triggerNeon, triggerHiking, triggerScanlines, triggerBeam, triggerCrayon, triggerHelp, triggerMatrix]);
+  }, [helpOpen, triggerUFO, triggerPaws, triggerGlitch, triggerNeon, triggerHiking, triggerScanlines, triggerBeam, triggerCrayon, triggerHelp, triggerMatrix, triggerAtlas]);
 
   return {
     // State
@@ -213,6 +223,7 @@ export function useEasterEggs(): EasterEggState & EasterEggActions {
     triggerBeam,
     triggerHiking,
     triggerCrayon,
+    triggerAtlas,
     selectCrayonFlavor,
     closeCrayonSelector,
     triggerHelp,

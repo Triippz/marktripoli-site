@@ -108,6 +108,10 @@ const effectRegistry: EffectExecutor = {
     if (target && 'appendChild' in target) {
       particleEffects.ufoBeamOnMap(target as HTMLElement);
     }
+  },
+
+  meshNetwork: () => {
+    window.dispatchEvent(new CustomEvent('atlas-mesh-activate'));
   }
 };
 

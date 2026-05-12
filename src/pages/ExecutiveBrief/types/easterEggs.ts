@@ -47,16 +47,17 @@ export interface EasterEggState extends CrayonState {
   helpOpen: boolean;
 }
 
-export type EasterEggType = 
+export type EasterEggType =
   | 'matrix'
-  | 'ufo' 
+  | 'ufo'
   | 'paws'
   | 'glitch'
   | 'neon'
   | 'scanlines'
   | 'beam'
   | 'hiking'
-  | 'crayon';
+  | 'crayon'
+  | 'atlas';
 
 export interface EasterEggActions {
   triggerMatrix: () => void;
@@ -68,6 +69,7 @@ export interface EasterEggActions {
   triggerBeam: () => void;
   triggerHiking: () => void;
   triggerCrayon: () => void;
+  triggerAtlas: () => void;
   selectCrayonFlavor: (flavor: CrayonFlavor) => void;
   closeCrayonSelector: () => void;
   triggerHelp: () => void;

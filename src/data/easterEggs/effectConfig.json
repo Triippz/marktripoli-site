@@ -10,7 +10,8 @@
     "satelliteStreak": 0.15,
     "matrixPulse": 0.10,
     "auroraOverlay": 0.10,
-    "scanlinesOverlay": 0.05
+    "scanlinesOverlay": 0.05,
+    "meshNetwork": 0.02
   },
   "durations": {
     "satelliteStreak": 3500,
@@ -23,7 +24,8 @@
     "particleRing": 3000,
     "radarSweep": 4000,
     "rocketLaunch": 3200,
-    "lightningFlash": 1200
+    "lightningFlash": 1200,
+    "meshNetwork": 999999999
   },
   "effects": {
     "ufoBlips": {

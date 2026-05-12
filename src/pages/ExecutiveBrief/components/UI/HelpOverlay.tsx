@@ -28,6 +28,7 @@ export function HelpOverlay({ isOpen, onClose }: HelpOverlayProps) {
           <div><span className="text-green-400">H</span>: Hiking mode (mountains)</div>
           <div><span className="text-green-400">V</span>: CRT scanlines</div>
           <div><span className="text-green-400">B</span>: UFO beam spotlight</div>
+          <div><span className="text-green-400">M</span>: Atlas mesh network</div>
           <div><span className="text-green-400">?</span>: Toggle this help</div>
           <div><span className="text-green-400">`</span> or <span className="text-green-400">Ctrl/Cmd+Alt+T</span>: Secret terminal</div>
           <div className="pt-2 text-gray-400">Map: idle for random events (UFO blips, satellite streaks, anomaly pings, aurora).</div>

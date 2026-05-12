@@ -14,6 +14,7 @@ import MapContainer from './core/MapContainer';
 import { UXVSystem, useUXVState } from '../../features/uxv';
 import { CareerSystem } from '../../features/career';
 import { TerminalSystem } from '../../features/terminal';
+import { MeshNetworkRenderer } from '../../features/mesh';
 
 // Overlay components
 import { 
@@ -61,6 +62,9 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
 
   // UXV system integration
   const uxvState = useUXVState();
+
+  // Mesh network state
+  const [meshActive, setMeshActive] = useState(false);
   
   // Note: ResponsiveProvider handles updating responsive state in the store
 
@@ -232,6 +236,38 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
     }
   }, [map, uxvState]);
 
+  // Mesh network keyboard handler (M key)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      // Skip if the event originates from an input, textarea, or contentEditable element
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      if (e.key === 'm' || e.key === 'M') {
+        setMeshActive(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Mesh network custom event listeners
+  useEffect(() => {
+    const handleActivate = () => setMeshActive(true);
+    const handleDeactivate = () => setMeshActive(false);
+    window.addEventListener('atlas-mesh-activate', handleActivate);
+    window.addEventListener('atlas-mesh-deactivate', handleDeactivate);
+    return () => {
+      window.removeEventListener('atlas-mesh-activate', handleActivate);
+      window.removeEventListener('atlas-mesh-deactivate', handleDeactivate);
+    };
+  }, []);
+
   // Cleanup
   useEffect(() => {
     return () => {
@@ -298,6 +334,13 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
             onStartUXV={handleStartUXV}
             uxv={uxvState}
           />
+
+          {/* Mesh Network Renderer */}
+          <MeshNetworkRenderer
+            map={map}
+            active={meshActive}
+            onComplete={() => setMeshActive(false)}
+          />
         </>
       )}
 
@@ -333,6 +376,34 @@ function MapboxScene({ sites: propSites }: MapboxSceneProps = {}) {
           {/* Alert overlay */}
           <AlertOverlay isAlertMode={alertMode} />
 
+          {/* Mobile mesh toggle button */}
+          {isMobile && (
+            <button
+              onClick={() => setMeshActive(prev => !prev)}
+              aria-label={meshActive ? 'Deactivate mesh network' : 'Activate mesh network'}
+              style={{
+                position: 'absolute',
+                bottom: '80px',
+                right: '12px',
+                width: '38px',
+                height: '38px',
+                background: 'black',
+                border: `1px solid ${meshActive ? '#00ff00' : '#004400'}`,
+                color: meshActive ? '#00ff00' : '#006600',
+                fontFamily: '"Courier New", monospace',
+                fontSize: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 60,
+                boxShadow: meshActive ? '0 0 8px rgba(0,255,0,0.4)' : 'none',
+                transition: 'border-color 0.2s, color 0.2s, box-shadow 0.2s',
+              }}
+            >
+              ⬡
+            </button>
+          )}
         </>
       )}
 

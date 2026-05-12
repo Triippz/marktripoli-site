@@ -4,6 +4,7 @@ import { featureLoggers, criticalLog } from '../utils/debugLogger';
 
 // Mission control codenames for companies/institutions
 const TACTICAL_CODENAMES: { [key: string]: string } = {
+  'Adyton': 'OPERATION ATLAS',
   'Picogrid': 'OPERATION NEXUS',
   'HubSpot': 'OPERATION GROWTH ENGINE',
   'Comcast': 'OPERATION BROADBAND',
